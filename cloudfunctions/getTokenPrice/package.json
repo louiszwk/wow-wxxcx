@@ -1,0 +1,14 @@
+{
+  "name": "getTokenPrice",
+  "version": "1.0.0",
+  "description": "获取时光徽章价格",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "axios": "0.27.2",
+    "cheerio": "1.0.0-rc.3",
+    "wx-server-sdk": "~2.6.3"
+  }
+}

@@ -1,0 +1,88 @@
+<view class="page-container">
+  <view class="nav-bar">
+    <view class="nav-back" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+      <text class="back-icon">‹</text>
+    </view>
+    <view class="nav-title">{{className}}</view>
+  </view>
+
+  <view class="banner-area">
+    <view class="time-limit">数据版本：12.1 (精准同步)</view>
+    <!-- 顶部背景图，可以用死亡骑士的职业背景替代 -->
+    <image class="banner-img" src="https://wow.zamimg.com/images/wow/icons/large/class_deathknight.jpg" mode="aspectFill"></image>
+  </view>
+
+  <view class="tabs-container">
+    <view class="spec-tabs">
+      <block wx:for="{{specs}}" wx:key="id">
+        <view class="spec-tab {{activeSpec === index ? 'active' : ''}}" bindtap="switchSpec" data-index="{{index}}">
+          <text>{{item.name}}</text>
+        </view>
+      </block>
+    </view>
+
+    <view class="mode-tabs">
+      <block wx:for="{{modes}}" wx:key="*this">
+        <view class="mode-tab {{activeMode === index ? 'active' : ''}}" bindtap="switchMode" data-index="{{index}}">
+          <text>{{item}}</text>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <view wx:if="{{isLoading}}" class="loading-state">
+    <text>正在从 Raider.io 分析大秘境高层榜首实战数据...</text>
+  </view>
+
+  <view wx:else>
+    <view class="gear-panel">
+      <!-- 左侧装备栏 -->
+      <view class="gear-col left-col">
+        <block wx:for="{{leftGear}}" wx:key="slot">
+          <view class="gear-item {{item.quality === 'empty' ? 'empty-slot' : ''}}" bindtap="openItemStats" data-name="{{item.name}}">
+            <image class="gear-icon" src="{{item.icon}}" wx:if="{{item.icon}}"></image>
+            <view class="gear-empty-icon" wx:else>BC</view>
+            <view class="gear-info" wx:if="{{item.name}}">
+              <view class="gear-name epic-text">{{item.name}}</view>
+              <view class="gear-desc">{{item.desc}}</view>
+            </view>
+          </view>
+        </block>
+      </view>
+
+      <!-- 右侧装备栏 -->
+      <view class="gear-col right-col">
+        <block wx:for="{{rightGear}}" wx:key="slot">
+          <view class="gear-item reverse {{item.quality === 'empty' ? 'empty-slot' : ''}}" bindtap="openItemStats" data-name="{{item.name}}">
+            <image class="gear-icon" src="{{item.icon}}" wx:if="{{item.icon}}"></image>
+            <view class="gear-empty-icon" wx:else>BC</view>
+            <view class="gear-info" wx:if="{{item.name}}">
+              <view class="gear-name epic-text">{{item.name}}</view>
+              <view class="gear-desc">{{item.desc}}</view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- 武器栏 -->
+    <view class="weapons-panel">
+      <block wx:for="{{weapons}}" wx:key="slot">
+        <view class="gear-item {{item.quality === 'empty' ? 'empty-slot' : ''}}" bindtap="openItemStats" data-name="{{item.name}}">
+          <image class="gear-icon" src="{{item.icon}}" wx:if="{{item.icon}}"></image>
+          <view class="gear-empty-icon" wx:else>BC</view>
+          <view class="gear-info" wx:if="{{item.name}}">
+            <view class="gear-name epic-text">{{item.name}}</view>
+            <view class="gear-desc">{{item.desc}}</view>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <!-- 属性信息 -->
+    <view class="stats-panel">
+      <view class="stats-title">{{playerInfo}}</view>
+    </view>
+  </view>
+
+</view>

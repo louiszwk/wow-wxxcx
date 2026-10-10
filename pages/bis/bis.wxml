@@ -1,0 +1,35 @@
+<view class="page-container">
+  <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+    <text class="back-icon">‹</text>
+    <text class="back-text">返回</text>
+  </view>
+
+  <view class="header">
+    <view class="title">BiS 装备推荐</view>
+    <view class="subtitle">全职业最佳装备、附魔、宝石权威指南</view>
+    <view class="desc">点击职业选择专精，系统将自动从 Wowhead 获取最新版本的 BiS 数据。</view>
+  </view>
+
+  <view class="class-list">
+    <block wx:for="{{classes}}" wx:key="id">
+      <view class="class-card">
+        <view class="class-header" bindtap="toggleExpand" data-id="{{item.id}}" style="border-left-color: {{item.color}}">
+          <view class="class-info">
+            <text class="class-icon">{{item.icon}}</text>
+            <text class="class-name" style="color: {{item.color}}">{{item.name}}</text>
+          </view>
+          <view class="expand-icon {{expandedClassId === item.id ? 'expanded' : ''}}">▼</view>
+        </view>
+        
+        <view class="spec-list" wx:if="{{expandedClassId === item.id}}">
+          <block wx:for="{{item.specs}}" wx:key="id" wx:for-item="spec">
+            <view class="spec-item" bindtap="openBisGuide" data-class="{{item.id}}" data-spec="{{spec.id}}">
+              <text class="spec-name">{{spec.name}}</text>
+              <text class="spec-arrow">➔</text>
+            </view>
+          </block>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>

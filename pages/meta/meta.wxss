@@ -1,0 +1,241 @@
+/* pages/meta/meta.wxss */
+/* ================= 浅色主题变量 ================= */
+.theme-light {
+  --bg-color: #f7f8fa;
+  --card-bg: #ffffff;
+  --text-primary: #333333;
+  --text-secondary: #888888;
+  --border-color: #eaeaea;
+  --bar-bg: #e5e7eb;
+  --tab-bg: #f3f4f6;
+  --tab-active-bg: #ffffff;
+}
+
+/* ================= 深色主题变量 ================= */
+.theme-dark {
+  --bg-color: #111827;
+  --card-bg: #1F2937;
+  --text-primary: #FFFFFF;
+  --text-secondary: #9CA3AF;
+  --border-color: #374151;
+  --bar-bg: #374151;
+  --tab-bg: #1F2937;
+  --tab-active-bg: #374151;
+}
+
+.page-container {
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.scrollarea {
+  flex: 1;
+  padding: 10rpx 32rpx 32rpx;
+  box-sizing: border-box;
+}
+
+.nav-header {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 60rpx 0 10rpx;
+  margin-left: 10rpx;
+  
+  color: var(--text-secondary);
+  font-size: 32rpx;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.back-icon {
+  font-size: 40rpx;
+  margin-right: 12rpx;
+  margin-bottom: 4rpx;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30rpx;
+  position: relative;
+}
+
+.theme-toggle {
+  position: absolute;
+  left: 0rpx;
+  top: 10rpx;
+  font-size: 40rpx;
+  padding: 10rpx;
+}
+
+.title {
+  font-size: 40rpx;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 12rpx;
+  letter-spacing: 2rpx;
+}
+
+.subtitle {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+/* Tabs */
+.tabs-container {
+  display: flex;
+  background: var(--tab-bg);
+  border-radius: 16rpx;
+  padding: 8rpx;
+  margin-bottom: 40rpx;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-radius: 12rpx;
+  transition: all 0.2s ease;
+}
+
+.tab-item.active {
+  background: var(--tab-active-bg);
+  color: var(--text-primary);
+  box-shadow: 0 4rpx 6rpx rgba(0, 0, 0, 0.1);
+}
+
+.status-message {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 26rpx;
+  margin: 100rpx 0;
+}
+
+/* Sections */
+.meta-section {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 6rpx 10rpx -3rpx rgba(0, 0, 0, 0.08);
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 20rpx;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 12rpx;
+}
+
+.meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tier-badge {
+  width: 40rpx;
+  height: 40rpx;
+  line-height: 40rpx;
+  text-align: center;
+  border-radius: 6rpx;
+  font-size: 24rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-right: 12rpx;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+.spec-name {
+  width: 200rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Complex layout for DPS/Tanks/Healers */
+.meta-item-complex {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  margin-bottom: 16rpx;
+}
+
+.complex-header {
+  display: flex;
+  align-items: center;
+}
+
+.stats-row {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12rpx;
+}
+
+.stat-text {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.bar-container-complex {
+  width: 100%;
+  height: 16rpx;
+  background: var(--bar-bg);
+  border-radius: 8rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.bar-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-color: rgba(156, 163, 175, 0.4); /* Tailwind gray-400 with 40% opacity */
+  border-radius: 8rpx;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 8rpx;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 2px 4px rgba(255,255,255,0.2), inset 0 -2px 4px rgba(0,0,0,0.2);
+}
+
+.count-num {
+  width: 70rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.footer {
+  text-align: center;
+  font-size: 22rpx;
+  color: var(--text-secondary);
+  margin: 40rpx 0 60rpx 0;
+}

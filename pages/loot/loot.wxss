@@ -1,0 +1,356 @@
+page, view, scroll-view, text {
+  box-sizing: border-box;
+}
+
+page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ================= 浅色主题 ================= */
+.theme-light {
+  --bg-color: #f4f5f7;
+  --text-color: #333333;
+  --header-bg: #ffffff;
+  --header-border: #e5e5ea;
+  --title-color: #0070dd;
+  --subtitle-color: #888888;
+  
+  --card-bg: #ffffff;
+  --card-border: #e5e5ea;
+  --card-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+  
+  --dungeon-header-bg: #fafafa;
+  --dungeon-name-color: #333333;
+  --dungeon-content-bg: #ffffff;
+  
+  --boss-name-color: #d82e2e;
+  --boss-border: #eeeeee;
+  
+  --item-bg: #f9f9f9;
+  --item-border: #eeeeee;
+  --icon-bg: #e0e0e0;
+  --icon-border: #cccccc;
+
+  --badge-combo-bg: #f0f0f0;
+  --badge-combo-color: #666666;
+  --badge-combo-border: #dddddd;
+  
+  --loot-type-color: #666666;
+  --loot-main-stat-color: #888888;
+}
+
+/* ================= 深色主题 ================= */
+.theme-dark {
+  --bg-color: #0c0c0c;
+  --text-color: #e4d8b5;
+  --header-bg: linear-gradient(to bottom, #1a160d, #0c0c0c);
+  --header-border: #332b1a;
+  --title-color: #f8b700;
+  --subtitle-color: #8c7e61;
+  
+  --card-bg: #1a1814;
+  --card-border: #3d321d;
+  --card-shadow: 0 4rpx 6rpx rgba(0,0,0,0.5);
+  
+  --dungeon-header-bg: linear-gradient(to right, #241e13, #1a1814);
+  --dungeon-name-color: #d1b87a;
+  --dungeon-content-bg: #12110e;
+  
+  --boss-name-color: #ff3f40;
+  --boss-border: #3a2222;
+  
+  --item-bg: #1a1814;
+  --item-border: #2a261f;
+  --icon-bg: #222222;
+  --icon-border: #444444;
+
+  --badge-combo-bg: #2a2012;
+  --badge-combo-color: #e6cc80;
+  --badge-combo-border: #5c4723;
+  
+  --loot-type-color: #8c7e61;
+  --loot-main-stat-color: #a89f91;
+}
+
+/* ================= 通用样式 (使用 rpx 自适应) ================= */
+
+.scrollarea {
+  flex: 1;
+  overflow-y: hidden;
+  padding: 30rpx;
+}
+
+.nav-header {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 60rpx 0 10rpx;
+  margin-left: 10rpx;
+  
+  color: var(--subtitle-color);
+  font-size: 32rpx;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.back-icon {
+  font-size: 40rpx;
+  margin-right: 12rpx;
+  margin-bottom: 4rpx;
+}
+
+.header {
+  position: relative;
+  text-align: center;
+  margin-bottom: 40rpx;
+  padding: 40rpx 0;
+  border-bottom: 2rpx solid var(--header-border);
+  background: var(--header-bg);
+  border-radius: 16rpx;
+}
+
+.theme-toggle {
+  position: absolute;
+  left: 30rpx;
+  top: 30rpx;
+  font-size: 40rpx;
+  padding: 10rpx;
+  background: none;
+  border: none;
+}
+
+.title {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: var(--title-color);
+  letter-spacing: 2rpx;
+}
+
+.subtitle {
+  font-size: 24rpx;
+  color: var(--subtitle-color);
+  margin-top: 10rpx;
+  text-transform: uppercase;
+  letter-spacing: 2rpx;
+}
+
+/* Filter Section */
+.filter-section {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 0 24rpx 0;
+  margin-bottom: 24rpx;
+  gap: 16rpx;
+}
+
+.picker-box {
+  flex: 1;
+  background: var(--card-bg);
+  padding: 12rpx 16rpx;
+  border-radius: 12rpx;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--card-border);
+  min-width: 0;
+}
+
+.picker-box.disabled {
+  opacity: 0.6;
+}
+
+.picker-label {
+  font-size: 22rpx;
+  color: var(--subtitle-color);
+  white-space: nowrap;
+}
+
+.picker-value {
+  font-size: 24rpx;
+  font-weight: bold;
+  color: var(--title-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-message {
+  display: flex;
+  justify-content: center;
+  padding: 60rpx;
+}
+
+.loading-text {
+  color: #0070dd;
+  font-size: 28rpx;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.dungeon-list {
+  padding-bottom: 60rpx;
+}
+
+.dungeon-card {
+  background-color: var(--card-bg);
+  border: 2rpx solid var(--card-border);
+  border-radius: 12rpx;
+  margin-bottom: 24rpx;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s ease;
+}
+
+.dungeon-header {
+  padding: 24rpx 30rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--dungeon-header-bg);
+  cursor: pointer;
+}
+
+.dungeon-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--dungeon-name-color);
+}
+
+.expand-icon {
+  color: var(--subtitle-color);
+  font-size: 24rpx;
+}
+
+.dungeon-content {
+  padding: 24rpx;
+  border-top: 2rpx solid var(--card-border);
+  background-color: var(--dungeon-content-bg);
+}
+
+.boss-section {
+  margin-bottom: 36rpx;
+}
+
+.boss-section:last-child {
+  margin-bottom: 0;
+}
+
+.boss-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+  padding-bottom: 8rpx;
+  border-bottom: 2rpx dashed var(--boss-border);
+}
+
+.boss-name {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: var(--boss-name-color);
+}
+
+.boss-name-cn {
+  font-size: 24rpx;
+  color: var(--subtitle-color);
+  font-weight: normal;
+  margin-left: 10rpx;
+}
+
+.loot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.loot-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx;
+  background-color: var(--item-bg);
+  border-radius: 8rpx;
+  border: 2rpx solid var(--item-border);
+  width: 100%;
+}
+
+.loot-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.loot-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  margin-bottom: 4rpx;
+}
+
+.POOR { color: #9d9d9d; }
+.COMMON { color: #555555; }
+.UNCOMMON { color: #1eff00; }
+.RARE { color: #0070dd; }
+.EPIC { color: #a335ee; }
+.LEGENDARY { color: #ff8000; }
+.ARTIFACT { color: #e6cc80; }
+
+.loot-type {
+  font-size: 22rpx;
+  color: var(--loot-type-color);
+  margin-bottom: 8rpx;
+}
+
+.loot-main-stat {
+  color: var(--loot-main-stat-color);
+  font-style: italic;
+}
+
+.loot-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 4rpx;
+}
+
+.stat-badge {
+  font-size: 20rpx;
+  padding: 4rpx 10rpx;
+  border-radius: 6rpx;
+  background-color: var(--item-bg);
+  border: 2rpx solid var(--item-border);
+}
+
+.stat-badge.combo { background-color: var(--badge-combo-bg); color: var(--badge-combo-color); border-color: var(--badge-combo-border); }
+.stat-badge.crit { color: #ff5555; border-color: #ffaaaa; background-color: rgba(255,85,85,0.05); }
+.stat-badge.haste { color: #22aa22; border-color: #aaffaa; background-color: rgba(34,170,34,0.05); }
+.stat-badge.mastery { color: #5555ff; border-color: #aaaaff; background-color: rgba(85,85,255,0.05); }
+.stat-badge.versa { color: #dd8800; border-color: #ffcc88; background-color: rgba(221,136,0,0.05); }
+
+/* 深色模式下的徽章微调 */
+.theme-dark .stat-badge.crit { border-color: #552222; }
+.theme-dark .stat-badge.haste { color: #55ff55; border-color: #225522; }
+.theme-dark .stat-badge.mastery { color: #aaaaee; border-color: #333366; }
+.theme-dark .stat-badge.versa { color: #ffaa00; border-color: #553300; }
+
+.no-loot {
+  font-size: 24rpx;
+  color: #999;
+  font-style: italic;
+  padding: 20rpx;
+}

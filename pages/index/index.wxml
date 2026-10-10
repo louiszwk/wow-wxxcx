@@ -1,0 +1,54 @@
+<view class="page-container theme-{{theme}}">
+  <view class="header" style="padding-top: {{navBarHeight}}px;">
+    <view class="theme-toggle" bindtap="toggleTheme">
+      <text class="icon">{{theme === 'light' ? '🌙' : '☀️'}}</text>
+    </view>
+    <view class="hero-section">
+      <view class="title">艾泽拉斯的微风</view>
+      <view class="subtitle">魔兽世界大秘境核心向工具箱</view>
+    </view>
+  </view>
+
+  <view class="nav-grid">
+    <view class="nav-card" bindtap="navigateToMeta">
+      <view class="card-content">
+        <view class="card-title">大秘境强度榜</view>
+        <view class="card-desc">实时追踪 14+ 层强度评级。</view>
+      </view>
+    </view>
+
+    <view class="nav-card" bindtap="navigateToTopMeta">
+      <view class="card-content">
+        <view class="card-title">顶层出场率</view>
+        <view class="card-desc">深度剖析全球最高层前 60 强车队阵容。</view>
+      </view>
+    </view>
+
+    <view class="nav-card" bindtap="navigateToLoot">
+      <view class="card-content">
+        <view class="card-title">第二赛季掉落</view>
+        <view class="card-desc">全网最全掉落指北，支持多职业查询。</view>
+      </view>
+    </view>
+
+    <view class="nav-card" bindtap="navigateToBis">
+      <view class="card-content">
+        <view class="card-title">BiS 装备推荐</view>
+        <view class="card-desc">全职业毕业装备、附魔、宝石权威指南。</view>
+      </view>
+    </view>
+
+    <view class="nav-card" bindtap="navigateToToken">
+      <view class="card-content">
+        <view class="card-title">时光徽章行情</view>
+        <view class="card-desc">实时追踪最新价格走势与波动。</view>
+      </view>
+    </view>
+
+
+  </view>
+  
+  <view class="footer">
+    <text>Data Driven World of Warcraft</text>
+  </view>
+</view>

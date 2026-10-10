@@ -1,0 +1,123 @@
+.page-container {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 20px;
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+.nav-header {
+  display: flex;
+  align-items: center;
+  padding: 0 0 20px;
+  font-size: 16px;
+}
+.back-icon {
+  font-size: 24px;
+  margin-right: 5px;
+  margin-top: -2px;
+}
+
+.header {
+  margin-bottom: 30px;
+}
+.title {
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+}
+.subtitle {
+  font-size: 16px;
+  color: #cbd5e1;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.desc {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.class-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 40px;
+}
+
+.class-card {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.class-header {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-left: 4px solid transparent;
+  transition: background 0.2s;
+}
+.class-header:active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.class-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.class-icon {
+  font-size: 22px;
+}
+.class-name {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.expand-icon {
+  font-size: 12px;
+  color: #64748b;
+  transition: transform 0.3s;
+}
+.expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+.spec-list {
+  background: rgba(15, 23, 42, 0.4);
+  border-top: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.spec-item {
+  padding: 14px 20px 14px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+  transition: background 0.2s;
+}
+.spec-item:last-child {
+  border-bottom: none;
+}
+.spec-item:active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.spec-name {
+  font-size: 16px;
+  color: #f1f5f9;
+  font-weight: 500;
+}
+.spec-arrow {
+  font-size: 16px;
+  color: #3b82f6;
+  opacity: 0.8;
+}

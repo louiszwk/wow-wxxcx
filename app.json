@@ -1,0 +1,22 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/loot/loot",
+    "pages/meta/meta",
+    "pages/topmeta/topmeta",
+    "pages/token/token",
+    "pages/news/news",
+    "pages/bis/bis",
+    "pages/bis-detail/bis-detail",
+    "pages/webview/webview",
+    "pages/news-detail/news-detail"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationStyle": "custom"
+  },
+  "style": "v2",
+  "componentFramework": "glass-easel",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

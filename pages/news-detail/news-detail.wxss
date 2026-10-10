@@ -1,0 +1,106 @@
+.detail-container {
+  min-height: 100vh;
+  box-sizing: border-box;
+  background-color: #0f172a;
+  color: #f8fafc;
+  line-height: 1.8;
+  display: flex;
+  flex-direction: column;
+}
+
+.custom-nav-bar {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  background-color: #1e293b;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding-bottom: 5px;
+}
+
+.nav-back {
+  padding: 0 15px;
+  font-size: 16px;
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+}
+
+.back-icon {
+  font-size: 20px;
+  margin-right: 4px;
+  margin-bottom: 2px;
+}
+
+.nav-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.content-wrapper {
+  padding: 20px;
+  flex: 1;
+}
+
+.article-content {
+  font-size: 15px;
+  color: #cbd5e1;
+}
+
+/* 富文本样式重置尝试（通常 rich-text 需要行内样式，但这里可以控制外层） */
+.article-content img, .article-content image {
+  max-width: 100% !important;
+  height: auto !important;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.article-content h1, .article-content h2, .article-content h3 {
+  color: #f8fafc;
+  margin: 20px 0 10px;
+  font-weight: bold;
+}
+
+.article-content h1 { font-size: 22px; }
+.article-content h2 { font-size: 20px; }
+.article-content h3 { font-size: 18px; }
+
+.article-content p {
+  margin-bottom: 15px;
+}
+
+.loading-state, .error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 20px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255,255,255,0.1);
+  border-top-color: #38bdf8;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.retry-btn {
+  margin-top: 20px;
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  font-size: 14px;
+  padding: 10px 25px;
+  border-radius: 8px;
+}

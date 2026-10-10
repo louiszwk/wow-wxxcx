@@ -1,0 +1,39 @@
+<view class="page-container theme-{{theme}}">
+  <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+    <text class="back-icon">‹</text>
+    <text class="back-text">返回</text>
+  </view>
+
+  <view class="header">
+    <view class="title">时光徽章</view>
+    <view class="subtitle">WoW Token Price</view>
+    <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+  </view>
+
+  <view class="content">
+    <view class="price-card {{trend}}">
+      <view class="region-tabs">
+        <view class="tab {{currentRegion === 'cn' ? 'active' : ''}}" bindtap="switchRegion" data-region="cn">国服</view>
+        <view class="tab {{currentRegion === 'tw' ? 'active' : ''}}" bindtap="switchRegion" data-region="tw">亚服</view>
+        <view class="tab {{currentRegion === 'us' ? 'active' : ''}}" bindtap="switchRegion" data-region="us">美服</view>
+        <view class="tab {{currentRegion === 'eu' ? 'active' : ''}}" bindtap="switchRegion" data-region="eu">欧服</view>
+      </view>
+
+      <view class="price-display">
+        <view class="price-value">
+          <text class="gold">{{price.gold}}</text>
+          <text class="unit">G</text>
+        </view>
+      </view>
+
+      <view class="update-time">
+        <text>最后更新: {{lastUpdated}}</text>
+        <view class="refresh-btn {{isRefreshing ? 'spinning' : ''}}" bindtap="refreshData">↻</view>
+      </view>
+    </view>
+
+    <view class="disclaimer">
+      <text>说明: 价格基于全网实时行情抓取。</text>
+    </view>
+  </view>
+</view>

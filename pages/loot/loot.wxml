@@ -1,0 +1,86 @@
+<!--index.wxml-->
+<view class="page-container theme-{{theme}}">
+  <scroll-view class="scrollarea" scroll-y type="list">
+    <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+      <text class="back-icon">‹</text>
+      <text class="back-text">返回</text>
+    </view>
+    <view class="header">
+      <view class="title">至暗之夜第二赛季</view>
+      <view class="subtitle">魔兽世界：至暗之夜第二赛季</view>
+      <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+    </view>
+
+    <!-- 职业/专精/部位筛选区 -->
+    <view class="filter-section">
+      <picker mode="selector" range="{{primaryStats}}" bindchange="onPrimaryChange" value="{{primaryIndex}}">
+        <view class="picker-box">
+          <text class="picker-label">主属性：</text>
+          <text class="picker-value">{{primaryStats.length > 0 ? primaryStats[primaryIndex] : '加载中'}} ▾</text>
+        </view>
+      </picker>
+      
+      <picker mode="selector" range="{{secondaryStats}}" bindchange="onSecondaryChange" value="{{secondaryIndex}}">
+        <view class="picker-box">
+          <text class="picker-label">副属性：</text>
+          <text class="picker-value">{{secondaryStats.length > 0 ? secondaryStats[secondaryIndex] : '加载中'}} ▾</text>
+        </view>
+      </picker>
+
+      <picker mode="selector" range="{{slots}}" bindchange="onSlotChange" value="{{slotIndex}}">
+        <view class="picker-box">
+          <text class="picker-label">部位：</text>
+          <text class="picker-value">{{slots.length > 0 ? slots[slotIndex] : '加载中'}} ▾</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="status-message" wx:if="{{loading}}">
+      <text class="loading-text">正在联系燃烧军团...</text>
+    </view>
+
+    <view class="dungeon-list" wx:else>
+      <block wx:for="{{dungeons}}" wx:key="id">
+        <view class="dungeon-card">
+          <view class="dungeon-header" bindtap="toggleDungeon" data-id="{{item.id}}">
+            <text class="dungeon-name">{{item.name}}</text>
+            <text class="expand-icon">{{item.expanded ? '▼' : '▶'}}</text>
+          </view>
+          
+          <view class="dungeon-content" wx:if="{{item.expanded}}">
+            <block wx:for="{{item.encounters}}" wx:key="id" wx:for-item="encounter">
+              <view class="boss-section">
+                <view class="boss-header" catchtap="toggleBoss" data-dungeon-id="{{item.id}}" data-boss-id="{{encounter.id}}" wx:if="{{encounter.name !== 'NONE'}}">
+                  <view class="boss-name">{{encounter.name}}</view>
+                  <text class="expand-icon">{{encounter.expanded === false ? '▶' : '▼'}}</text>
+                </view>
+                
+                <view class="loot-list" wx:if="{{encounter.expanded !== false}}">
+                  <block wx:for="{{encounter.items}}" wx:key="id" wx:for-item="loot">
+                    <view class="loot-item">
+                      <view class="loot-info">
+                        <text class="loot-name {{loot.quality.type}}">{{loot.name}}</text>
+                        <text class="loot-type">{{loot.item_class.name}} - {{loot.inventory_type.name}} <text class="loot-main-stat" wx:if="{{loot.stats.main}}">({{loot.stats.main}})</text></text>
+                        
+                        <!-- 绿字属性展示 -->
+                        <view class="loot-stats" wx:if="{{loot.stats.combo}}">
+                          <text class="stat-badge combo">{{loot.stats.combo}}</text>
+                          <text class="stat-badge crit" wx:if="{{loot.stats.crit}}">暴: {{loot.stats.crit}}</text>
+                          <text class="stat-badge haste" wx:if="{{loot.stats.haste}}">急: {{loot.stats.haste}}</text>
+                          <text class="stat-badge mastery" wx:if="{{loot.stats.mastery}}">精: {{loot.stats.mastery}}</text>
+                          <text class="stat-badge versa" wx:if="{{loot.stats.versa}}">全: {{loot.stats.versa}}</text>
+                        </view>
+                      </view>
+                    </view>
+                  </block>
+                  <view wx:if="{{encounter.items.length === 0}}" class="no-loot">暂无掉落数据</view>
+                </view>
+              </view>
+            </block>
+            <view wx:if="{{item.encounters.length === 0}}" class="no-loot">首领数据加载中...</view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+</view>

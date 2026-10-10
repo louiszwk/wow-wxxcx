@@ -1,0 +1,230 @@
+.page-container {
+  min-height: 100vh;
+  background-color: #1a1b2e;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding-top: 40px;
+  background-color: #232540;
+  position: relative;
+}
+.nav-back {
+  position: absolute;
+  left: 15px;
+  top: 40px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+}
+.back-icon {
+  font-size: 28px;
+  color: #fff;
+}
+.nav-title {
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.time-limit {
+  background-color: #0099ff;
+  color: #fff;
+  text-align: center;
+  font-size: 12px;
+  padding: 4px 0;
+  font-weight: bold;
+}
+
+.banner-img {
+  width: 100%;
+  height: 40px;
+  display: block;
+}
+
+.tabs-container {
+  background-color: #2a2c4a;
+  padding: 10px 0;
+  border-bottom: 1px solid #36395e;
+}
+
+.spec-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.spec-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 15px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid #4a4d7a;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #8f95c4;
+}
+.spec-tab.active {
+  border-color: #ff9900;
+  color: #ff9900;
+  background: rgba(255, 153, 0, 0.1);
+}
+.spec-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 2px;
+}
+
+.mode-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+.mode-tab {
+  font-size: 13px;
+  padding: 4px 15px;
+  border: 1px solid transparent;
+  color: #fff;
+}
+.mode-tab.active {
+  background-color: #e67e22;
+  border-radius: 4px;
+  font-weight: bold;
+}
+.mode-tab:not(.active) {
+  border: 1px solid #5a5d8a;
+  border-radius: 4px;
+  color: #a4a7c8;
+}
+
+/* 装备面板 */
+.gear-panel {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 10px;
+  background-image: url('https://wow.zamimg.com/images/wow/icons/large/class_deathknight.jpg');
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: overlay;
+  background-color: rgba(26, 27, 46, 0.95);
+}
+
+.gear-col {
+  width: 48%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.gear-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gear-item.reverse {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.gear-icon {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #a335ee;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.gear-empty-icon {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #555;
+  background: #111;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.gear-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+}
+
+.gear-name {
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 2px;
+  white-space: nowrap;
+}
+.epic-text {
+  color: #a335ee;
+}
+
+.gear-desc {
+  font-size: 10px;
+  color: #a4a7c8;
+  white-space: nowrap;
+}
+
+/* 底部武器栏 */
+.weapons-panel {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 0 15px 15px;
+}
+.weapons-panel .gear-item {
+  width: 45%;
+}
+
+/* 底部属性栏 */
+.stats-panel {
+  text-align: center;
+  padding: 15px;
+  background: rgba(0,0,0,0.3);
+  margin-top: 10px;
+}
+.stats-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #fff;
+}
+.stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+.stat-crit { color: #ff3333; }
+.stat-haste { color: #ffcc00; }
+.stat-mastery { color: #3399ff; }
+.stat-vers { color: #cc66ff; }
+.stats-total {
+  font-size: 14px;
+  color: #00ff00;
+  font-weight: bold;
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  color: #a335ee;
+  font-size: 14px;
+  text-align: center;
+  background-color: rgba(26, 27, 46, 0.95);
+}

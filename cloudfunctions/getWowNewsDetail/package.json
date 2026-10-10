@@ -1,0 +1,11 @@
+{
+  "name": "getWowNewsDetail",
+  "version": "1.0.0",
+  "description": "Fetch WoW CN News Detail",
+  "main": "index.js",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "cheerio": "^1.0.0-rc.12",
+    "wx-server-sdk": "~2.6.3"
+  }
+}

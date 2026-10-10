@@ -1,0 +1,105 @@
+<!--pages/meta/meta.wxml-->
+<view class="page-container theme-{{theme}}">
+  <scroll-view class="scrollarea" scroll-y type="list">
+    <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+      <text class="back-icon">‹</text>
+      <text class="back-text">返回</text>
+    </view>
+    <view class="header">
+      <view class="title">大秘境排行榜</view>
+      <view class="theme-toggle" bindtap="toggleTheme">
+        <text class="icon">{{theme === 'light' ? '🌙' : '☀️'}}</text>
+      </view>
+    </view>
+    
+    <view class="tabs-container">
+      <view class="tab-item {{activeTab === 'dps' ? 'active' : ''}}" data-tab="dps" bindtap="switchTab">DPS</view>
+      <view class="tab-item {{activeTab === 'tanks' ? 'active' : ''}}" data-tab="tanks" bindtap="switchTab">Tanks</view>
+      <view class="tab-item {{activeTab === 'healers' ? 'active' : ''}}" data-tab="healers" bindtap="switchTab">Healers</view>
+    </view>
+
+    <view class="status-message" wx:if="{{loading}}">
+      <text>正在联系燃烧军团...</text>
+    </view>
+    
+    <view class="status-message" wx:if="{{!loading && errorMsg}}" style="color: #F87171;">
+      <text>{{errorMsg}}</text>
+    </view>
+
+    <!-- DPS 视图 -->
+    <block wx:if="{{!loading && !errorMsg && dpsData && activeTab === 'dps'}}">
+      <view class="meta-section">
+        <view class="section-title">伤害输出排名 (DPS) - 14层及以上</view>
+        <view class="meta-list">
+          <view class="meta-item-complex" wx:for="{{dpsData}}" wx:key="name">
+            <view class="complex-header">
+              <view class="tier-badge" style="background-color: {{item.tierColor}}">{{item.tier}}</view>
+              <text class="spec-name" style="color: {{item.color}}">{{item.name}}</text>
+              <view class="stats-row">
+                <text class="stat-text">均: {{item.value}}</text>
+                <text class="stat-text">高: {{item.topValue}}</text>
+                <text class="stat-text">样本: {{item.runs}}</text>
+              </view>
+            </view>
+            <view class="bar-container-complex">
+              <view class="bar-top" style="width: {{item.topPercent}}%;"></view>
+              <view class="bar" style="width: {{item.avgPercent}}%; background-color: {{item.color}}"></view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- Tanks 视图 -->
+    <block wx:if="{{!loading && !errorMsg && tankData && activeTab === 'tanks'}}">
+      <view class="meta-section">
+        <view class="section-title">坦克强度排名 (Tanks) - 14层及以上</view>
+        <view class="meta-list">
+          <view class="meta-item-complex" wx:for="{{tankData}}" wx:key="name">
+            <view class="complex-header">
+              <view class="tier-badge" style="background-color: {{item.tierColor}}">{{item.tier}}</view>
+              <text class="spec-name" style="color: {{item.color}}">{{item.name}}</text>
+              <view class="stats-row">
+                <text class="stat-text">均: {{item.value}}</text>
+                <text class="stat-text">高: {{item.topValue}}</text>
+                <text class="stat-text">样本: {{item.runs}}</text>
+              </view>
+            </view>
+            <view class="bar-container-complex">
+              <view class="bar-top" style="width: {{item.topPercent}}%;"></view>
+              <view class="bar" style="width: {{item.avgPercent}}%; background-color: {{item.color}}"></view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- Healers 视图 -->
+    <block wx:if="{{!loading && !errorMsg && healerData && activeTab === 'healers'}}">
+      <view class="meta-section">
+        <view class="section-title">治疗强度排名 (Healers) - 14层及以上</view>
+        <view class="meta-list">
+          <view class="meta-item-complex" wx:for="{{healerData}}" wx:key="name">
+            <view class="complex-header">
+              <view class="tier-badge" style="background-color: {{item.tierColor}}">{{item.tier}}</view>
+              <text class="spec-name" style="color: {{item.color}}">{{item.name}}</text>
+              <view class="stats-row">
+                <text class="stat-text">均: {{item.value}}</text>
+                <text class="stat-text">高: {{item.topValue}}</text>
+                <text class="stat-text">样本: {{item.runs}}</text>
+              </view>
+            </view>
+            <view class="bar-container-complex">
+              <view class="bar-top" style="width: {{item.topPercent}}%;"></view>
+              <view class="bar" style="width: {{item.avgPercent}}%; background-color: {{item.color}}"></view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+    
+    <view class="footer" wx:if="{{!loading}}">
+      <view>DPS / Tanks / Healers 强度基于 Mythicstats WCL 实时爬取解析</view>
+    </view>
+  </scroll-view>
+</view>
