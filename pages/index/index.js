@@ -3,7 +3,7 @@ Page({
     navBarHeight: 0,
     menuButtonTop: 0,
     menuButtonHeight: 0,
-    theme: 'light'
+    theme: 'dark'
   },
 
   onLoad() {
@@ -16,12 +16,12 @@ Page({
       });
     }
 
-    const savedTheme = wx.getStorageSync('app_theme') || 'light';
+    const savedTheme = wx.getStorageSync('app_theme') || 'dark';
     this.setData({ theme: savedTheme });
   },
 
   onShow() {
-    const savedTheme = wx.getStorageSync('app_theme') || 'light';
+    const savedTheme = wx.getStorageSync('app_theme') || 'dark';
     if (this.data.theme !== savedTheme) {
       this.setData({ theme: savedTheme });
     }

@@ -20,7 +20,7 @@
     <view class="nav-card" bindtap="navigateToTopMeta">
       <view class="card-content">
         <view class="card-title">顶层出场率</view>
-        <view class="card-desc">深度剖析全球最高层前 60 强车队阵容。</view>
+        <view class="card-desc">实时追踪高层大秘境全职业专精出场率。</view>
       </view>
     </view>
 
