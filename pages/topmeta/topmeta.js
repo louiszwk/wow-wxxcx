@@ -5,22 +5,15 @@ Page({
     menuButtonHeight: 0,
     metaData: null,
     runsData: null,
-    activeTab: 'runs',
     theme: 'dark',
     allExpanded: false,
     loading: true,
     errorMsg: '',
     currentPage: 0,
     scrollTop: 0,
-    
-    pageSizeOptions: ['20条', '40条', '100条'],
-    pageSizeValues: [20, 40, 100],
-    pageSizeIdx: 0,
-
-    metaSizeOptions: ['前20名', '前50名', '前100名'],
-    metaSizeValues: [20, 50, 100],
-    metaSizeIdx: 0,
-    
+    showMetaModal: false,
+    showCustomLoading: false,
+    loadingDots: '',
     allRankings: null
   },
   
@@ -50,11 +43,6 @@ Page({
     if (this.data.theme !== savedTheme) {
       this.setData({ theme: savedTheme });
     }
-  },
-
-  switchTab(e) {
-    const tab = e.currentTarget.dataset.tab;
-    this.setData({ activeTab: tab });
   },
 
   navigateBack() {
@@ -88,142 +76,143 @@ Page({
     }
   },
 
-  onPageSizeChange(e) {
-    const idx = parseInt(e.detail.value);
-    if (idx !== this.data.pageSizeIdx) {
-      this.setData({
-        pageSizeIdx: idx,
-        currentPage: 0,
-        allExpanded: false
-      });
-      if (this.data.allRankings) {
-        this.updateRunsFromLocal();
-      } else {
-        this.fetchData();
-      }
-    }
-  },
-
-  onMetaSizeChange(e) {
-    const idx = parseInt(e.detail.value);
-    if (idx !== this.data.metaSizeIdx) {
-      this.setData({ metaSizeIdx: idx });
-      if (this.data.allRankings) {
-        this.updateMetaFromLocal();
-      }
-    }
-  },
-
   updateRunsFromLocal() {
-    const size = this.data.pageSizeValues[this.data.pageSizeIdx];
+    const size = 20;
     const start = this.data.currentPage * size;
     const end = start + size;
     const sliced = this.data.allRankings.slice(start, end);
     this.processRuns(sliced);
   },
 
-  updateMetaFromLocal() {
-    const size = this.data.metaSizeValues[this.data.metaSizeIdx];
-    const sliced = this.data.allRankings.slice(0, size);
-    this.processMetaStats(sliced);
+  showStatisticsModal() {
+    const size = (this.data.currentPage + 1) * 20;
+    if (this.data.allRankings) {
+      const sliced = this.data.allRankings.slice(0, size);
+      this.processMetaStats(sliced);
+      this.setData({ showMetaModal: true });
+    } else {
+      wx.showToast({ title: '数据加载中', icon: 'none' });
+    }
+  },
+
+  closeStatisticsModal() {
+    this.setData({ showMetaModal: false });
+  },
+
+  preventTouchMove() {},
+
+  showLoadingOverlay() {
+    this.setData({ showCustomLoading: true });
+    this.startLoadingDots();
+  },
+
+  hideLoadingOverlay() {
+    this.setData({ showCustomLoading: false });
+    this.stopLoadingDots();
+  },
+
+  startLoadingDots() {
+    this.setData({ loadingDots: '' });
+    this.dotsInterval = setInterval(() => {
+      let dots = this.data.loadingDots;
+      if (dots.length >= 6) dots = '';
+      else dots += '.';
+      this.setData({ loadingDots: dots });
+    }, 250);
+  },
+
+  stopLoadingDots() {
+    if (this.dotsInterval) clearInterval(this.dotsInterval);
   },
 
   fetchData() {
     this.setData({ loading: true, errorMsg: '', metaData: null, runsData: null });
+    this.showLoadingOverlay();
     
     const db = wx.cloud.database();
     db.collection('topmeta_data').doc('latest').get().then(res => {
       if (res.data && res.data.rankings) {
         this.setData({ allRankings: res.data.rankings });
         this.updateRunsFromLocal();
-        this.updateMetaFromLocal();
         this.setData({ loading: false, scrollTop: 0 });
+        this.hideLoadingOverlay();
       } else {
-        this.fetchRunsRealtime();
-        this.updateMetaFromLocal(); // If DB fails, meta will just be empty unless we write a specific fallback. But DB rarely fails.
+        this.fetchRunsRealtime(0);
       }
     }).catch(err => {
       console.log('数据库未就绪或无缓存，回退到实时拉取', err);
-      this.fetchRunsRealtime();
+      this.fetchRunsRealtime(0);
     });
   },
 
-
-
-  fetchRunsRealtime() {
-    const size = this.data.pageSizeValues[this.data.pageSizeIdx];
-    const pagesToFetch = size / 20; // 20, 40, 100 -> 1, 2, 5 pages
-    const startPage = this.data.currentPage * pagesToFetch;
+  fetchRunsRealtime(targetPage) {
+    this.showLoadingOverlay();
     
-    const requests = [];
-    for (let i = 0; i < pagesToFetch; i++) {
-      requests.push(new Promise((resolve, reject) => {
-        wx.cloud.callFunction({
-          name: 'proxyRequest',
-          data: {
-            url: `https://raider.io/api/v1/mythic-plus/runs?region=world&dungeon=all&page=${startPage + i}`,
-            method: 'GET'
-          },
-          success: (res) => {
-            const result = res.result;
-            if (result && result.success && result.data && result.data.rankings) {
-              resolve(result.data.rankings);
-            } else {
-              resolve([]); // Resolve empty instead of reject to not fail completely
-            }
-          },
-          fail: reject
-        });
-      }));
-    }
-
-    Promise.all(requests).then(results => {
-      let combinedRankings = [];
-      results.forEach(rankings => {
-        combinedRankings = combinedRankings.concat(rankings);
-      });
-
-      if (combinedRankings.length > 0) {
-        this.processRuns(combinedRankings);
-        this.setData({ loading: false, scrollTop: 0 });
-      } else {
-        this.setData({
-          loading: false,
-          errorMsg: '数据异常稍后再试'
-        });
+    wx.cloud.callFunction({
+      name: 'proxyRequest',
+      data: {
+        url: `https://raider.io/api/v1/mythic-plus/runs?region=world&dungeon=all&page=${targetPage}`,
+        method: 'GET'
+      },
+      success: (res) => {
+        const result = res.result;
+        if (result && result.success && result.data && result.data.rankings) {
+          let currentRankings = this.data.allRankings || [];
+          const newRankings = result.data.rankings;
+          currentRankings = currentRankings.slice(0, targetPage * 20).concat(newRankings);
+          this.setData({ 
+            allRankings: currentRankings,
+            currentPage: targetPage 
+          });
+          this.updateRunsFromLocal();
+          this.setData({ loading: false, scrollTop: 0 });
+          this.hideLoadingOverlay();
+        } else {
+          this.hideLoadingOverlay();
+          wx.showToast({ title: '数据异常稍后再试', icon: 'none' });
+        }
+      },
+      fail: () => {
+        this.hideLoadingOverlay();
+        wx.showToast({ title: '数据异常稍后再试', icon: 'none' });
       }
-    }).catch(() => {
-      this.setData({
-        loading: false,
-        errorMsg: '数据异常稍后再试'
-      });
     });
   },
 
   prevPage() {
-    if (this.data.currentPage > 0 && !this.data.loading) {
+    if (this.data.currentPage > 0 && !this.data.showCustomLoading) {
       this.setData({ 
-        currentPage: this.data.currentPage - 1,
         allExpanded: false
       });
-      if (this.data.allRankings) {
-        this.updateRunsFromLocal();
-      } else {
-        this.fetchData();
-      }
+      const targetPage = this.data.currentPage - 1;
+      
+      this.showLoadingOverlay();
+      setTimeout(() => {
+        this.setData({ currentPage: targetPage });
+        if (this.data.allRankings && this.data.allRankings.length > targetPage * 20) {
+          this.updateRunsFromLocal();
+        } else {
+          this.fetchData();
+        }
+        this.hideLoadingOverlay();
+      }, 1000);
     }
   },
 
   nextPage() {
-    if (!this.data.loading) {
-      this.setData({ 
-        currentPage: this.data.currentPage + 1,
-        allExpanded: false
-      });
-      if (this.data.allRankings) {
-        this.updateRunsFromLocal();
+    if (!this.data.showCustomLoading) {
+      const targetPage = this.data.currentPage + 1;
+      this.setData({ allExpanded: false });
+      
+      if (this.data.allRankings && this.data.allRankings.length > targetPage * 20) {
+        this.showLoadingOverlay();
+        setTimeout(() => {
+          this.setData({ currentPage: targetPage });
+          this.updateRunsFromLocal();
+          this.hideLoadingOverlay();
+        }, 1000);
       } else {
-        this.fetchData();
+        this.fetchRunsRealtime(targetPage);
       }
     }
   },
@@ -286,7 +275,10 @@ Page({
       });
     });
 
-    const formatMeta = (obj) => Object.entries(obj).map(([name, data]) => ({ name, count: data.count, color: data.color })).sort((a, b) => b.count - a.count);
+    const formatMeta = (obj) => {
+        const arr = Object.entries(obj).map(([name, data]) => ({ name, count: data.count, color: data.color })).sort((a, b) => b.count - a.count);
+        return arr.length > 0 ? arr : [{name: '无数据', count: 1, color: '#999'}];
+    };
 
     this.setData({
       metaData: {

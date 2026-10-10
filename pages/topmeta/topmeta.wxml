@@ -7,89 +7,16 @@
     <view class="header">
       <view class="title">
         顶层大秘境
-        <text class="expand-all-btn" wx:if="{{activeTab === 'runs' && runsData.length > 0}}" bindtap="toggleAllRosters">{{allExpanded ? '全部收起' : '全部展开'}}</text>
+        <text class="expand-all-btn" wx:if="{{runsData.length > 0}}" bindtap="toggleAllRosters">{{allExpanded ? '全部收起' : '全部展开'}}</text>
       </view>
       <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
     </view>
     
-    <view class="tabs-container">
-      <view class="tab-item {{activeTab === 'runs' ? 'active' : ''}}" data-tab="runs" bindtap="switchTab">车队排行榜</view>
-      <view class="tab-item {{activeTab === 'meta' ? 'active' : ''}}" data-tab="meta" bindtap="switchTab">阵容出场率</view>
-    </view>
-
-    <view class="filter-bar" wx:if="{{!loading && !errorMsg && activeTab === 'meta'}}">
-      <text class="page-size-label">统计范围：</text>
-      <picker mode="selector" range="{{metaSizeOptions}}" value="{{metaSizeIdx}}" bindchange="onMetaSizeChange">
-        <view class="filter-btn">
-          <text>{{metaSizeOptions[metaSizeIdx]}}</text>
-          <text class="filter-icon">▼</text>
-        </view>
-      </picker>
-    </view>
-    
-    <view class="status-message" wx:if="{{loading}}">
-      <text>正在联系燃烧军团...</text>
-    </view>
-    
-    <view class="status-message" wx:if="{{!loading && errorMsg}}" style="color: #F87171;">
+    <view class="status-message" wx:if="{{errorMsg}}" style="color: #F87171;">
       <text>{{errorMsg}}</text>
     </view>
     
-    <block wx:if="{{!loading && !errorMsg && activeTab === 'meta' && metaData}}">
-      <view class="meta-section">
-        <view class="section-title">坦克出场率 (Tanks)</view>
-        <view class="meta-list">
-          <view class="meta-item" wx:for="{{metaData.tanks}}" wx:key="name">
-            <text class="spec-name" style="color: {{item.color}}">{{item.name}}</text>
-            <view class="bar-container">
-              <view class="bar" style="width: {{(item.count / metaData.tanks[0].count) * 100}}%; background-color: {{item.color}}"></view>
-            </view>
-            <text class="count-num">{{item.count}}</text>
-          </view>
-        </view>
-      </view>
-      
-      <view class="meta-section">
-        <view class="section-title">治疗出场率 (Healers)</view>
-        <view class="meta-list">
-          <view class="meta-item" wx:for="{{metaData.healers}}" wx:key="name">
-            <text class="spec-name" style="color: {{item.color}}">{{item.name}}</text>
-            <view class="bar-container">
-              <view class="bar" style="width: {{(item.count / metaData.healers[0].count) * 100}}%; background-color: {{item.color}}"></view>
-            </view>
-            <text class="count-num">{{item.count}}</text>
-          </view>
-        </view>
-      </view>
-      
-      <view class="meta-section">
-        <view class="section-title">近战输出出场率 (Melee DPS)</view>
-        <view class="meta-list">
-          <view class="meta-item" wx:for="{{metaData.melee}}" wx:key="name">
-            <text class="spec-name" style="color: {{item.color}}">{{item.name}}</text>
-            <view class="bar-container">
-              <view class="bar" style="width: {{(item.count / metaData.melee[0].count) * 100}}%; background-color: {{item.color}}"></view>
-            </view>
-            <text class="count-num">{{item.count}}</text>
-          </view>
-        </view>
-      </view>
-      
-      <view class="meta-section">
-        <view class="section-title">远程输出出场率 (Ranged DPS)</view>
-        <view class="meta-list">
-          <view class="meta-item" wx:for="{{metaData.ranged}}" wx:key="name">
-            <text class="spec-name" style="color: {{item.color}}">{{item.name}}</text>
-            <view class="bar-container">
-              <view class="bar" style="width: {{(item.count / metaData.ranged[0].count) * 100}}%; background-color: {{item.color}}"></view>
-            </view>
-            <text class="count-num">{{item.count}}</text>
-          </view>
-        </view>
-      </view>
-    </block>
-
-    <block wx:if="{{!loading && !errorMsg && activeTab === 'runs' && runsData}}">
+    <block wx:if="{{!loading && !errorMsg && runsData}}">
       <view class="runs-list" wx:if="{{runsData.length > 0}}">
         <view class="run-card" wx:for="{{runsData}}" wx:key="rank" wx:for-index="index">
           <view class="run-header {{item.expanded ? 'expanded' : ''}}" bindtap="toggleRoster" data-index="{{index}}">
@@ -111,27 +38,88 @@
       </view>
     </block>
 
-    <view class="pagination" wx:if="{{!loading && !errorMsg && activeTab === 'runs'}}">
+    <view class="pagination" wx:if="{{!loading && !errorMsg}}">
       <view class="btn prev-btn {{currentPage === 0 ? 'disabled' : ''}}" bindtap="prevPage">◀ 上一页</view>
-      <view class="page-num">第 {{currentPage + 1}} 页</view>
+      <view class="btn stat-btn" bindtap="showStatisticsModal">阵容统计(前{{(currentPage + 1) * 20}})</view>
       <view class="btn next-btn" bindtap="nextPage">下一页 ▶</view>
     </view>
-
-    <view class="filter-bar" wx:if="{{!loading && !errorMsg && activeTab === 'runs'}}">
-      <text class="page-size-label">每页加载条数：</text>
-      <picker mode="selector" range="{{pageSizeOptions}}" value="{{pageSizeIdx}}" bindchange="onPageSizeChange">
-        <view class="filter-btn">
-          <text>{{pageSizeOptions[pageSizeIdx]}}</text>
-          <text class="filter-icon">▼</text>
-        </view>
-      </picker>
-    </view>
-
-
 
     <view class="footer" wx:if="{{!loading}}">
       <view>数据基于 Raider.io 实时抓取</view>
       <view>仅统计顶端车队阵容</view>
     </view>
   </scroll-view>
+
+  <view class="modal-overlay" wx:if="{{showMetaModal}}" bindtap="closeStatisticsModal">
+    <view class="modal-content" catchtap="return">
+      <view class="modal-header">
+        <text class="modal-title">前 {{(currentPage + 1) * 20}} 名出场率统计</text>
+        <text class="close-btn" bindtap="closeStatisticsModal">×</text>
+      </view>
+      <scroll-view scroll-y="true" class="modal-body" wx:if="{{metaData}}">
+        <view class="meta-section">
+          <view class="section-title">坦克出场率 (Tanks)</view>
+          <view class="meta-list">
+            <view class="meta-item" wx:for="{{metaData.tanks}}" wx:key="name">
+              <text class="spec-name" style="color: {{item.color}}">{{item.name}}</text>
+              <view class="bar-container">
+                <view class="bar" style="width: {{(item.count / metaData.tanks[0].count) * 100}}%; background-color: {{item.color}}"></view>
+              </view>
+              <text class="count-num">{{item.count}}</text>
+            </view>
+          </view>
+        </view>
+        
+        <view class="meta-section">
+          <view class="section-title">治疗出场率 (Healers)</view>
+          <view class="meta-list">
+            <view class="meta-item" wx:for="{{metaData.healers}}" wx:key="name">
+              <text class="spec-name" style="color: {{item.color}}">{{item.name}}</text>
+              <view class="bar-container">
+                <view class="bar" style="width: {{(item.count / metaData.healers[0].count) * 100}}%; background-color: {{item.color}}"></view>
+              </view>
+              <text class="count-num">{{item.count}}</text>
+            </view>
+          </view>
+        </view>
+        
+        <view class="meta-section">
+          <view class="section-title">近战输出 (Melee DPS)</view>
+          <view class="meta-list">
+            <view class="meta-item" wx:for="{{metaData.melee}}" wx:key="name">
+              <text class="spec-name" style="color: {{item.color}}">{{item.name}}</text>
+              <view class="bar-container">
+                <view class="bar" style="width: {{(item.count / metaData.melee[0].count) * 100}}%; background-color: {{item.color}}"></view>
+              </view>
+              <text class="count-num">{{item.count}}</text>
+            </view>
+          </view>
+        </view>
+        
+        <view class="meta-section">
+          <view class="section-title">远程输出 (Ranged DPS)</view>
+          <view class="meta-list">
+            <view class="meta-item" wx:for="{{metaData.ranged}}" wx:key="name">
+              <text class="spec-name" style="color: {{item.color}}">{{item.name}}</text>
+              <view class="bar-container">
+                <view class="bar" style="width: {{(item.count / metaData.ranged[0].count) * 100}}%; background-color: {{item.color}}"></view>
+              </view>
+              <text class="count-num">{{item.count}}</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- Custom Loading Overlay -->
+  <view class="custom-loading-overlay" wx:if="{{showCustomLoading}}" catchtouchmove="preventTouchMove">
+    <view class="custom-loading-box">
+      <view class="loading-text-container">
+        <text class="loading-text">正在联系燃烧军团</text>
+        <text class="loading-dots">{{loadingDots}}</text>
+      </view>
+    </view>
+  </view>
+
 </view>
