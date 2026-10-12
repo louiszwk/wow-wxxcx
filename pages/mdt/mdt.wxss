@@ -65,7 +65,7 @@
   font-size: 14px;
   font-weight: bold;
   color: #38bdf8;
-  max-width: 140px;
+  max-width: 135px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -79,7 +79,7 @@
 
 /* 次级工具栏 */
 .sub-header {
-  padding: 8px 16px;
+  padding: 8px 14px;
   background: #111827;
   display: flex;
   justify-content: space-between;
@@ -88,10 +88,18 @@
   z-index: 20;
 }
 
-.sub-title {
+.switch-dungeon-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  font-weight: 600;
+}
+
+.switch-icon {
   font-size: 13px;
-  color: #64748b;
-  font-weight: 500;
 }
 
 .header-tools {
@@ -172,7 +180,7 @@
   background: linear-gradient(90deg, #10b981, #059669);
 }
 
-/* 地图区域 */
+/* 地图容器 */
 .map-container {
   flex: 1;
   position: relative;
@@ -206,6 +214,54 @@
   pointer-events: none;
 }
 
+/* 每一波怪物的中心徽章标记 */
+.pull-markers-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.pull-centroid-badge {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 2px solid #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.85);
+  pointer-events: auto;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.pull-centroid-badge.active {
+  transform: translate(-50%, -50%) scale(1.18);
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.95);
+  z-index: 6;
+}
+
+.badge-title {
+  font-size: 11px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.badge-forces {
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1;
+}
+
+/* 怪物标记点图层 */
 .enemy-layer {
   position: absolute;
   top: 0;
@@ -218,17 +274,20 @@
 /* 怪物节点 */
 .enemy-node {
   position: absolute;
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
   border: 1px solid #0f172a;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   box-shadow: 0 0 3px rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .enemy-node:active {
-  transform: translate(-50%, -50%) scale(1.4);
+  transform: translate(-50%, -50%) scale(1.3);
 }
 
 .enemy-node.boss {
@@ -239,38 +298,110 @@
   box-shadow: 0 0 6px rgba(192, 132, 252, 0.8);
 }
 
-.enemy-node.boss:active {
-  transform: translate(-50%, -50%) rotate(45deg) scale(1.3);
+.node-boss-mark {
+  transform: rotate(-45deg);
+  font-size: 9px;
+  line-height: 1;
 }
 
+/* 选中的怪：醒目标记并带有波次数字！ */
 .enemy-node.selected {
+  width: 22px;
+  height: 22px;
   border-width: 2px !important;
   border-color: #ffffff !important;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
-  transform: translate(-50%, -50%) scale(1.2);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.85);
+  transform: translate(-50%, -50%) scale(1.15);
+  z-index: 10;
 }
 
 .enemy-node.boss.selected {
-  transform: translate(-50%, -50%) rotate(45deg) scale(1.25);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  transform: translate(-50%, -50%) rotate(45deg) scale(1.15);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.95);
+}
+
+.node-num {
+  font-size: 11px;
+  font-weight: 800;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  line-height: 1;
+}
+
+.enemy-node.boss.selected .node-num {
+  transform: rotate(-45deg);
+  font-size: 12px;
+}
+
+/* 浮动缩放控制面板 */
+.zoom-controls {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 35;
+}
+
+.zoom-btn {
+  width: 40px;
+  height: 40px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  color: #f8fafc;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  transition: all 0.15s;
+}
+
+.zoom-btn-active {
+  background: #334155;
+  transform: scale(0.92);
+}
+
+.zoom-indicator {
+  font-size: 11px;
+  font-weight: 600;
+  color: #38bdf8;
+  height: 26px;
+  border-radius: 8px;
+}
+
+.reset-btn {
+  width: auto;
+  padding: 0 8px;
+  height: 32px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
 }
 
 /* 悬浮信息 HUD */
 .enemy-hud {
   position: absolute;
   top: 12px;
-  left: 16px;
-  right: 16px;
-  background: rgba(15, 23, 42, 0.92);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  border-radius: 10px;
-  padding: 8px 14px;
+  left: 14px;
+  right: 14px;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 12px;
+  padding: 10px 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   z-index: 30;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
 }
 
 .hud-left {
@@ -298,7 +429,7 @@
 .hud-desc {
   font-size: 11px;
   color: #94a3b8;
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
 .hud-right {
@@ -310,11 +441,11 @@
 .hud-status {
   font-size: 11px;
   color: #38bdf8;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .hud-close {
-  font-size: 14px;
+  font-size: 15px;
   color: #64748b;
   padding: 2px 6px;
 }
@@ -345,7 +476,7 @@
   margin-right: 8px;
   padding: 8px 12px;
   border-radius: 8px;
-  min-width: 68px;
+  min-width: 72px;
   text-align: center;
   border-top: 4px solid transparent;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -360,8 +491,27 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
+.pull-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.pull-num-badge {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
 .pull-num {
-  display: block;
   font-size: 12px;
   color: #cbd5e1;
 }
@@ -383,7 +533,7 @@
   align-items: center;
   justify-content: center;
   vertical-align: top;
-  min-width: 60px;
+  min-width: 62px;
   padding: 6px 10px;
   opacity: 0.9;
 }
@@ -403,4 +553,140 @@
   font-size: 10px;
   color: #94a3b8;
   margin-top: 2px;
+}
+
+/* 切换副本弹窗 */
+.dungeon-modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.dungeon-modal {
+  width: 100%;
+  background: #0f172a;
+  border-radius: 20px 20px 0 0;
+  padding: 20px 16px 36px;
+  box-sizing: border-box;
+  max-height: 75vh;
+  border-top: 1px solid rgba(56, 189, 248, 0.3);
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-icon {
+  font-size: 18px;
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #f8fafc;
+}
+
+.modal-close {
+  font-size: 16px;
+  color: #94a3b8;
+  padding: 4px 8px;
+}
+
+.dungeon-modal-list {
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+.dungeon-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 16px;
+  margin-bottom: 10px;
+  background: #1e293b;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s;
+}
+
+.dungeon-card:active {
+  background: #334155;
+  transform: scale(0.98);
+}
+
+.dungeon-card.active {
+  background: rgba(37, 99, 235, 0.2);
+  border-color: #38bdf8;
+}
+
+.card-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #475569;
+}
+
+.card-status-dot.current {
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.dungeon-card.active .card-name {
+  color: #38bdf8;
+}
+
+.card-tag {
+  font-size: 11px;
+  background: #2563eb;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.card-arrow {
+  font-size: 14px;
+  color: #64748b;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
