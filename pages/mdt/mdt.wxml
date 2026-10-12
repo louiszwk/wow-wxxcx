@@ -58,20 +58,16 @@
         <!-- 画布（绘制拉怪连接线与波次流向） -->
         <canvas type="2d" id="routeCanvas" class="route-canvas" style="width: {{mapWidth}}px; height: {{mapHeight}}px;"></canvas>
         
-        <!-- 每一波选中的怪的包围框及中心数字 -->
-        <view class="pull-boxes-layer">
+        <!-- 每一波怪物的中心数字徽章 (极简紧凑) -->
+        <view class="pull-markers-layer">
           <view 
-            wx:for="{{pullBoxes}}" 
-            wx:key="pullIndex" 
-            class="pull-box {{activePullIndex === item.pullIndex ? 'active' : ''}}" 
-            style="left: {{item.left}}px; top: {{item.top}}px; width: {{item.width}}px; height: {{item.height}}px; border-color: {{item.color}}; background-color: {{item.bgColor}};"
+            wx:for="{{pullBadges}}" 
+            wx:key="id" 
+            class="pull-center-badge {{activePullIndex === item.pullIndex ? 'active' : ''}}" 
+            style="left: {{item.x}}px; top: {{item.y}}px; background-color: {{item.color}};"
             catchtap="selectPullByIndex"
             data-index="{{item.pullIndex}}">
-            <view 
-              class="pull-center-badge {{item.isSingle ? 'single-badge' : ''}}" 
-              style="background-color: {{item.color}};">
-              <text class="badge-num">{{item.pullNum}}</text>
-            </view>
+            <text class="badge-num">{{item.pullNum}}</text>
           </view>
         </view>
 

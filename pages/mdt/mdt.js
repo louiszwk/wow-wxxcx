@@ -22,6 +22,116 @@ const DUNGEON_FILES = {
   '诸王之眠': 'KingsRest'
 };
 
+// --- MDT 几何计算与贴身轮廓算法 ---
+function crossProduct(a, b, c) {
+  return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+}
+
+function convexHull(points) {
+  if (points.length <= 2) return points.slice();
+  const sorted = points.slice().sort((a, b) => a.x === b.x ? a.y - b.y : a.x - b.x);
+  
+  const lower = [];
+  for (let i = 0; i < sorted.length; i++) {
+    while (lower.length >= 2 && crossProduct(lower[lower.length - 2], lower[lower.length - 1], sorted[i]) <= 0) {
+      lower.pop();
+    }
+    lower.push(sorted[i]);
+  }
+  
+  const upper = [];
+  for (let i = sorted.length - 1; i >= 0; i--) {
+    while (upper.length >= 2 && crossProduct(upper[upper.length - 2], upper[upper.length - 1], sorted[i]) <= 0) {
+      upper.pop();
+    }
+    upper.push(sorted[i]);
+  }
+  
+  lower.pop();
+  upper.pop();
+  return lower.concat(upper);
+}
+
+// 严密贴合怪物群外缘的最小外扩凸包（半径12px，消除任何宽大矩形角）
+function getPuffedHull(pts, radius = 12) {
+  if (pts.length === 0) return [];
+  if (pts.length === 1) {
+    const p = pts[0];
+    const res = [];
+    const N = 12;
+    for (let i = 0; i < N; i++) {
+      const a = (i * Math.PI * 2) / N;
+      res.push({ x: p.x + radius * Math.cos(a), y: p.y + radius * Math.sin(a) });
+    }
+    return res;
+  }
+  const circlePoints = [];
+  const N = 8;
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i];
+    for (let j = 0; j < N; j++) {
+      const a = (j * Math.PI * 2) / N;
+      circlePoints.push({ x: p.x + radius * Math.cos(a), y: p.y + radius * Math.sin(a) });
+    }
+  }
+  return convexHull(circlePoints);
+}
+
+// 怪物聚类：同组怪或距离极近怪聚为一簇，避免跨空地框入其他怪
+function clusterEnemies(enemies, threshold = 38) {
+  if (enemies.length <= 1) return [enemies];
+  const adj = Array.from({ length: enemies.length }, () => []);
+  for (let i = 0; i < enemies.length; i++) {
+    for (let j = i + 1; j < enemies.length; j++) {
+      const e1 = enemies[i], e2 = enemies[j];
+      let connected = false;
+      if (e1.pack !== null && e1.pack !== undefined && e1.pack === e2.pack) {
+        connected = true;
+      } else {
+        const dx = e1.px - e2.px;
+        const dy = e1.py - e2.py;
+        if (Math.sqrt(dx * dx + dy * dy) <= threshold) {
+          connected = true;
+        }
+      }
+      if (connected) {
+        adj[i].push(j);
+        adj[j].push(i);
+      }
+    }
+  }
+
+  const visited = new Set();
+  const clusters = [];
+  for (let i = 0; i < enemies.length; i++) {
+    if (visited.has(i)) continue;
+    const cluster = [];
+    const queue = [i];
+    visited.add(i);
+    while (queue.length > 0) {
+      const curr = queue.shift();
+      cluster.push(enemies[curr]);
+      for (const neighbor of adj[curr]) {
+        if (!visited.has(neighbor)) {
+          visited.add(neighbor);
+          queue.push(neighbor);
+        }
+      }
+    }
+    clusters.push(cluster);
+  }
+  return clusters;
+}
+
+function hexToRgba(hex, alpha) {
+  let c = (hex || '#ef4444').replace('#', '');
+  if (c.length === 3) c = c.split('').map(x => x + x).join('');
+  const r = parseInt(c.substring(0, 2), 16) || 0;
+  const g = parseInt(c.substring(2, 4), 16) || 0;
+  const b = parseInt(c.substring(4, 6), 16) || 0;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 Page({
   data: {
     menuButtonTop: 44,
@@ -45,7 +155,7 @@ Page({
     percent: '0.00',
     
     enemies: [],
-    pullBoxes: [], // 每一波选中的怪物包围框与中心数字
+    pullBadges: [], // 每一波选中的中心编号徽章
     selectedEnemyInfo: null,
     
     pullColors: [
@@ -133,7 +243,7 @@ Page({
       activePullIndex: 0,
       currentForces: 0,
       percent: '0.00',
-      pullBoxes: [],
+      pullBadges: [],
       selectedEnemyInfo: null,
       scaleValue: initialScale,
       scalePercent: Math.round(initialScale * 100)
@@ -240,11 +350,13 @@ Page({
   selectPull(e) {
     const idx = Number(e.currentTarget.dataset.index);
     this.setData({ activePullIndex: idx });
+    this.drawLines();
   },
 
   selectPullByIndex(e) {
     const idx = Number(e.currentTarget.dataset.index);
     this.setData({ activePullIndex: idx });
+    this.drawLines();
     wx.showToast({
       title: `第 ${idx + 1} 波`,
       icon: 'none',
@@ -312,7 +424,7 @@ Page({
           activePullIndex: 0,
           currentForces: 0,
           percent: '0.00',
-          pullBoxes: [],
+          pullBadges: [],
           selectedEnemyInfo: null
         });
         this.calculateForces();
@@ -388,7 +500,7 @@ Page({
     let current = 0;
     let pulls = this.data.pulls;
     let enemies = this.data.enemies;
-    const pullBoxes = [];
+    const pullBadges = [];
 
     // 重置所有怪物的标号状态
     enemies.forEach(en => {
@@ -397,21 +509,10 @@ Page({
       en.pullNumber = null;
     });
 
-    const hexToRgba = (hex, alpha) => {
-      let c = (hex || '#ef4444').replace('#', '');
-      if (c.length === 3) c = c.split('').map(x => x + x).join('');
-      const r = parseInt(c.substring(0, 2), 16) || 0;
-      const g = parseInt(c.substring(2, 4), 16) || 0;
-      const b = parseInt(c.substring(4, 6), 16) || 0;
-      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    };
-
     pulls.forEach((p, pIdx) => {
       let pForce = 0;
-      let minX = Infinity, maxX = -Infinity;
-      let minY = Infinity, maxY = -Infinity;
-      let sumX = 0, sumY = 0;
-      let count = 0;
+      let pEnemies = [];
+      let sumAllX = 0, sumAllY = 0;
 
       p.enemyIds.forEach(eid => {
         const e = enemies.find(en => en.id === eid);
@@ -423,50 +524,52 @@ Page({
           
           const px = e.x * this.data.mapWidth;
           const py = e.y * this.data.mapHeight;
-          if (px < minX) minX = px;
-          if (px > maxX) maxX = px;
-          if (py < minY) minY = py;
-          if (py > maxY) maxY = py;
-          sumX += px;
-          sumY += py;
-          count++;
+          pEnemies.push({ ...e, px, py });
+          sumAllX += px;
+          sumAllY += py;
         }
       });
       p.forces = pForce;
       current += pForce;
 
-      if (count > 0) {
-        const isSingle = count === 1;
-        // 合适的内边距，把当前波选中的怪整齐框起来
-        const padX = isSingle ? 18 : 22;
-        const padY = isSingle ? 18 : 22;
-        const boxLeft = Math.round(minX - padX);
-        const boxTop = Math.round(minY - padY);
-        const boxWidth = Math.round(Math.max(40, (maxX - minX) + padX * 2));
-        const boxHeight = Math.round(Math.max(40, (maxY - minY) + padY * 2));
-        const centerX = Math.round(sumX / count);
-        const centerY = Math.round(sumY / count);
+      if (pEnemies.length > 0) {
+        // 智能聚类：同组怪或距离极近怪聚为一簇，避免跨空地框入其他怪
+        const clusters = clusterEnemies(pEnemies, 38);
+        p.clusters = clusters.map(cl => cl.map(e => ({ x: e.px, y: e.py })));
+        p.centroid = { 
+          x: Math.round(sumAllX / pEnemies.length), 
+          y: Math.round(sumAllY / pEnemies.length) 
+        };
 
-        pullBoxes.push({
-          pullIndex: pIdx,
-          pullNum: pIdx + 1,
-          left: boxLeft,
-          top: boxTop,
-          width: boxWidth,
-          height: boxHeight,
-          centerX: centerX,
-          centerY: centerY,
-          color: p.color,
-          bgColor: hexToRgba(p.color, 0.16),
-          isSingle: isSingle,
-          count: count,
-          forces: pForce
+        // 为每个紧凑聚合群打上波次数字标记
+        clusters.forEach((cl, clIdx) => {
+          let cx = 0, cy = 0;
+          cl.forEach(e => { cx += e.px; cy += e.py; });
+          cx = Math.round(cx / cl.length);
+          cy = Math.round(cy / cl.length);
+
+          if (cl.length === 1) {
+            // 单只怪（如Boss）时，徽章置于怪物上方，清晰标号且不挡怪物本体
+            cy = Math.round(cl[0].py - 18);
+          }
+
+          pullBadges.push({
+            id: `${pIdx}-${clIdx}`,
+            pullIndex: pIdx,
+            pullNum: pIdx + 1,
+            x: cx,
+            y: cy,
+            color: p.color
+          });
         });
+      } else {
+        p.clusters = [];
+        p.centroid = null;
       }
     });
 
     let percent = ((current / this.data.totalForces) * 100).toFixed(2);
-    this.setData({ pulls, currentForces: current, percent, enemies, pullBoxes });
+    this.setData({ pulls, currentForces: current, percent, enemies, pullBadges });
   },
 
   drawLines() {
@@ -474,24 +577,81 @@ Page({
     const ctx = this.canvasCtx;
     ctx.clearRect(0, 0, this.data.mapWidth, this.data.mapHeight);
     
-    const pullBoxes = this.data.pullBoxes || [];
-    if (pullBoxes.length < 2) return;
+    const pulls = this.data.pulls || [];
 
-    // 绘制波次与波次之间简洁清晰的虚线路径
-    ctx.beginPath();
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 3;
-    ctx.setLineDash([8, 6]);
-
-    for (let i = 0; i < pullBoxes.length; i++) {
-      const b = pullBoxes[i];
-      if (i === 0) {
-        ctx.moveTo(b.centerX, b.centerY);
-      } else {
-        ctx.lineTo(b.centerX, b.centerY);
+    // 1. 绘制波次与波次之间简洁清晰的白色虚线行进路线（连接各波中心点）
+    const activeCentroids = [];
+    for (let i = 0; i < pulls.length; i++) {
+      if (pulls[i].enemyIds && pulls[i].enemyIds.length > 0 && pulls[i].centroid) {
+        activeCentroids.push(pulls[i].centroid);
       }
     }
-    ctx.stroke();
+    if (activeCentroids.length >= 2) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 6]);
+      for (let i = 0; i < activeCentroids.length; i++) {
+        const c = activeCentroids[i];
+        if (i === 0) ctx.moveTo(c.x, c.y);
+        else ctx.lineTo(c.x, c.y);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // 2. 绘制每个波次的最小贴身包围框（严格最小凸包算法，半径12px贴身收紧，绝不波及其他怪）
+    for (let i = 0; i < pulls.length; i++) {
+      const p = pulls[i];
+      if (!p.clusters || p.clusters.length === 0) continue;
+
+      const isActive = this.data.activePullIndex === i;
+
+      for (let c = 0; c < p.clusters.length; c++) {
+        const cluster = p.clusters[c];
+        if (cluster.length === 0) continue;
+
+        ctx.save();
+        if (cluster.length === 1) {
+          // 单只怪时：紧凑正圆
+          ctx.beginPath();
+          ctx.arc(cluster[0].x, cluster[0].y, 13, 0, Math.PI * 2);
+          ctx.fillStyle = isActive ? hexToRgba(p.color, 0.32) : hexToRgba(p.color, 0.16);
+          ctx.fill();
+          ctx.strokeStyle = p.color;
+          ctx.lineWidth = isActive ? 2.5 : 1.8;
+          ctx.setLineDash([]);
+          if (isActive) {
+            ctx.shadowColor = p.color;
+            ctx.shadowBlur = 8;
+          }
+          ctx.stroke();
+        } else {
+          // 2只及以上怪：严格最小贴身凸包轮廓
+          const hull = getPuffedHull(cluster, 12);
+          if (hull.length >= 3) {
+            ctx.beginPath();
+            ctx.moveTo(hull[0].x, hull[0].y);
+            for (let k = 1; k < hull.length; k++) {
+              ctx.lineTo(hull[k].x, hull[k].y);
+            }
+            ctx.closePath();
+            ctx.fillStyle = isActive ? hexToRgba(p.color, 0.32) : hexToRgba(p.color, 0.16);
+            ctx.fill();
+            ctx.strokeStyle = p.color;
+            ctx.lineWidth = isActive ? 2.5 : 1.8;
+            ctx.setLineDash([]);
+            if (isActive) {
+              ctx.shadowColor = p.color;
+              ctx.shadowBlur = 8;
+            }
+            ctx.stroke();
+          }
+        }
+        ctx.restore();
+      }
+    }
   },
 
   importMDT() {
