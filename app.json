@@ -8,8 +8,9 @@
     "pages/news/news",
     "pages/bis/bis",
     "pages/bis-detail/bis-detail",
-    "pages/webview/webview",
-    "pages/news-detail/news-detail"
+    "pages/news-detail/news-detail",
+    "pages/admin/admin",
+    "pages/mdt/mdt"
   ],
   "window": {
     "navigationBarTextStyle": "black",

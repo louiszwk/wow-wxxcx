@@ -5,7 +5,31 @@
     </view>
     <view class="hero-section">
       <view class="title">艾泽拉斯的微风</view>
-      <view class="subtitle">魔兽世界大秘境核心向工具箱</view>
+      <view class="subtitle" bindtap="onSubtitleTap">魔兽世界大秘境核心向工具箱</view>
+    </view>
+  </view>
+
+  <!-- Weekly Dashboard -->
+  <view class="dashboard-section">
+    <!-- Token Price -->
+    <view class="dash-card token-card" bindtap="navigateToToken">
+      <view class="dash-info">
+        <text class="dash-label">时光徽章</text>
+        <text class="dash-value">{{tokenPrice}}</text>
+      </view>
+    </view>
+    
+    <!-- Affixes -->
+    <view class="dash-card affixes-card">
+      <view class="dash-header">
+        <text class="dash-title">本周词缀 (国服)</text>
+      </view>
+      
+      <view class="affix-loading" wx:if="{{isLoadingWeekly}}">正在获取...</view>
+      <view class="affix-tags" wx:elif="{{affixes.length > 0}}">
+        <view class="affix-tag" wx:for="{{affixes}}" wx:key="id">{{item.name}}</view>
+      </view>
+      <view class="affix-loading" wx:else>获取失败，请稍后重试</view>
     </view>
   </view>
 
@@ -38,13 +62,12 @@
       </view>
     </view>
 
-    <view class="nav-card" bindtap="navigateToToken">
+    <view class="nav-card" bindtap="navigateToMdt">
       <view class="card-content">
-        <view class="card-title">时光徽章行情</view>
-        <view class="card-desc">实时追踪最新价格走势与波动。</view>
+        <view class="card-title" style="color: #a855f7;">大秘境路线 (Alpha)</view>
+        <view class="card-desc">在地图上交互规划路线进度，体验技术原型。</view>
       </view>
     </view>
-
 
   </view>
   

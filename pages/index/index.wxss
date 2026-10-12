@@ -92,6 +92,96 @@
   letter-spacing: 1rpx;
 }
 
+/* Dashboard Section */
+.dashboard-section {
+  padding: 0 40rpx;
+  margin-bottom: 40rpx;
+  display: flex;
+  flex-direction: row;
+  gap: 20rpx;
+}
+
+.dash-card {
+  flex: 1;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 24rpx;
+  padding: 24rpx;
+  box-shadow: 0 8rpx 20rpx -4rpx rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 180rpx;
+}
+
+/* Token Card */
+.token-card {
+  align-items: flex-start;
+}
+
+.dash-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  width: 100%;
+}
+
+.dash-label {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+.dash-value {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #fbbf24;
+}
+
+/* Affixes Card */
+.affixes-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.dash-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 12rpx;
+}
+
+.dash-title {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.affix-loading {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 10rpx 0;
+}
+
+.affix-tags {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.affix-tag {
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 20rpx;
+  font-weight: 600;
+  padding: 6rpx 10rpx;
+  border-radius: 8rpx;
+  text-align: center;
+}
+
 .nav-grid {
   flex: 1;
   padding: 0 40rpx;

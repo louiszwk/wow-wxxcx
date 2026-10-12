@@ -1,0 +1,88 @@
+<view class="admin-page">
+  <view class="header">
+    <text class="title">攻略录入系统</text>
+    <text class="subtitle">PC端微信也可完美使用键盘录入</text>
+  </view>
+
+  <view class="form-group">
+    <view class="label">选择职业与专精</view>
+    <picker mode="multiSelector" bindchange="onSpecChange" bindcolumnchange="onClassColumnChange" value="{{pickerIndex}}" range="{{pickerRange}}">
+      <view class="picker-box">
+        当前录入：<text class="highlight">{{selectedClass.name}} - {{selectedSpec.name}}</text>
+      </view>
+    </picker>
+  </view>
+
+  <view class="card">
+    <view class="card-title">一、天赋代码 (Talents)</view>
+    <view class="input-item">
+      <text>大秘境天赋串</text>
+      <input class="input" placeholder="请输入天赋字符串" model:value="{{talentsMythic}}" />
+    </view>
+    <view class="input-item">
+      <text>团本天赋串</text>
+      <input class="input" placeholder="请输入天赋字符串" model:value="{{talentsRaid}}" />
+    </view>
+    <view class="input-item">
+      <text>天赋一句话点评</text>
+      <textarea class="textarea" placeholder="如：大秘境注重AOE..." model:value="{{talentsDesc}}"></textarea>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">二、核心消耗品 (Consumables)</view>
+    <view class="grid-2">
+      <view class="input-item"><text>合剂</text><input class="input" model:value="{{cFlask}}" /></view>
+      <view class="input-item"><text>爆发药水</text><input class="input" model:value="{{cPotion}}" /></view>
+      <view class="input-item"><text>食物</text><input class="input" model:value="{{cFood}}" /></view>
+      <view class="input-item"><text>武器附魔</text><input class="input" model:value="{{cWeapon}}" /></view>
+      <view class="input-item" style="grid-column: span 2;"><text>宝石</text><input class="input" model:value="{{cGems}}" /></view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">三、BiS 毕业装备 (共14部位)</view>
+    <view class="tip">请填入准确的装备名称（留空则不显示该部位）</view>
+    
+    <view class="gear-section">左侧栏位</view>
+    <view class="grid-2">
+      <view class="input-item"><text>头部</text><input class="input" model:value="{{gHead}}" /></view>
+      <view class="input-item"><text>项链</text><input class="input" model:value="{{gNeck}}" /></view>
+      <view class="input-item"><text>肩部</text><input class="input" model:value="{{gShoulder}}" /></view>
+      <view class="input-item"><text>背部</text><input class="input" model:value="{{gBack}}" /></view>
+      <view class="input-item"><text>胸部</text><input class="input" model:value="{{gChest}}" /></view>
+      <view class="input-item"><text>腕部</text><input class="input" model:value="{{gWrist}}" /></view>
+    </view>
+
+    <view class="gear-section">右侧栏位</view>
+    <view class="grid-2">
+      <view class="input-item"><text>手部</text><input class="input" model:value="{{gHands}}" /></view>
+      <view class="input-item"><text>腰部</text><input class="input" model:value="{{gWaist}}" /></view>
+      <view class="input-item"><text>腿部</text><input class="input" model:value="{{gLegs}}" /></view>
+      <view class="input-item"><text>脚部</text><input class="input" model:value="{{gFeet}}" /></view>
+      <view class="input-item"><text>戒指1</text><input class="input" model:value="{{gRing1}}" /></view>
+      <view class="input-item"><text>戒指2</text><input class="input" model:value="{{gRing2}}" /></view>
+      <view class="input-item"><text>饰品1</text><input class="input" model:value="{{gTrinket1}}" /></view>
+      <view class="input-item"><text>饰品2</text><input class="input" model:value="{{gTrinket2}}" /></view>
+    </view>
+
+    <view class="gear-section">武器栏位</view>
+    <view class="input-item">
+      <text>主手/双手武器</text>
+      <input class="input" model:value="{{gWeaponMain}}" />
+    </view>
+    <view class="input-item">
+      <text>副手 (选填)</text>
+      <input class="input" model:value="{{gWeaponOff}}" />
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">四、高级数据 (JSON覆盖)</view>
+    <view class="tip">如果你想直接修改输出循环等极其复杂的结构，可以在此粘贴 JSON (留空则不覆盖)</view>
+    <textarea class="textarea json-area" placeholder="JSON 字符串" model:value="{{advancedJson}}"></textarea>
+  </view>
+
+  <view class="submit-btn" bindtap="saveData">保存并同步至云端数据库</view>
+  <view class="bottom-padding"></view>
+</view>

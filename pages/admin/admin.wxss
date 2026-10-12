@@ -1,0 +1,130 @@
+.admin-page {
+  padding: 20px;
+  background-color: #0f172a;
+  min-height: 100vh;
+  color: #f8fafc;
+  box-sizing: border-box;
+}
+
+.header {
+  margin-bottom: 20px;
+}
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #3b82f6;
+  display: block;
+}
+.subtitle {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-top: 5px;
+  display: block;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+.label {
+  font-size: 14px;
+  color: #cbd5e1;
+  margin-bottom: 8px;
+}
+.picker-box {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid #334155;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 16px;
+}
+.highlight {
+  color: #f59e0b;
+  font-weight: bold;
+}
+
+.card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+.card-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #38bdf8;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #334155;
+  padding-bottom: 8px;
+}
+
+.input-item {
+  margin-bottom: 12px;
+}
+.input-item text {
+  display: block;
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 5px;
+}
+.input {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid #334155;
+  padding: 10px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.textarea {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid #334155;
+  padding: 10px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  height: 80px;
+}
+.json-area {
+  height: 150px;
+  font-family: monospace;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.gear-section {
+  font-size: 14px;
+  color: #f472b6;
+  margin: 15px 0 10px;
+  font-weight: bold;
+}
+.tip {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 10px;
+}
+
+.submit-btn {
+  background: #2563eb;
+  color: #fff;
+  text-align: center;
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 20px;
+}
+.submit-btn:active {
+  background: #1d4ed8;
+}
+
+.bottom-padding {
+  height: 50px;
+}

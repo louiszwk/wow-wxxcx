@@ -8,18 +8,16 @@ Page({
     classSlug: '',
     specs: [],
     activeSpec: 0,
-    modes: ['大秘境高层榜首配装 (实战BiS)'],
-    activeMode: 0,
+    sectionTabs: ['天赋&物资', '输出循环', 'BiS装备'],
+    activeSection: 0,
     
     isLoading: true,
     playerInfo: '',
     
+    guideData: null,
     leftGear: [],
     rightGear: [],
-    weapons: [],
-    stats: {
-      crit: 0, haste: 0, mastery: 0, vers: 0
-    }
+    weapons: []
   },
   
   onLoad(options) {
@@ -48,11 +46,41 @@ Page({
   },
 
   fetchDynamicBisGear() {
-    this.setData({ isLoading: false });
-    wx.showToast({
-      title: '数据更新中，敬请期待',
-      icon: 'none',
-      duration: 3000
+    this.setData({ isLoading: true });
+    
+    const currentSpec = this.data.specs[this.data.activeSpec];
+    const db = wx.cloud.database();
+    
+    db.collection('wow_guides').where({
+      classSlug: this.data.classSlug,
+      specId: currentSpec.id
+    }).get({
+      success: (res) => {
+        if (res.data && res.data.length > 0) {
+          const data = res.data[0];
+          this.setData({
+            guideData: data,
+            leftGear: data.gear && data.gear.left ? data.gear.left : [],
+            rightGear: data.gear && data.gear.right ? data.gear.right : [],
+            weapons: data.gear && data.gear.weapons ? data.gear.weapons : [],
+            isLoading: false
+          });
+        } else {
+          // 数据库中未找到该专精的攻略
+          this.setData({
+            guideData: null,
+            leftGear: [],
+            rightGear: [],
+            weapons: [],
+            isLoading: false
+          });
+        }
+      },
+      fail: (err) => {
+        console.error('获取攻略失败:', err);
+        this.setData({ isLoading: false });
+        wx.showToast({ title: '数据库连接失败', icon: 'none' });
+      }
     });
   },
 
@@ -70,8 +98,22 @@ Page({
     this.fetchDynamicBisGear();
   },
 
-  switchMode(e) {
-    this.setData({ activeMode: e.currentTarget.dataset.index });
+  switchSection(e) {
+    this.setData({ activeSection: e.currentTarget.dataset.index });
+  },
+
+  copyTalent(e) {
+    const string = e.currentTarget.dataset.code;
+    if (string.includes('暂无')) {
+      wx.showToast({ title: '暂无可用代码', icon: 'none' });
+      return;
+    }
+    wx.setClipboardData({
+      data: string,
+      success: () => {
+        wx.showToast({ title: '天赋已复制', icon: 'success' });
+      }
+    });
   },
 
   openItemStats(e) {

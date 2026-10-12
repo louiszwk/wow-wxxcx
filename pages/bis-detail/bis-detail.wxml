@@ -1,9 +1,9 @@
 <view class="page-container">
-  <view class="nav-bar">
-    <view class="nav-back" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
-      <text class="back-icon">‹</text>
+  <view class="nav-bar" style="padding-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px;">
+    <view class="nav-back" bindtap="navigateBack" style="height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px; display: flex; align-items: center;">
+      <text class="back-icon" style="font-size: 28px;">‹</text>
     </view>
-    <view class="nav-title">{{className}}</view>
+    <view class="nav-title" style="line-height: {{menuButtonHeight}}px;">{{className}}</view>
   </view>
 
   <view class="banner-area">
@@ -22,8 +22,8 @@
     </view>
 
     <view class="mode-tabs">
-      <block wx:for="{{modes}}" wx:key="*this">
-        <view class="mode-tab {{activeMode === index ? 'active' : ''}}" bindtap="switchMode" data-index="{{index}}">
+      <block wx:for="{{sectionTabs}}" wx:key="*this">
+        <view class="mode-tab {{activeSection === index ? 'active' : ''}}" bindtap="switchSection" data-index="{{index}}">
           <text>{{item}}</text>
         </view>
       </block>
@@ -31,57 +31,104 @@
   </view>
 
   <view wx:if="{{isLoading}}" class="loading-state">
-    <text>正在从 Raider.io 分析大秘境高层榜首实战数据...</text>
+    <text>正在连接云数据库...</text>
+  </view>
+
+  <view wx:elif="{{!guideData}}" class="empty-state">
+    <view class="empty-icon">📂</view>
+    <text class="empty-text">当前版本暂未收录该专精的攻略数据\n数据源每周持续更新中，敬请期待</text>
   </view>
 
   <view wx:else>
-    <view class="gear-panel">
-      <!-- 左侧装备栏 -->
-      <view class="gear-col left-col">
-        <block wx:for="{{leftGear}}" wx:key="slot">
-          <view class="gear-item {{item.quality === 'empty' ? 'empty-slot' : ''}}" bindtap="openItemStats" data-name="{{item.name}}">
-            <image class="gear-icon" src="{{item.icon}}" wx:if="{{item.icon}}"></image>
-            <view class="gear-empty-icon" wx:else>BC</view>
-            <view class="gear-info" wx:if="{{item.name}}">
-              <view class="gear-name epic-text">{{item.name}}</view>
-              <view class="gear-desc">{{item.desc}}</view>
-            </view>
-          </view>
-        </block>
+    <!-- Section 0: 天赋&物资 -->
+    <view class="guide-panel" wx:if="{{activeSection === 0}}">
+      <view class="panel-card">
+        <view class="card-title">大秘境天赋代码</view>
+        <view class="talent-box">
+          <text class="talent-code" user-select="true">{{guideData.talents.mythicPlus}}</text>
+          <view class="copy-btn" bindtap="copyTalent" data-code="{{guideData.talents.mythicPlus}}">一键复制</view>
+        </view>
       </view>
-
-      <!-- 右侧装备栏 -->
-      <view class="gear-col right-col">
-        <block wx:for="{{rightGear}}" wx:key="slot">
-          <view class="gear-item reverse {{item.quality === 'empty' ? 'empty-slot' : ''}}" bindtap="openItemStats" data-name="{{item.name}}">
-            <image class="gear-icon" src="{{item.icon}}" wx:if="{{item.icon}}"></image>
-            <view class="gear-empty-icon" wx:else>BC</view>
-            <view class="gear-info" wx:if="{{item.name}}">
-              <view class="gear-name epic-text">{{item.name}}</view>
-              <view class="gear-desc">{{item.desc}}</view>
-            </view>
-          </view>
-        </block>
+      <view class="panel-card">
+        <view class="card-title">团本天赋代码</view>
+        <view class="talent-box">
+          <text class="talent-code" user-select="true">{{guideData.talents.raid}}</text>
+          <view class="copy-btn" bindtap="copyTalent" data-code="{{guideData.talents.raid}}">一键复制</view>
+        </view>
+        <view class="talent-desc">{{guideData.talents.desc}}</view>
+      </view>
+      
+      <view class="panel-card">
+        <view class="card-title">核心消耗品与附魔</view>
+        <view class="consumable-list">
+          <view class="c-item"><text class="c-label">合剂</text><text class="c-val">{{guideData.consumables.flask}}</text></view>
+          <view class="c-item"><text class="c-label">药水</text><text class="c-val">{{guideData.consumables.potion}}</text></view>
+          <view class="c-item"><text class="c-label">食物</text><text class="c-val">{{guideData.consumables.food}}</text></view>
+          <view class="c-item"><text class="c-label">武器</text><text class="c-val">{{guideData.consumables.weapon}}</text></view>
+          <view class="c-item"><text class="c-label">宝石</text><text class="c-val">{{guideData.consumables.gems}}</text></view>
+        </view>
       </view>
     </view>
 
-    <!-- 武器栏 -->
-    <view class="weapons-panel">
-      <block wx:for="{{weapons}}" wx:key="slot">
-        <view class="gear-item {{item.quality === 'empty' ? 'empty-slot' : ''}}" bindtap="openItemStats" data-name="{{item.name}}">
-          <image class="gear-icon" src="{{item.icon}}" wx:if="{{item.icon}}"></image>
-          <view class="gear-empty-icon" wx:else>BC</view>
-          <view class="gear-info" wx:if="{{item.name}}">
-            <view class="gear-name epic-text">{{item.name}}</view>
-            <view class="gear-desc">{{item.desc}}</view>
+    <!-- Section 1: 输出循环 -->
+    <view class="guide-panel" wx:if="{{activeSection === 1}}">
+      <view class="panel-card">
+        <view class="card-title">输出优先级 (自上而下)</view>
+        <view class="rotation-list">
+          <view class="rot-item" wx:for="{{guideData.rotation}}" wx:key="name">
+            <image class="rot-icon" wx:if="{{item.icon}}" src="{{item.icon}}" mode="aspectFill"></image>
+            <view class="rot-step" wx:else>{{index + 1}}</view>
+            <view class="rot-info">
+              <view class="rot-name">{{item.name}}</view>
+              <view class="rot-desc">{{item.desc}}</view>
+            </view>
           </view>
         </view>
-      </block>
+      </view>
     </view>
 
-    <!-- 属性信息 -->
-    <view class="stats-panel">
-      <view class="stats-title">{{playerInfo}}</view>
+    <!-- Section 2: BiS装备 -->
+    <view class="guide-panel" wx:if="{{activeSection === 2}}">
+      <view class="gear-panel">
+        <view class="gear-col left-col">
+          <block wx:for="{{leftGear}}" wx:key="slot">
+            <view class="gear-item {{item.quality === 'empty' ? 'empty-slot' : ''}}" bindtap="openItemStats" data-name="{{item.name}}">
+              <image class="gear-icon" wx:if="{{item.icon}}" src="{{item.icon}}" mode="aspectFill"></image>
+              <view class="gear-slot-tag">{{item.slot}}</view>
+              <view class="gear-info" wx:if="{{item.name}}">
+                <view class="gear-name epic-text">{{item.name}}</view>
+                <view class="gear-desc">{{item.desc}}</view>
+              </view>
+            </view>
+          </block>
+        </view>
+
+        <view class="gear-col right-col">
+          <block wx:for="{{rightGear}}" wx:key="slot">
+            <view class="gear-item reverse {{item.quality === 'empty' ? 'empty-slot' : ''}}" bindtap="openItemStats" data-name="{{item.name}}">
+              <image class="gear-icon" wx:if="{{item.icon}}" src="{{item.icon}}" mode="aspectFill"></image>
+              <view class="gear-slot-tag">{{item.slot}}</view>
+              <view class="gear-info" wx:if="{{item.name}}">
+                <view class="gear-name epic-text">{{item.name}}</view>
+                <view class="gear-desc">{{item.desc}}</view>
+              </view>
+            </view>
+          </block>
+        </view>
+      </view>
+
+      <view class="weapons-panel">
+        <block wx:for="{{weapons}}" wx:key="slot">
+          <view class="gear-item {{item.quality === 'empty' ? 'empty-slot' : ''}}" bindtap="openItemStats" data-name="{{item.name}}">
+            <image class="gear-icon" wx:if="{{item.icon}}" src="{{item.icon}}" mode="aspectFill"></image>
+            <view class="gear-slot-tag">{{item.slot}}</view>
+            <view class="gear-info" wx:if="{{item.name}}">
+              <view class="gear-name epic-text">{{item.name}}</view>
+              <view class="gear-desc">{{item.desc}}</view>
+            </view>
+          </view>
+        </block>
+      </view>
     </view>
   </view>
 

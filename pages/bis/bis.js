@@ -88,6 +88,16 @@ Page({
     expandedClassId: null
   },
 
+  onLoad() {
+    const sysInfo = wx.getSystemInfoSync();
+    const menuButtonInfo = wx.getMenuButtonBoundingClientRect();
+    this.setData({
+      navBarHeight: (menuButtonInfo.top - sysInfo.statusBarHeight) * 2 + menuButtonInfo.height + sysInfo.statusBarHeight,
+      menuButtonTop: menuButtonInfo.top,
+      menuButtonHeight: menuButtonInfo.height
+    });
+  },
+
   navigateBack() {
     wx.navigateBack({
       delta: 1,
