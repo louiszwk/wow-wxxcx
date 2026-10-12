@@ -45,7 +45,7 @@ Page({
     percent: '0.00',
     
     enemies: [],
-    pullMarkers: [], // 每一波的中心编号徽章
+    pullBoxes: [], // 每一波选中的怪物包围框与中心数字
     selectedEnemyInfo: null,
     
     pullColors: [
@@ -133,7 +133,7 @@ Page({
       activePullIndex: 0,
       currentForces: 0,
       percent: '0.00',
-      pullMarkers: [],
+      pullBoxes: [],
       selectedEnemyInfo: null,
       scaleValue: initialScale,
       scalePercent: Math.round(initialScale * 100)
@@ -312,7 +312,7 @@ Page({
           activePullIndex: 0,
           currentForces: 0,
           percent: '0.00',
-          pullMarkers: [],
+          pullBoxes: [],
           selectedEnemyInfo: null
         });
         this.calculateForces();
@@ -388,7 +388,7 @@ Page({
     let current = 0;
     let pulls = this.data.pulls;
     let enemies = this.data.enemies;
-    const pullMarkers = [];
+    const pullBoxes = [];
 
     // 重置所有怪物的标号状态
     enemies.forEach(en => {
@@ -397,10 +397,20 @@ Page({
       en.pullNumber = null;
     });
 
+    const hexToRgba = (hex, alpha) => {
+      let c = (hex || '#ef4444').replace('#', '');
+      if (c.length === 3) c = c.split('').map(x => x + x).join('');
+      const r = parseInt(c.substring(0, 2), 16) || 0;
+      const g = parseInt(c.substring(2, 4), 16) || 0;
+      const b = parseInt(c.substring(4, 6), 16) || 0;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    };
+
     pulls.forEach((p, pIdx) => {
       let pForce = 0;
-      let sumX = 0;
-      let sumY = 0;
+      let minX = Infinity, maxX = -Infinity;
+      let minY = Infinity, maxY = -Infinity;
+      let sumX = 0, sumY = 0;
       let count = 0;
 
       p.enemyIds.forEach(eid => {
@@ -409,9 +419,16 @@ Page({
           pForce += e.forces;
           e.selected = true;
           e.color = p.color;
-          e.pullNumber = pIdx + 1; // 每一波怪打上明显的波次数字
-          sumX += e.x;
-          sumY += e.y;
+          e.pullNumber = pIdx + 1;
+          
+          const px = e.x * this.data.mapWidth;
+          const py = e.y * this.data.mapHeight;
+          if (px < minX) minX = px;
+          if (px > maxX) maxX = px;
+          if (py < minY) minY = py;
+          if (py > maxY) maxY = py;
+          sumX += px;
+          sumY += py;
           count++;
         }
       });
@@ -419,12 +436,29 @@ Page({
       current += pForce;
 
       if (count > 0) {
-        pullMarkers.push({
+        const isSingle = count === 1;
+        // 合适的内边距，把当前波选中的怪整齐框起来
+        const padX = isSingle ? 18 : 22;
+        const padY = isSingle ? 18 : 22;
+        const boxLeft = Math.round(minX - padX);
+        const boxTop = Math.round(minY - padY);
+        const boxWidth = Math.round(Math.max(40, (maxX - minX) + padX * 2));
+        const boxHeight = Math.round(Math.max(40, (maxY - minY) + padY * 2));
+        const centerX = Math.round(sumX / count);
+        const centerY = Math.round(sumY / count);
+
+        pullBoxes.push({
           pullIndex: pIdx,
           pullNum: pIdx + 1,
-          x: Math.round((sumX / count) * this.data.mapWidth),
-          y: Math.round((sumY / count) * this.data.mapHeight),
+          left: boxLeft,
+          top: boxTop,
+          width: boxWidth,
+          height: boxHeight,
+          centerX: centerX,
+          centerY: centerY,
           color: p.color,
+          bgColor: hexToRgba(p.color, 0.16),
+          isSingle: isSingle,
           count: count,
           forces: pForce
         });
@@ -432,7 +466,7 @@ Page({
     });
 
     let percent = ((current / this.data.totalForces) * 100).toFixed(2);
-    this.setData({ pulls, currentForces: current, percent, enemies, pullMarkers });
+    this.setData({ pulls, currentForces: current, percent, enemies, pullBoxes });
   },
 
   drawLines() {
@@ -440,48 +474,24 @@ Page({
     const ctx = this.canvasCtx;
     ctx.clearRect(0, 0, this.data.mapWidth, this.data.mapHeight);
     
-    const pulls = this.data.pulls;
-    const enemies = this.data.enemies;
-    let lastPullCenter = null;
+    const pullBoxes = this.data.pullBoxes || [];
+    if (pullBoxes.length < 2) return;
 
-    for (let i = 0; i < pulls.length; i++) {
-      const p = pulls[i];
-      if (p.enemyIds.length === 0) continue;
+    // 绘制波次与波次之间简洁清晰的虚线路径
+    ctx.beginPath();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([8, 6]);
 
-      // 绘制同波次怪物之间的连线
-      ctx.beginPath();
-      ctx.strokeStyle = p.color;
-      ctx.lineWidth = 2.5;
-      ctx.setLineDash([]);
-
-      let sumX = 0, sumY = 0;
-      for (let j = 0; j < p.enemyIds.length; j++) {
-        const e = enemies.find(en => en.id === p.enemyIds[j]);
-        if (!e) continue;
-        const px = e.x * this.data.mapWidth;
-        const py = e.y * this.data.mapHeight;
-        sumX += px; sumY += py;
-        if (j === 0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
+    for (let i = 0; i < pullBoxes.length; i++) {
+      const b = pullBoxes[i];
+      if (i === 0) {
+        ctx.moveTo(b.centerX, b.centerY);
+      } else {
+        ctx.lineTo(b.centerX, b.centerY);
       }
-      ctx.stroke();
-
-      // 计算本波重心
-      const centerX = sumX / p.enemyIds.length;
-      const centerY = sumY / p.enemyIds.length;
-
-      // 绘制波次与波次之间的虚线箭头连线
-      if (lastPullCenter) {
-        ctx.beginPath();
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 3;
-        ctx.setLineDash([6, 6]);
-        ctx.moveTo(lastPullCenter.x, lastPullCenter.y);
-        ctx.lineTo(centerX, centerY);
-        ctx.stroke();
-      }
-      lastPullCenter = { x: centerX, y: centerY };
     }
+    ctx.stroke();
   },
 
   importMDT() {

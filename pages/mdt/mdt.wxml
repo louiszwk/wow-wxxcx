@@ -58,20 +58,24 @@
         <!-- 画布（绘制拉怪连接线与波次流向） -->
         <canvas type="2d" id="routeCanvas" class="route-canvas" style="width: {{mapWidth}}px; height: {{mapHeight}}px;"></canvas>
         
-        <!-- 每一波怪物的中心徽章标记 (仅显示纯数字，极简清晰) -->
-        <view class="pull-markers-layer">
+        <!-- 每一波选中的怪的包围框及中心数字 -->
+        <view class="pull-boxes-layer">
           <view 
-            wx:for="{{pullMarkers}}" 
+            wx:for="{{pullBoxes}}" 
             wx:key="pullIndex" 
-            class="pull-centroid-badge {{activePullIndex === item.pullIndex ? 'active' : ''}}" 
-            style="left: {{item.x}}px; top: {{item.y}}px; background-color: {{item.color}};"
+            class="pull-box {{activePullIndex === item.pullIndex ? 'active' : ''}}" 
+            style="left: {{item.left}}px; top: {{item.top}}px; width: {{item.width}}px; height: {{item.height}}px; border-color: {{item.color}}; background-color: {{item.bgColor}};"
             catchtap="selectPullByIndex"
             data-index="{{item.pullIndex}}">
-            <text class="badge-num">{{item.pullNum}}</text>
+            <view 
+              class="pull-center-badge {{item.isSingle ? 'single-badge' : ''}}" 
+              style="background-color: {{item.color}};">
+              <text class="badge-num">{{item.pullNum}}</text>
+            </view>
           </view>
         </view>
 
-        <!-- 怪物标记点 (每个怪点标有明确的波次数字) -->
+        <!-- 怪物标记点图层 (选中高亮显示) -->
         <view class="enemy-layer">
           <view 
             wx:for="{{enemies}}" 
@@ -80,9 +84,7 @@
             style="left: {{item.x * 100}}%; top: {{item.y * 100}}%; background-color: {{item.selected ? item.color : (item.isBoss ? '#c084fc' : '#64748b')}}; border-color: {{item.selected ? '#ffffff' : '#0f172a'}};" 
             bindtap="toggleEnemy" 
             data-id="{{item.id}}">
-            <!-- 选中的怪显示波次编号 -->
-            <text class="node-num" wx:if="{{item.selected}}">{{item.pullNumber}}</text>
-            <text class="node-boss-mark" wx:if="{{item.isBoss && !item.selected}}">👑</text>
+            <text class="node-boss-mark" wx:if="{{item.isBoss}}">👑</text>
           </view>
         </view>
         
