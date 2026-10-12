@@ -1,3 +1,27 @@
+const allDungeonsData = require('./all_dungeons_data.js');
+
+const DUNGEONS_LIST = [
+  '谋杀街 (Murder Row)',
+  '纳洛拉克之巢',
+  '致盲谷',
+  '虚空之痕竞技场',
+  '尖牙祭坛',
+  '红玉新生法地',
+  '塞塔里斯神庙',
+  '诸王之眠'
+];
+
+const DUNGEON_FILES = {
+  '谋杀街 (Murder Row)': 'MurderRow',
+  '纳洛拉克之巢': 'DenOfNalorakk',
+  '致盲谷': 'TheBlindingVale',
+  '虚空之痕竞技场': 'VoidscarArena',
+  '尖牙祭坛': 'AltarOfFangs',
+  '红玉新生法地': 'RubyLifePools',
+  '塞塔里斯神庙': 'TempleOfSethraliss',
+  '诸王之眠': 'KingsRest'
+};
+
 Page({
   data: {
     menuButtonTop: 44,
@@ -7,15 +31,14 @@ Page({
     mapWidth: 1200,
     mapHeight: 800,
 
+    dungeonNames: DUNGEONS_LIST,
     currentDungeonName: '红玉新生法地',
     mapImage: '/images/maps/RubyLifePools.jpg',
     showDungeonModal: false,
 
-    // 缩放与平移控制
-    scaleValue: 0.45,
-    scalePercent: 45,
-    mapX: 0,
-    mapY: 0,
+    // 缩放控制（初始自适应屏幕宽度）
+    scaleValue: 0.35,
+    scalePercent: 35,
     
     currentForces: 0,
     totalForces: 551,
@@ -45,31 +68,16 @@ Page({
     }
 
     const sys = wx.getSystemInfoSync();
-    this.fitScale = parseFloat(Math.max(0.3, Math.min(1.0, (sys.windowWidth || 390) / 1200)).toFixed(2));
+    // 计算刚好贴合屏幕宽度的初始缩放比例
+    const winWidth = sys.windowWidth || 390;
+    this.fitScale = parseFloat(Math.max(0.25, Math.min(1.0, winWidth / 1200)).toFixed(2));
+    this.currentScale = this.fitScale;
 
-    this.allDungeons = require('./all_dungeons_data.js');
-    this.dungeonNames = [
-      '谋杀街 (Murder Row)',
-      '纳洛拉克之巢',
-      '致盲谷',
-      '虚空之痕竞技场',
-      '尖牙祭坛',
-      '红玉新生法地',
-      '塞塔里斯神庙',
-      '诸王之眠'
-    ];
-    
-    this.dungeonFiles = {
-      '谋杀街 (Murder Row)': 'MurderRow',
-      '纳洛拉克之巢': 'DenOfNalorakk',
-      '致盲谷': 'TheBlindingVale',
-      '虚空之痕竞技场': 'VoidscarArena',
-      '尖牙祭坛': 'AltarOfFangs',
-      '红玉新生法地': 'RubyLifePools',
-      '塞塔里斯神庙': 'TempleOfSethraliss',
-      '诸王之眠': 'KingsRest'
-    };
-    
+    this.setData({
+      scaleValue: this.fitScale,
+      scalePercent: Math.round(this.fitScale * 100)
+    });
+
     this.loadDungeon('红玉新生法地');
   },
 
@@ -101,11 +109,20 @@ Page({
   },
 
   loadDungeon(name) {
-    const data = this.allDungeons[name];
-    if (!data) return;
+    const data = allDungeonsData[name];
+    if (!data) {
+      wx.showToast({ title: '副本数据缺失', icon: 'none' });
+      return;
+    }
 
-    const file = this.dungeonFiles[name];
-    const initialScale = this.fitScale || 0.45;
+    const file = DUNGEON_FILES[name];
+    if (!file) {
+      wx.showToast({ title: '地图文件缺失', icon: 'none' });
+      return;
+    }
+
+    const initialScale = this.fitScale || 0.35;
+    this.currentScale = initialScale;
 
     this.setData({
       currentDungeonName: name,
@@ -119,9 +136,7 @@ Page({
       pullMarkers: [],
       selectedEnemyInfo: null,
       scaleValue: initialScale,
-      scalePercent: Math.round(initialScale * 100),
-      mapX: 0,
-      mapY: 0
+      scalePercent: Math.round(initialScale * 100)
     });
     
     if (this.canvasCtx) {
@@ -153,7 +168,7 @@ Page({
       });
   },
 
-  // 鼠标滚轮缩放支持 (PC端 / 开发者工具)
+  // 鼠标滚轮缩放监听 (PC微信 / 微信开发者工具)
   onMouseWheel(e) {
     const delta = (e.detail && e.detail.deltaY !== undefined) 
       ? e.detail.deltaY 
@@ -161,54 +176,55 @@ Page({
     
     if (!delta) return;
 
-    let currentScale = this.data.scaleValue || 1.0;
-    // 向上滚 delta < 0 放大，向下滚 delta > 0 缩小
-    let nextScale = delta < 0 ? currentScale * 1.15 : currentScale / 1.15;
+    let cur = this.currentScale || this.data.scaleValue || 0.35;
+    // 向上滚动放大，向下滚动缩小
+    let next = delta < 0 ? cur * 1.15 : cur / 1.15;
+    if (next < 0.2) next = 0.2;
+    if (next > 4.0) next = 4.0;
     
-    if (nextScale < 0.25) nextScale = 0.25;
-    if (nextScale > 4.5) nextScale = 4.5;
-    
-    const s = parseFloat(nextScale.toFixed(2));
+    next = parseFloat(next.toFixed(2));
+    this.currentScale = next;
     this.setData({ 
-      scaleValue: s,
-      scalePercent: Math.round(s * 100)
+      scaleValue: next,
+      scalePercent: Math.round(next * 100)
     });
   },
 
-  // 双指缩放移动端原生监听
+  // 移动端双指手势缩放变化监听
   onScaleChange(e) {
     if (e.detail && e.detail.scale) {
-      const s = parseFloat(e.detail.scale.toFixed(2));
-      this.setData({ 
-        scaleValue: s,
-        scalePercent: Math.round(s * 100)
-      });
+      this.currentScale = e.detail.scale;
+      // 注意：不要在手势进行中频繁 setData(scaleValue)，避免造成组件跳动
     }
   },
 
   zoomIn() {
-    let s = (this.data.scaleValue || 1.0) * 1.25;
-    if (s > 4.5) s = 4.5;
-    s = parseFloat(s.toFixed(2));
-    this.setData({ scaleValue: s, scalePercent: Math.round(s * 100) });
+    let cur = this.currentScale || this.data.scaleValue || 0.35;
+    let next = Math.min(4.0, parseFloat((cur * 1.3).toFixed(2)));
+    if (next === this.data.scaleValue) next += 0.01;
+    this.currentScale = next;
+    this.setData({ scaleValue: next, scalePercent: Math.round(next * 100) });
   },
 
   zoomOut() {
-    let s = (this.data.scaleValue || 1.0) / 1.25;
-    if (s < 0.25) s = 0.25;
-    s = parseFloat(s.toFixed(2));
-    this.setData({ scaleValue: s, scalePercent: Math.round(s * 100) });
+    let cur = this.currentScale || this.data.scaleValue || 0.35;
+    let next = Math.max(0.2, parseFloat((cur / 1.3).toFixed(2)));
+    if (next === this.data.scaleValue) next -= 0.01;
+    this.currentScale = next;
+    this.setData({ scaleValue: next, scalePercent: Math.round(next * 100) });
   },
 
   resetZoom() {
-    const s = this.fitScale || 0.45;
+    let s = this.fitScale || 0.35;
+    if (this.data.scaleValue === s) {
+      s += 0.001;
+    }
+    this.currentScale = s;
     this.setData({ 
       scaleValue: s, 
-      scalePercent: Math.round(s * 100),
-      mapX: 0, 
-      mapY: 0 
+      scalePercent: Math.round(s * 100)
     });
-    wx.showToast({ title: '已重置视野', icon: 'none', duration: 800 });
+    wx.showToast({ title: '已自适应全图', icon: 'none', duration: 800 });
   },
 
   addPull() {
@@ -245,7 +261,7 @@ Page({
     
     wx.showModal({
       title: '删除拉怪批次',
-      content: `确定要删除 Pull ${index + 1} 吗？该波次中的怪物将被取消标号并移出路线。`,
+      content: `确定要删除 Pull ${index + 1} 吗？该波次中的怪物将被移出路线。`,
       confirmText: '删除',
       confirmColor: '#ef4444',
       success: (res) => {
