@@ -246,9 +246,9 @@ Page({
     const idx = Number(e.currentTarget.dataset.index);
     this.setData({ activePullIndex: idx });
     wx.showToast({
-      title: `已选中 Pull ${idx + 1}`,
+      title: `第 ${idx + 1} 波`,
       icon: 'none',
-      duration: 1000
+      duration: 800
     });
   },
 
@@ -261,7 +261,7 @@ Page({
     
     wx.showModal({
       title: '删除拉怪批次',
-      content: `确定要删除 Pull ${index + 1} 吗？该波次中的怪物将被移出路线。`,
+      content: `确定要删除第 ${index + 1} 波吗？该波次中的怪物将被移出路线。`,
       confirmText: '删除',
       confirmColor: '#ef4444',
       success: (res) => {
@@ -372,7 +372,7 @@ Page({
         forces: totalEnemyForces,
         percent: percentContributed,
         packCount: packEnemies.length,
-        action: isSelectedNow ? `已标号为波次 Pull ${activeIdx + 1}` : '已移出路线'
+        action: isSelectedNow ? `已标号为第 ${activeIdx + 1} 波` : '已移出路线'
       }
     });
 

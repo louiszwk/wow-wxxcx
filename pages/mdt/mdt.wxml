@@ -58,7 +58,7 @@
         <!-- 画布（绘制拉怪连接线与波次流向） -->
         <canvas type="2d" id="routeCanvas" class="route-canvas" style="width: {{mapWidth}}px; height: {{mapHeight}}px;"></canvas>
         
-        <!-- 每一波怪物的中心徽章标记 (突出标号区分) -->
+        <!-- 每一波怪物的中心徽章标记 (仅显示纯数字，极简清晰) -->
         <view class="pull-markers-layer">
           <view 
             wx:for="{{pullMarkers}}" 
@@ -67,8 +67,7 @@
             style="left: {{item.x}}px; top: {{item.y}}px; background-color: {{item.color}};"
             catchtap="selectPullByIndex"
             data-index="{{item.pullIndex}}">
-            <text class="badge-title">Pull {{item.pullNum}}</text>
-            <text class="badge-forces">+{{item.forces}}</text>
+            <text class="badge-num">{{item.pullNum}}</text>
           </view>
         </view>
 
@@ -118,7 +117,7 @@
 
   <!-- 底部波次控制台 -->
   <view class="bottom-panel">
-    <view class="panel-hint">当前波次: Pull {{activePullIndex + 1}} (轻触切换，长按删除波次)</view>
+    <view class="panel-hint">当前波次: 第 {{activePullIndex + 1}} 波 (轻触切换，长按删除)</view>
     <scroll-view scroll-x="true" class="pulls-list">
       <view 
         wx:for="{{pulls}}" 
@@ -130,7 +129,7 @@
         data-index="{{index}}">
         <view class="pull-header">
           <text class="pull-num-badge" style="background-color: {{item.color}};">{{index + 1}}</text>
-          <text class="pull-num">Pull {{index + 1}}</text>
+          <text class="pull-num">第 {{index + 1}} 波</text>
         </view>
         <text class="pull-forces">+{{item.forces}}</text>
       </view>
