@@ -14,9 +14,10 @@ Page({
     showMetaModal: false,
     showCustomLoading: false,
     loadingDots: '',
-    allRankings: null
+    allRankings: null,
+    isRefreshing: false
   },
-  
+
   onLoad() {
     const app = getApp();
     if (app.globalData) {
@@ -85,8 +86,8 @@ Page({
   },
 
   showStatisticsModal() {
-    const size = (this.data.currentPage + 1) * 20;
-    if (this.data.allRankings) {
+    if (this.data.allRankings && this.data.allRankings.length > 0) {
+      const size = Math.min((this.data.currentPage + 1) * 20, this.data.allRankings.length);
       const sliced = this.data.allRankings.slice(0, size);
       this.processMetaStats(sliced);
       this.setData({ showMetaModal: true });
@@ -99,7 +100,7 @@ Page({
     this.setData({ showMetaModal: false });
   },
 
-  preventTouchMove() {},
+  preventTouchMove() { },
 
   showLoadingOverlay() {
     this.setData({ showCustomLoading: true });
@@ -125,29 +126,30 @@ Page({
     if (this.dotsInterval) clearInterval(this.dotsInterval);
   },
 
-  fetchData() {
-    this.setData({ loading: true, errorMsg: '', metaData: null, runsData: null });
-    this.showLoadingOverlay();
-    
-    const db = wx.cloud.database();
-    db.collection('topmeta_data').doc('latest').get().then(res => {
-      if (res.data && res.data.rankings) {
-        this.setData({ allRankings: res.data.rankings });
-        this.updateRunsFromLocal();
-        this.setData({ loading: false, scrollTop: 0 });
-        this.hideLoadingOverlay();
-      } else {
-        this.fetchRunsRealtime(0);
-      }
-    }).catch(err => {
-      console.log('数据库未就绪或无缓存，回退到实时拉取', err);
-      this.fetchRunsRealtime(0);
+  fetchData(cb) {
+    this.setData({
+      loading: true,
+      errorMsg: '',
+      metaData: null,
+      runsData: null,
+      currentPage: 0,
+      allRankings: [],
+      isRefreshing: true
+    });
+    this.fetchRunsRealtime(0, cb);
+  },
+
+  onPullDownRefresh() {
+    this.fetchData(() => {
+      this.setData({ isRefreshing: false });
+      wx.stopPullDownRefresh();
     });
   },
 
-  fetchRunsRealtime(targetPage) {
+  fetchRunsRealtime(targetPage, cb) {
     this.showLoadingOverlay();
-    
+
+    // 直接发起实时请求获取 Raider.io 最新大秘境队伍数据（不使用数据库缓存）
     wx.cloud.callFunction({
       name: 'proxyRequest',
       data: {
@@ -160,42 +162,75 @@ Page({
           let currentRankings = this.data.allRankings || [];
           const newRankings = result.data.rankings;
           currentRankings = currentRankings.slice(0, targetPage * 20).concat(newRankings);
-          this.setData({ 
+          this.setData({
             allRankings: currentRankings,
-            currentPage: targetPage 
+            currentPage: targetPage,
+            loading: false,
+            isRefreshing: false,
+            scrollTop: 0
           });
           this.updateRunsFromLocal();
-          this.setData({ loading: false, scrollTop: 0 });
           this.hideLoadingOverlay();
+
+          // 若首屏实时加载成功，静默并发预取后续页码的实时数据，丰富出场率统计样本
+          if (targetPage === 0) {
+            this.prefetchAdditionalPages([1, 2, 3, 4]);
+          }
         } else {
           this.hideLoadingOverlay();
+          this.setData({ loading: false, isRefreshing: false });
           wx.showToast({ title: '数据异常稍后再试', icon: 'none' });
         }
       },
-      fail: () => {
+      fail: (err) => {
+        console.error('实时请求失败:', err);
         this.hideLoadingOverlay();
+        this.setData({ loading: false, isRefreshing: false, errorMsg: '获取实时数据失败，请下拉重试' });
         wx.showToast({ title: '数据异常稍后再试', icon: 'none' });
+      },
+      complete: () => {
+        if (typeof cb === 'function') cb();
       }
+    });
+  },
+
+  // 并发预取后续页数（仅走实时网络请求，不使用任何数据库缓存）
+  prefetchAdditionalPages(pages) {
+    const requests = pages.map(page =>
+      wx.cloud.callFunction({
+        name: 'proxyRequest',
+        data: {
+          url: `https://raider.io/api/v1/mythic-plus/runs?region=world&dungeon=all&page=${page}`,
+          method: 'GET'
+        }
+      }).then(res => {
+        if (res && res.result && res.result.success && res.result.data && res.result.data.rankings) {
+          return { page, rankings: res.result.data.rankings };
+        }
+        return null;
+      }).catch(() => null)
+    );
+
+    Promise.all(requests).then(results => {
+      let combined = (this.data.allRankings || []).slice();
+      results.filter(Boolean).sort((a, b) => a.page - b.page).forEach(r => {
+        const start = r.page * 20;
+        combined = combined.slice(0, start).concat(r.rankings);
+      });
+      this.setData({ allRankings: combined });
     });
   },
 
   prevPage() {
     if (this.data.currentPage > 0 && !this.data.showCustomLoading) {
-      this.setData({ 
-        allExpanded: false
-      });
+      this.setData({ allExpanded: false });
       const targetPage = this.data.currentPage - 1;
-      
-      this.showLoadingOverlay();
-      setTimeout(() => {
-        this.setData({ currentPage: targetPage });
-        if (this.data.allRankings && this.data.allRankings.length > targetPage * 20) {
-          this.updateRunsFromLocal();
-        } else {
-          this.fetchData();
-        }
-        this.hideLoadingOverlay();
-      }, 1000);
+      this.setData({ currentPage: targetPage });
+      if (this.data.allRankings && this.data.allRankings.length > targetPage * 20) {
+        this.updateRunsFromLocal();
+      } else {
+        this.fetchRunsRealtime(targetPage);
+      }
     }
   },
 
@@ -203,14 +238,10 @@ Page({
     if (!this.data.showCustomLoading) {
       const targetPage = this.data.currentPage + 1;
       this.setData({ allExpanded: false });
-      
-      if (this.data.allRankings && this.data.allRankings.length > targetPage * 20) {
-        this.showLoadingOverlay();
-        setTimeout(() => {
-          this.setData({ currentPage: targetPage });
-          this.updateRunsFromLocal();
-          this.hideLoadingOverlay();
-        }, 1000);
+
+      if (this.data.allRankings && this.data.allRankings.length >= (targetPage + 1) * 20) {
+        this.setData({ currentPage: targetPage });
+        this.updateRunsFromLocal();
       } else {
         this.fetchRunsRealtime(targetPage);
       }
@@ -231,7 +262,7 @@ Page({
       'Hunter': '猎人', 'Mage': '法师', 'Monk': '武僧', 'Paladin': '圣骑士', 'Priest': '牧师',
       'Rogue': '潜行者', 'Shaman': '萨满', 'Warlock': '术士', 'Warrior': '战士'
     };
-    
+
     const specMap = {
       'Blood': '鲜血', 'Frost': '冰霜', 'Unholy': '邪恶',
       'Havoc': '浩劫', 'Vengeance': '复仇',
@@ -257,7 +288,7 @@ Page({
         const role = member.role;
         const specEn = char.spec.name;
         const clsEn = char.class.name;
-        
+
         const clsName = clsMap[clsEn] || clsEn;
         const specName = specMap[specEn] || specEn;
         const key = `${clsName} - ${specName}`;
@@ -276,8 +307,8 @@ Page({
     });
 
     const formatMeta = (obj) => {
-        const arr = Object.entries(obj).map(([name, data]) => ({ name, count: data.count, color: data.color })).sort((a, b) => b.count - a.count);
-        return arr.length > 0 ? arr : [{name: '无数据', count: 1, color: '#999'}];
+      const arr = Object.entries(obj).map(([name, data]) => ({ name, count: data.count, color: data.color })).sort((a, b) => b.count - a.count);
+      return arr.length > 0 ? arr : [{ name: '无数据', count: 1, color: '#999' }];
     };
 
     this.setData({
@@ -298,7 +329,7 @@ Page({
       'Hunter': '猎人', 'Mage': '法师', 'Monk': '武僧', 'Paladin': '圣骑士', 'Priest': '牧师',
       'Rogue': '潜行者', 'Shaman': '萨满', 'Warlock': '术士', 'Warrior': '战士'
     };
-    
+
     const specMap = {
       'Blood': '鲜血', 'Frost': '冰霜', 'Unholy': '邪恶',
       'Havoc': '浩劫', 'Vengeance': '复仇',

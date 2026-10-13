@@ -9,7 +9,8 @@ Page({
     theme: 'dark',
     loading: true,
     errorMsg: '',
-    activeTab: 'dps'   // dps, tanks, healers
+    activeTab: 'dps',   // dps, tanks, healers
+    isRefreshing: false
   },
   
   onLoad() {
@@ -54,26 +55,10 @@ Page({
     });
   },
 
-  fetchData() {
-    this.setData({ loading: true, errorMsg: '' });
+  fetchData(cb) {
+    this.setData({ loading: true, errorMsg: '', isRefreshing: true });
     
-    // 1. 尝试从云数据库读取最新的定时缓存数据 (实现秒开)
-    const db = wx.cloud.database();
-    db.collection('meta_data').doc('latest').get().then(res => {
-      if (res.data && res.data.html) {
-        this.processMythicstats(res.data.html);
-        this.setData({ loading: false });
-      } else {
-        this.fallbackFetch();
-      }
-    }).catch(err => {
-      console.log('数据库未就绪或无缓存，回退到实时拉取', err);
-      this.fallbackFetch();
-    });
-  },
-
-  fallbackFetch() {
-    // 2. 如果数据库没有数据，回退到老方法实时请求
+    // 不再使用数据库缓存，直接实时请求 Mythicstats 最新数据
     wx.cloud.callFunction({
       name: 'proxyRequest',
       data: {
@@ -85,21 +70,33 @@ Page({
         const result = res.result;
         if (result && result.success && result.data) {
           this.processMythicstats(result.data);
-          this.setData({ loading: false });
+          this.setData({ loading: false, isRefreshing: false });
         } else {
           this.setData({
             loading: false,
+            isRefreshing: false,
             errorMsg: '数据异常稍后再试'
           });
         }
       },
       fail: (err) => {
-        console.error('Cloud function failed:', err);
+        console.error('实时请求失败:', err);
         this.setData({
           loading: false,
+          isRefreshing: false,
           errorMsg: '数据异常稍后再试'
         });
+      },
+      complete: () => {
+        if (typeof cb === 'function') cb();
       }
+    });
+  },
+
+  onPullDownRefresh() {
+    this.fetchData(() => {
+      this.setData({ isRefreshing: false });
+      wx.stopPullDownRefresh();
     });
   },
 

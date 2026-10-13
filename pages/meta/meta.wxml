@@ -1,6 +1,6 @@
 <!--pages/meta/meta.wxml-->
 <view class="page-container theme-{{theme}}">
-  <scroll-view class="scrollarea" scroll-y type="list">
+  <scroll-view class="scrollarea" scroll-y type="list" refresher-enabled="{{true}}" bindrefresherrefresh="onPullDownRefresh" refresher-triggered="{{isRefreshing}}">
     <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
       <text class="back-icon">‹</text>
       <text class="back-text">返回</text>
@@ -19,7 +19,7 @@
     </view>
 
     <view class="status-message" wx:if="{{loading}}">
-      <text>正在联系燃烧军团...</text>
+      <text>正在实时获取最新数据...</text>
     </view>
     
     <view class="status-message" wx:if="{{!loading && errorMsg}}" style="color: #F87171;">

@@ -1,5 +1,4 @@
 const allDungeonsData = require('./all_dungeons_data.js');
-const presetRoutes = require('./preset_routes.js');
 
 const DUNGEONS_LIST = [
   '谋杀街 (Murder Row)',
@@ -155,10 +154,12 @@ Page({
     activePullIndex: 0,
     activePullScrollId: 'pull-item-0',
 
-    // 预设路线
-    showRoutePanel: false,
-    presetRouteList: [],
-    activeRouteId: null,
+    // 路线管理
+    showRouteManager: false,
+    savedRoutes: [],
+    showSaveModal: false,
+    saveRouteName: '',
+    saveRouteRemark: '',
 
     // 地图加载状态
     mapLoading: true
@@ -172,7 +173,7 @@ Page({
   _drawPending: false,   // Canvas rAF 节流锁
   _touchStartInfo: null, // 触摸开始记录，用于区分轻触与地图拖拽
 
-  onLoad() {
+  onLoad(options) {
     const app = getApp();
     if (app && app.globalData) {
       this.setData({
@@ -190,7 +191,21 @@ Page({
       scalePercent: Math.round(this.fitScale * 100)
     });
 
-    this.loadDungeon('红玉新生法地');
+    // 处理分享进入：从URL参数解码路线
+    let targetDungeon = '红玉新生法地';
+    if (options && options.d !== undefined && options.p) {
+      const dIdx = parseInt(options.d);
+      if (dIdx >= 0 && dIdx < DUNGEONS_LIST.length) {
+        targetDungeon = DUNGEONS_LIST[dIdx];
+      }
+      this._pendingShare = {
+        pulls: options.p,
+        name: options.n ? decodeURIComponent(options.n) : '分享的路线',
+        remark: options.r ? decodeURIComponent(options.r) : ''
+      };
+    }
+
+    this.loadDungeon(targetDungeon);
   },
 
   onReady() {
@@ -244,32 +259,56 @@ Page({
       this._enemyState[e.id] = { selected: false, color: '', pullNumber: null };
     });
 
-    // 2. 加载预设路线
-    const routes = presetRoutes[name] || [];
-    const routeList = routes.map(r => ({
-      id: r.id,
-      name: r.name,
-      tag: r.tag,
-      author: r.author,
-      targetPercent: r.targetPercent,
-      pullCount: r.pulls ? r.pulls.length : 0
-    }));
-
-    // 默认自动加载首条推荐路线（对标艾泽拉斯之夏：开箱即用，无需从空白摸索）
+    // 2. 加载路线数据（优先级：分享路线 > 本地上次编辑 > 空白）
     let initialPulls = [{ color: PULL_COLORS[0], enemyIds: [], forces: 0, percent: '0.0', note: '' }];
-    let activeRouteId = null;
 
-    if (routes.length > 0 && routes[0].pulls && routes[0].pulls.length > 0) {
-      const firstRoute = routes[0];
-      activeRouteId = firstRoute.id;
-      initialPulls = firstRoute.pulls.map((rp, i) => ({
-        color: rp.color || PULL_COLORS[i % PULL_COLORS.length],
-        enemyIds: (rp.enemyIds || []).slice(),
-        forces: 0,
-        percent: '0.0',
-        note: rp.note || ''
-      }));
+    if (this._pendingShare) {
+      // 从分享链接解码路线
+      const decoded = this._decodeSharedRoute(this._pendingShare.pulls);
+      if (decoded && decoded.length > 0) {
+        initialPulls = decoded;
+        const shareName = this._pendingShare.name || '分享的路线';
+        const shareRemark = this._pendingShare.remark || '';
+        setTimeout(() => {
+          wx.showModal({
+            title: '收到好友分享路线',
+            content: `「${shareName}」已加载到地图上${shareRemark ? ('\n战术备注：' + shareRemark) : ''}，是否保存到我的路线库？`,
+            confirmText: '保存到路线库',
+            cancelText: '仅查看',
+            confirmColor: '#38bdf8',
+            success: (res) => {
+              if (res.confirm) {
+                this._doSaveRoute(shareName, shareRemark);
+              }
+            }
+          });
+        }, 600);
+      }
+      this._pendingShare = null;
+    } else {
+      // 从本地存储恢复上次编辑
+      try {
+        const storageKey = 'mdt_route_' + name;
+        const saved = wx.getStorageSync(storageKey);
+        if (saved && saved.pulls && saved.pulls.length > 0) {
+          initialPulls = saved.pulls.map((sp, i) => ({
+            color: sp.color || PULL_COLORS[i % PULL_COLORS.length],
+            enemyIds: (sp.enemyIds || []).slice(),
+            forces: 0,
+            percent: '0.0',
+            note: sp.note || ''
+          }));
+        }
+      } catch (e) {
+        console.warn('读取本地路线失败', e);
+      }
     }
+
+    // 加载已保存路线列表
+    let savedRoutes = [];
+    try {
+      savedRoutes = wx.getStorageSync('mdt_saved_routes_' + name) || [];
+    } catch (e) {}
 
     const initialScale = this.fitScale || 0.35;
     this.currentScale = initialScale;
@@ -286,9 +325,8 @@ Page({
       selectedEnemyInfo: null,
       scaleValue: initialScale,
       scalePercent: Math.round(initialScale * 100),
-      presetRouteList: routeList,
-      showRoutePanel: false,
-      activeRouteId,
+      savedRoutes,
+      showRouteManager: false,
       mapLoading: false
     });
 
@@ -372,69 +410,74 @@ Page({
       }
       if (pEnemies.length === 0) continue;
 
-      const centroid = { x: sumX / pEnemies.length, y: sumY / pEnemies.length };
-      activeCentroids.push(centroid);
-
       const isActive = (activeIdx === i);
-      const clusters = clusterEnemies(pEnemies, 42);
+      const pts = pEnemies.map(e => ({ x: e.px, y: e.py }));
 
-      for (let clIdx = 0; clIdx < clusters.length; clIdx++) {
-        const cluster = clusters[clIdx];
-        if (cluster.length === 0) continue;
+      // 计算该波次所有怪物的中心位置与包围范围
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      for (const pt of pts) {
+        if (pt.x < minX) minX = pt.x;
+        if (pt.x > maxX) maxX = pt.x;
+        if (pt.y < minY) minY = pt.y;
+        if (pt.y > maxY) maxY = pt.y;
+      }
+      const cx = Math.round((minX + maxX) / 2);
+      const cy = Math.round((minY + maxY) / 2);
 
-        let cx = 0, cy = 0;
-        cluster.forEach(e => { cx += e.px; cy += e.py; });
-        cx = Math.round(cx / cluster.length);
-        cy = Math.round(cy / cluster.length);
-        if (cluster.length === 1) cy = Math.round(cluster[0].py - 16);
-
-        // 记录波次数字徽章坐标
-        badges.push({
-          pullIndex: i,
-          pullNum: i + 1,
-          x: cx,
-          y: cy,
-          color: p.color,
-          isActive
-        });
-
-        // 绘制群怪包围轮廓
-        ctx.save();
-        if (cluster.length === 1) {
+      // 绘制同波次怪物的包围轮廓（整波怪一起框起来）
+      ctx.save();
+      if (pts.length === 1) {
+        ctx.beginPath();
+        ctx.arc(pts[0].x, pts[0].y, 22, 0, Math.PI * 2);
+        ctx.fillStyle = isActive ? hexToRgba(p.color, 0.32) : hexToRgba(p.color, 0.15);
+        ctx.fill();
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = isActive ? 2.8 : 1.8;
+        if (isActive) {
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 10;
+        }
+        ctx.stroke();
+      } else {
+        const hull = getPuffedHull(pts, 20);
+        if (hull.length >= 3) {
           ctx.beginPath();
-          ctx.arc(cluster[0].px, cluster[0].py, 15, 0, Math.PI * 2);
-          ctx.fillStyle = isActive ? hexToRgba(p.color, 0.35) : hexToRgba(p.color, 0.16);
+          ctx.moveTo(hull[0].x, hull[0].y);
+          for (let k = 1; k < hull.length; k++) {
+            ctx.lineTo(hull[k].x, hull[k].y);
+          }
+          ctx.closePath();
+          ctx.fillStyle = isActive ? hexToRgba(p.color, 0.32) : hexToRgba(p.color, 0.15);
           ctx.fill();
           ctx.strokeStyle = p.color;
-          ctx.lineWidth = isActive ? 2.8 : 1.6;
+          ctx.lineWidth = isActive ? 2.8 : 1.8;
           if (isActive) {
             ctx.shadowColor = p.color;
             ctx.shadowBlur = 10;
           }
           ctx.stroke();
-        } else {
-          const pts = cluster.map(e => ({ x: e.px, y: e.py }));
-          const hull = getPuffedHull(pts, 15);
-          if (hull.length >= 3) {
-            ctx.beginPath();
-            ctx.moveTo(hull[0].x, hull[0].y);
-            for (let k = 1; k < hull.length; k++) {
-              ctx.lineTo(hull[k].x, hull[k].y);
-            }
-            ctx.closePath();
-            ctx.fillStyle = isActive ? hexToRgba(p.color, 0.35) : hexToRgba(p.color, 0.16);
-            ctx.fill();
-            ctx.strokeStyle = p.color;
-            ctx.lineWidth = isActive ? 2.8 : 1.6;
-            if (isActive) {
-              ctx.shadowColor = p.color;
-              ctx.shadowBlur = 10;
-            }
-            ctx.stroke();
-          }
         }
-        ctx.restore();
       }
+      ctx.restore();
+
+      // 框中间显示波次的数字
+      let badgeX = cx;
+      let badgeY = cy;
+      if (pts.length === 1) {
+        // 单怪时数字徽章放在框上方，避免遮挡怪物首领皇冠/图标
+        badgeY = Math.round(pts[0].y - 20);
+      }
+
+      badges.push({
+        pullIndex: i,
+        pullNum: i + 1,
+        x: badgeX,
+        y: badgeY,
+        color: p.color,
+        isActive
+      });
+
+      activeCentroids.push({ x: badgeX, y: badgeY });
     }
 
     this._pullBadges = badges;
@@ -596,23 +639,8 @@ Page({
       const cy = ((clientY - rect.top) / rect.height) * H;
       const renderScale = rect.width / W;
 
-      // 1. 优先命中检测：波次徽章（点击徽章直接快速切换当前波次）
-      for (const b of (this._pullBadges || [])) {
-        const dx = b.x - cx, dy = b.y - cy;
-        const bDist = Math.sqrt(dx * dx + dy * dy);
-        if (bDist <= 20 / renderScale) {
-          this.setData({
-            activePullIndex: b.pullIndex,
-            activePullScrollId: `pull-item-${b.pullIndex}`
-          });
-          try { wx.vibrateShort({ type: 'light' }); } catch (_) {}
-          this.scheduleRedraw();
-          return;
-        }
-      }
-
-      // 2. 怪物命中检测（给予手指 28px 宽容范围，小屏幕点怪丝滑命中）
-      const hitRadius = 28 / renderScale;
+      // 1. 优先怪物命中检测（给予手指 26px 宽容范围，小屏幕点怪丝滑命中）
+      const hitRadius = 26 / renderScale;
       let bestDist = Infinity, bestEnemy = null;
 
       for (const en of this._enemies) {
@@ -627,6 +655,22 @@ Page({
 
       if (bestEnemy) {
         this.handleToggleEnemy(bestEnemy.id);
+        return;
+      }
+
+      // 2. 如果未命中怪物，检测是否点击了波次数字徽章（点击徽章快速切换活跃波次）
+      for (const b of (this._pullBadges || [])) {
+        const dx = b.x - cx, dy = b.y - cy;
+        const bDist = Math.sqrt(dx * dx + dy * dy);
+        if (bDist <= 24 / renderScale) {
+          this.setData({
+            activePullIndex: b.pullIndex,
+            activePullScrollId: `pull-item-${b.pullIndex}`
+          });
+          try { wx.vibrateShort({ type: 'light' }); } catch (_) {}
+          this.scheduleRedraw();
+          return;
+        }
       }
     }).exec();
   },
@@ -658,20 +702,10 @@ Page({
     let actionDesc = '';
 
     if (existingPullIdx !== -1) {
-      if (existingPullIdx === activeIdx) {
-        // 当前波次内再次点击 -> 移出路线
-        pulls[existingPullIdx].enemyIds = pulls[existingPullIdx].enemyIds.filter(eid => !packIds.includes(eid));
-        isSelectedNow = false;
-        actionDesc = '已从当前波次移出';
-      } else {
-        // 属于其他波次 -> 切换高亮到那个波次，并提示
-        this.setData({
-          activePullIndex: existingPullIdx,
-          activePullScrollId: `pull-item-${existingPullIdx}`
-        });
-        isSelectedNow = true;
-        actionDesc = `属于第 ${existingPullIdx + 1} 波 (再次点击可移出)`;
-      }
+      // 需求1：再次点击已选怪，直接取消选择！
+      pulls[existingPullIdx].enemyIds = pulls[existingPullIdx].enemyIds.filter(eid => !packIds.includes(eid));
+      isSelectedNow = false;
+      actionDesc = `已取消选择 (移出第 ${existingPullIdx + 1} 波)`;
     } else {
       // 未选状态 -> 加入当前活跃波次
       for (const eid of packIds) {
@@ -705,6 +739,7 @@ Page({
       }
     });
 
+    this._saveRoute();
     this.scheduleRedraw();
   },
 
@@ -735,56 +770,25 @@ Page({
     this.setData({ currentForces: current, percent });
   },
 
-  // ===== 预设路线切换 =====
-  toggleRoutePanel() {
-    this.setData({ showRoutePanel: !this.data.showRoutePanel });
-  },
-
-  loadPresetRoute(e) {
-    const routeId = e.currentTarget.dataset.id;
-    const name = this.data.currentDungeonName;
-    const routes = presetRoutes[name] || [];
-    const route = routes.find(r => r.id === routeId);
-    if (!route) return;
-
-    if (!route.pulls || route.pulls.length === 0) {
-      const emptyPulls = [{ color: PULL_COLORS[0], enemyIds: [], forces: 0, percent: '0.0', note: '' }];
-      this.setData({
-        pulls: emptyPulls,
-        activePullIndex: 0,
-        activePullScrollId: 'pull-item-0',
-        activeRouteId: routeId,
-        showRoutePanel: false,
-        selectedEnemyInfo: null
-      });
-      this._recalcForces(emptyPulls);
-      this.scheduleRedraw();
-      wx.showToast({ title: '已清空，开始自由规划', icon: 'none', duration: 1200 });
-      return;
+  // ===== 本地持久化存储：自动保存/加载自定义路线 =====
+  _saveRoute() {
+    try {
+      const name = this.data.currentDungeonName;
+      const pulls = this.data.pulls;
+      const storageKey = 'mdt_route_' + name;
+      const saveData = {
+        dungeonName: name,
+        pulls: pulls.map(p => ({
+          color: p.color,
+          enemyIds: (p.enemyIds || []).slice(),
+          note: p.note || ''
+        })),
+        savedAt: Date.now()
+      };
+      wx.setStorageSync(storageKey, saveData);
+    } catch (e) {
+      console.warn('保存路线失败', e);
     }
-
-    const pulls = route.pulls.map((rp, i) => ({
-      color: rp.color || PULL_COLORS[i % PULL_COLORS.length],
-      enemyIds: (rp.enemyIds || []).slice(),
-      forces: 0,
-      percent: '0.0',
-      note: rp.note || ''
-    }));
-
-    this.setData({
-      pulls,
-      activePullIndex: 0,
-      activePullScrollId: 'pull-item-0',
-      activeRouteId: routeId,
-      showRoutePanel: false,
-      selectedEnemyInfo: null
-    });
-
-    this._recalcForces(pulls);
-    this.setData({ pulls });
-    this.scheduleRedraw();
-
-    wx.showToast({ title: `已加载「${route.name}」`, icon: 'none', duration: 1500 });
   },
 
   // ===== 波次备注功能（玩家喜爱的战术提醒） =====
@@ -805,6 +809,7 @@ Page({
           const newNote = (res.content || '').trim();
           pulls[activeIdx].note = newNote;
           this.setData({ pulls });
+          this._saveRoute();
           wx.showToast({ title: newNote ? '备注已更新' : '已清除备注', icon: 'none', duration: 1000 });
         }
       }
@@ -869,6 +874,7 @@ Page({
       activePullIndex: newIdx,
       activePullScrollId: `pull-item-${newIdx}`
     });
+    this._saveRoute();
     try { wx.vibrateShort({ type: 'light' }); } catch (_) {}
   },
 
@@ -906,6 +912,7 @@ Page({
         });
         this._recalcForces(pulls);
         this.setData({ pulls });
+        this._saveRoute();
         this.scheduleRedraw();
       }
     });
@@ -921,6 +928,7 @@ Page({
     this.setData({ pulls, selectedEnemyInfo: null });
     this._recalcForces(pulls);
     this.setData({ pulls });
+    this._saveRoute();
     this.scheduleRedraw();
   },
 
@@ -939,10 +947,10 @@ Page({
           activePullScrollId: 'pull-item-0',
           currentForces: 0,
           percent: '0.00',
-          selectedEnemyInfo: null,
-          activeRouteId: null
+          selectedEnemyInfo: null
         });
         this._recalcForces(pulls);
+        this._saveRoute();
         this.scheduleRedraw();
       }
     });
@@ -952,13 +960,227 @@ Page({
     this.setData({ selectedEnemyInfo: null });
   },
 
-  importMDT() {
-    wx.showModal({
-      title: '导入 MDT 字符串',
-      content: '该功能底层需解密 LibDeflate 字符串并匹配怪物坐标系，当前技术预览版可直接选用顶部精选的预设路线！',
-      showCancel: false,
-      confirmText: '知道了'
+  // ===== 路线管理：保存/加载/删除多条自定义路线 =====
+  openRouteManager() {
+    const name = this.data.currentDungeonName;
+    try {
+      const savedRoutes = wx.getStorageSync('mdt_saved_routes_' + name) || [];
+      this.setData({ savedRoutes, showRouteManager: true });
+    } catch (e) {
+      this.setData({ savedRoutes: [], showRouteManager: true });
+    }
+  },
+
+  closeRouteManager() {
+    this.setData({ showRouteManager: false });
+  },
+
+  openSaveModal() {
+    const pulls = this.data.pulls;
+    const hasContent = pulls.some(p => p.enemyIds && p.enemyIds.length > 0);
+    if (!hasContent) {
+      wx.showToast({ title: '当前路线为空，请先在地图上选怪', icon: 'none' });
+      return;
+    }
+    const defaultName = `路线方案 ${this.data.savedRoutes.length + 1}`;
+    this.setData({
+      showSaveModal: true,
+      saveRouteName: defaultName,
+      saveRouteRemark: ''
     });
+  },
+
+  closeSaveModal() {
+    this.setData({ showSaveModal: false });
+  },
+
+  onSaveRouteNameInput(e) {
+    this.setData({ saveRouteName: e.detail.value });
+  },
+
+  onSaveRouteRemarkInput(e) {
+    this.setData({ saveRouteRemark: e.detail.value });
+  },
+
+  confirmSaveRoute() {
+    const name = (this.data.saveRouteName || '').trim() || `路线方案 ${this.data.savedRoutes.length + 1}`;
+    const remark = (this.data.saveRouteRemark || '').trim();
+    this._doSaveRoute(name, remark);
+    this.setData({ showSaveModal: false });
+  },
+
+  _doSaveRoute(routeName, routeRemark = '') {
+    const dungeonName = this.data.currentDungeonName;
+    const pulls = this.data.pulls;
+    const storageKey = 'mdt_saved_routes_' + dungeonName;
+    try {
+      let savedRoutes = wx.getStorageSync(storageKey) || [];
+      const newRoute = {
+        id: Date.now().toString(36) + '_' + Math.floor(Math.random() * 1000),
+        name: routeName,
+        remark: routeRemark,
+        pulls: pulls.map(p => ({
+          color: p.color,
+          enemyIds: (p.enemyIds || []).slice(),
+          note: p.note || ''
+        })),
+        totalForces: this.data.currentForces,
+        totalRequired: this.data.totalForces,
+        percent: this.data.percent,
+        pullCount: pulls.filter(p => p.enemyIds && p.enemyIds.length > 0).length,
+        createdAt: Date.now(),
+        timeStr: this._formatTime(new Date())
+      };
+      savedRoutes.unshift(newRoute);
+      if (savedRoutes.length > 30) savedRoutes = savedRoutes.slice(0, 30);
+      wx.setStorageSync(storageKey, savedRoutes);
+      this.setData({ savedRoutes });
+      wx.showToast({ title: '路线已保存', icon: 'success' });
+    } catch (e) {
+      wx.showToast({ title: '保存失败', icon: 'none' });
+    }
+  },
+
+  _formatTime(d) {
+    const m = (d.getMonth() + 1).toString().padStart(2, '0');
+    const day = d.getDate().toString().padStart(2, '0');
+    const h = d.getHours().toString().padStart(2, '0');
+    const min = d.getMinutes().toString().padStart(2, '0');
+    return `${m}-${day} ${h}:${min}`;
+  },
+
+  loadSavedRoute(e) {
+    const routeId = e.currentTarget.dataset.id;
+    const route = this.data.savedRoutes.find(r => r.id === routeId);
+    if (!route) return;
+    const pulls = route.pulls.map((rp, i) => ({
+      color: rp.color || PULL_COLORS[i % PULL_COLORS.length],
+      enemyIds: (rp.enemyIds || []).slice(),
+      forces: 0,
+      percent: '0.0',
+      note: rp.note || ''
+    }));
+    this.setData({
+      pulls,
+      activePullIndex: 0,
+      activePullScrollId: 'pull-item-0',
+      selectedEnemyInfo: null,
+      showRouteManager: false
+    });
+    this._recalcForces(pulls);
+    this._saveRoute();
+    this.scheduleRedraw();
+    wx.showToast({ title: `已加载「${route.name}」`, icon: 'none' });
+  },
+
+  deleteSavedRoute(e) {
+    const routeId = e.currentTarget.dataset.id;
+    const route = this.data.savedRoutes.find(r => r.id === routeId);
+    if (!route) return;
+    wx.showModal({
+      title: '删除路线',
+      content: `确定删除「${route.name}」吗？删除后不可恢复。`,
+      confirmText: '删除',
+      confirmColor: '#ef4444',
+      success: (res) => {
+        if (!res.confirm) return;
+        const storageKey = 'mdt_saved_routes_' + this.data.currentDungeonName;
+        try {
+          let savedRoutes = this.data.savedRoutes.filter(r => r.id !== routeId);
+          wx.setStorageSync(storageKey, savedRoutes);
+          this.setData({ savedRoutes });
+          wx.showToast({ title: '已删除', icon: 'none' });
+        } catch (e) {
+          wx.showToast({ title: '删除失败', icon: 'none' });
+        }
+      }
+    });
+  },
+
+  // 分享前设置要分享的路线（供 button open-type="share" 触发）
+  setShareRoute(e) {
+    const routeId = (e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.id) || 'current';
+    if (routeId === 'current') {
+      this._shareRouteData = {
+        name: '自定义大秘境路线',
+        remark: '',
+        pulls: this.data.pulls
+      };
+    } else {
+      const route = this.data.savedRoutes.find(r => r.id === routeId);
+      if (route) {
+        this._shareRouteData = {
+          name: route.name,
+          remark: route.remark || '',
+          pulls: route.pulls
+        };
+      }
+    }
+  },
+
+  // ===== 路线编码/解码（用于分享链接） =====
+  _encodeRouteForShare(pulls) {
+    return pulls.map((p, i) => {
+      const cIdx = PULL_COLORS.indexOf(p.color);
+      const ids = (p.enemyIds || []).join(',');
+      return `${cIdx >= 0 ? cIdx : i}-${ids}`;
+    }).filter(s => {
+      const ids = s.split('-')[1];
+      return ids && ids.length > 0;
+    }).join('.');
+  },
+
+  _decodeSharedRoute(code) {
+    if (!code) return null;
+    const parts = code.split('.');
+    const pulls = [];
+    for (const part of parts) {
+      const dashIdx = part.indexOf('-');
+      if (dashIdx < 0) continue;
+      const cIdx = parseInt(part.substring(0, dashIdx));
+      const idsStr = part.substring(dashIdx + 1);
+      pulls.push({
+        color: PULL_COLORS[isNaN(cIdx) ? pulls.length : cIdx % PULL_COLORS.length],
+        enemyIds: idsStr ? idsStr.split(',').map(Number).filter(n => !isNaN(n)) : [],
+        forces: 0,
+        percent: '0.0',
+        note: ''
+      });
+    }
+    return pulls.length > 0 ? pulls : null;
+  },
+
+  // ===== 微信分享 =====
+  onShareAppMessage(res) {
+    let routeData = this._shareRouteData;
+    if (!routeData) {
+      const routeId = res && res.target && res.target.dataset && res.target.dataset.id;
+      if (routeId && routeId !== 'current') {
+        const route = this.data.savedRoutes.find(r => r.id === routeId);
+        if (route) {
+          routeData = { name: route.name, remark: route.remark || '', pulls: route.pulls };
+        }
+      }
+    }
+    if (!routeData) {
+      routeData = {
+        name: '自定义大秘境路线',
+        remark: '',
+        pulls: this.data.pulls
+      };
+    }
+    this._shareRouteData = null;
+
+    const dIdx = DUNGEONS_LIST.indexOf(this.data.currentDungeonName);
+    const encoded = this._encodeRouteForShare(routeData.pulls);
+    const routeName = encodeURIComponent(routeData.name || '大秘境路线');
+    const remark = encodeURIComponent(routeData.remark || '');
+    const path = `/pages/mdt/mdt?d=${dIdx}&p=${encoded}&n=${routeName}&r=${remark}`;
+
+    return {
+      title: `🗺️ [${this.data.currentDungeonName}] ${routeData.name}${routeData.remark ? (' - ' + routeData.remark) : ''}`,
+      path: path
+    };
   },
 
   switchDungeon() {

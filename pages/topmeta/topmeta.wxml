@@ -1,5 +1,5 @@
 <view class="page-container theme-{{theme}}">
-  <scroll-view class="scrollarea" scroll-y="true" scroll-top="{{scrollTop}}" scroll-with-animation="true">
+  <scroll-view class="scrollarea" scroll-y="true" scroll-top="{{scrollTop}}" scroll-with-animation="true" refresher-enabled="{{true}}" bindrefresherrefresh="onPullDownRefresh" refresher-triggered="{{isRefreshing}}">
     <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
       <text class="back-icon">‹</text>
       <text class="back-text">返回</text>
@@ -39,9 +39,9 @@
     </block>
 
     <view class="pagination" wx:if="{{!loading && !errorMsg}}">
-      <view class="btn prev-btn {{currentPage === 0 ? 'disabled' : ''}}" bindtap="prevPage">◀ 上一页</view>
-      <view class="btn stat-btn" bindtap="showStatisticsModal">阵容统计(前{{(currentPage + 1) * 20}})</view>
-      <view class="btn next-btn" bindtap="nextPage">下一页 ▶</view>
+      <view class="btn prev-btn {{currentPage === 0 ? 'disabled' : ''}}" bindtap="prevPage">上一页</view>
+      <view class="btn stat-btn" bindtap="showStatisticsModal">前{{(currentPage + 1) * 20}}统计</view>
+      <view class="btn next-btn" bindtap="nextPage">下一页</view>
     </view>
 
     <view class="footer" wx:if="{{!loading}}">
@@ -109,6 +109,9 @@
           </view>
         </view>
       </scroll-view>
+      <view class="modal-footer">
+        <button class="modal-share-btn" open-type="share">分享统计给好友</button>
+      </view>
     </view>
   </view>
 
