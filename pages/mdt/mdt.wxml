@@ -13,32 +13,61 @@
     </view>
   </view>
 
+  <!-- 预设路线选择条（对标竞品：一键选择稳健/速通等精选路线） -->
+  <view class="route-panel" wx:if="{{presetRouteList.length > 0}}">
+    <scroll-view scroll-x="true" class="route-list" enhanced="true" show-scrollbar="false">
+      <view 
+        wx:for="{{presetRouteList}}" 
+        wx:key="id"
+        class="route-card {{activeRouteId === item.id ? 'active' : ''}}"
+        bindtap="loadPresetRoute"
+        data-id="{{item.id}}">
+        <view class="route-card-main">
+          <text class="route-card-name">{{item.name}}</text>
+          <text class="route-tag">{{item.tag}}</text>
+        </view>
+        <view class="route-card-meta">
+          <text class="route-author">{{item.author}}</text>
+          <text class="route-percent" wx:if="{{item.targetPercent !== '0.0'}}">{{item.targetPercent}}%</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
   <!-- 次级工具栏 -->
   <view class="sub-header">
     <view class="tool-btn switch-dungeon-btn" bindtap="openDungeonModal">
       <text class="switch-icon">🗺️</text>
-      <text>切换副本</text>
+      <text>切换地下城</text>
     </view>
     <view class="header-tools">
-      <view class="tool-btn danger" bindtap="clearActivePull" wx:if="{{pulls[activePullIndex].enemyIds.length > 0}}">清空本波</view>
       <view class="tool-btn" bindtap="resetAll">全部重置</view>
       <view class="tool-btn highlight" bindtap="importMDT">导入代码</view>
     </view>
   </view>
 
-  <!-- 敌军进度条 -->
+  <!-- 敌军部队进度条 -->
   <view class="progress-bar">
     <view class="progress-header">
-      <text class="progress-label">敌军部队进度</text>
-      <text class="progress-numbers">{{currentForces}} / {{totalForces}} ({{percent}}%)</text>
+      <view class="progress-left">
+        <text class="progress-label">敌军部队目标</text>
+        <text class="progress-done-badge" wx:if="{{percent >= 100}}">✓ 达成</text>
+      </view>
+      <text class="progress-numbers {{percent >= 100 ? 'done-text' : ''}}">{{currentForces}} / {{totalForces}} ({{percent}}%)</text>
     </view>
     <view class="bar-bg">
       <view class="bar-fill {{percent >= 100 ? 'done' : ''}}" style="width: {{percent > 100 ? 100 : percent}}%;"></view>
     </view>
   </view>
 
-  <!-- 地图主视窗 (支持鼠标滚轮与移动端双指缩放平移) -->
+  <!-- 地图主视窗 -->
   <view class="map-container" bindwheel="onMouseWheel">
+    <!-- 加载骨架屏 -->
+    <view class="map-skeleton" wx:if="{{mapLoading}}">
+      <view class="skeleton-pulse"></view>
+      <text class="skeleton-text">正在极速加载地图数据...</text>
+    </view>
+
     <movable-area class="map-area" scale-area bindwheel="onMouseWheel">
       <movable-view 
         class="map-view" 
@@ -52,42 +81,21 @@
         bindwheel="onMouseWheel"
         style="width: {{mapWidth}}px; height: {{mapHeight}}px;">
         
-        <!-- 高清无缝拼合底图 -->
-        <image class="map-bg" src="{{mapImage}}" style="width: 100%; height: 100%;" mode="scaleToFill" />
+        <!-- 底图 -->
+        <image class="map-bg" src="{{mapImage}}" style="width: 100%; height: 100%;" mode="scaleToFill" bindload="onMapImageLoad" />
         
-        <!-- 画布（绘制拉怪连接线与波次流向） -->
-        <canvas type="2d" id="routeCanvas" class="route-canvas" style="width: {{mapWidth}}px; height: {{mapHeight}}px;"></canvas>
-        
-        <!-- 每一波怪物的中心数字徽章 (极简紧凑) -->
-        <view class="pull-markers-layer">
-          <view 
-            wx:for="{{pullBadges}}" 
-            wx:key="id" 
-            class="pull-center-badge {{activePullIndex === item.pullIndex ? 'active' : ''}}" 
-            style="left: {{item.x}}px; top: {{item.y}}px; background-color: {{item.color}};"
-            catchtap="selectPullByIndex"
-            data-index="{{item.pullIndex}}">
-            <text class="badge-num">{{item.pullNum}}</text>
-          </view>
-        </view>
-
-        <!-- 怪物标记点图层 (选中高亮显示) -->
-        <view class="enemy-layer">
-          <view 
-            wx:for="{{enemies}}" 
-            wx:key="id" 
-            class="enemy-node {{item.selected ? 'selected' : ''}} {{item.isBoss ? 'boss' : ''}}" 
-            style="left: {{item.x * 100}}%; top: {{item.y * 100}}%; background-color: {{item.selected ? item.color : (item.isBoss ? '#c084fc' : '#64748b')}}; border-color: {{item.selected ? '#ffffff' : '#0f172a'}};" 
-            bindtap="toggleEnemy" 
-            data-id="{{item.id}}">
-            <text class="node-boss-mark" wx:if="{{item.isBoss}}">👑</text>
-          </view>
-        </view>
-        
+        <!-- Canvas：全部包围圈、箭头虚线、200+怪物点及波次徽章一屏高效渲染，0 DOM 开销 -->
+        <canvas 
+          type="2d" 
+          id="routeCanvas" 
+          class="route-canvas" 
+          style="width: {{mapWidth}}px; height: {{mapHeight}}px;"
+          bindtouchstart="onCanvasTouchStart"
+          catchtap="onCanvasTap"></canvas>
       </movable-view>
     </movable-area>
 
-    <!-- 浮动缩放控制面板 (方便鼠标点击或单手控制) -->
+    <!-- 浮动缩放控制 -->
     <view class="zoom-controls">
       <view class="zoom-btn" bindtap="zoomIn" hover-class="zoom-btn-active">+</view>
       <view class="zoom-btn zoom-indicator">{{scalePercent}}%</view>
@@ -95,7 +103,7 @@
       <view class="zoom-btn reset-btn" bindtap="resetZoom" hover-class="zoom-btn-active">⟲ 适应</view>
     </view>
 
-    <!-- 点击怪物的悬浮卡片提示 -->
+    <!-- 怪物点击信息浮层 HUD -->
     <view class="enemy-hud" wx:if="{{selectedEnemyInfo}}" catchtap="dismissEnemyTip">
       <view class="hud-left">
         <view class="hud-name">
@@ -103,7 +111,7 @@
           <text>{{selectedEnemyInfo.name}}</text>
         </view>
         <view class="hud-desc">
-          同组: {{selectedEnemyInfo.packCount}}只 | 进度贡献: +{{selectedEnemyInfo.forces}} ({{selectedEnemyInfo.percent}}%)
+          同组: {{selectedEnemyInfo.packCount}}只 | 贡献进度: +{{selectedEnemyInfo.forces}} ({{selectedEnemyInfo.percent}}%)
         </view>
       </view>
       <view class="hud-right">
@@ -115,11 +123,36 @@
 
   <!-- 底部波次控制台 -->
   <view class="bottom-panel">
-    <view class="panel-hint">当前波次: 第 {{activePullIndex + 1}} 波 (轻触切换，长按删除)</view>
-    <scroll-view scroll-x="true" class="pulls-list">
+    <!-- 波次信息与快捷动作栏 -->
+    <view class="panel-header-bar">
+      <view class="panel-status-text">
+        <text class="pull-index-highlight">第 {{activePullIndex + 1}} 波</text>
+        <text class="pull-meta-text"> · {{pulls[activePullIndex].enemyIds.length}}只怪 · +{{pulls[activePullIndex].forces}} ({{pulls[activePullIndex].percent}}%)</text>
+      </view>
+      <view class="panel-actions">
+        <view class="action-btn" bindtap="editActivePullNote">
+          <text>📝 备注</text>
+        </view>
+        <view class="action-btn warn" bindtap="clearActivePull" wx:if="{{pulls[activePullIndex].enemyIds.length > 0}}">
+          <text>🧹 清空</text>
+        </view>
+        <view class="action-btn danger" bindtap="deletePull" data-index="{{activePullIndex}}" wx:if="{{pulls.length > 1}}">
+          <text>🗑️ 删除</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 水平滚动波次卡片列表 -->
+    <scroll-view 
+      scroll-x="true" 
+      class="pulls-list" 
+      enhanced="true" 
+      show-scrollbar="false"
+      scroll-into-view="{{activePullScrollId}}">
       <view 
         wx:for="{{pulls}}" 
         wx:key="index"
+        id="pull-item-{{index}}"
         class="pull-item {{activePullIndex === index ? 'active' : ''}}" 
         style="border-top-color: {{item.color}};"
         bindtap="selectPull" 
@@ -129,7 +162,8 @@
           <text class="pull-num-badge" style="background-color: {{item.color}};">{{index + 1}}</text>
           <text class="pull-num">第 {{index + 1}} 波</text>
         </view>
-        <text class="pull-forces">+{{item.forces}}</text>
+        <text class="pull-forces">+{{item.forces}} ({{item.percent}}%)</text>
+        <text class="pull-note-badge" wx:if="{{item.note}}">📌 {{item.note}}</text>
       </view>
       
       <!-- 新增波次按钮 -->
@@ -140,7 +174,7 @@
     </scroll-view>
   </view>
 
-  <!-- 切换副本弹窗 (跨平台稳定可靠) -->
+  <!-- 切换副本弹窗 -->
   <view class="dungeon-modal-mask" wx:if="{{showDungeonModal}}" bindtap="closeDungeonModal">
     <view class="dungeon-modal" catchtap="stopPropagation">
       <view class="modal-header">

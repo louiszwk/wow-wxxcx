@@ -9,8 +9,15 @@
     "pages/bis/bis",
     "pages/bis-detail/bis-detail",
     "pages/news-detail/news-detail",
-    "pages/admin/admin",
-    "pages/mdt/mdt"
+    "pages/admin/admin"
+  ],
+  "subpackages": [
+    {
+      "root": "pages/mdt",
+      "pages": [
+        "mdt"
+      ]
+    }
   ],
   "window": {
     "navigationBarTextStyle": "black",

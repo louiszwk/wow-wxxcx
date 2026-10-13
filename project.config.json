@@ -16,7 +16,64 @@
   "compileType": "miniprogram",
   "simulatorPluginLibVersion": {},
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "type": "folder",
+        "value": "node_modules"
+      },
+      {
+        "type": "folder",
+        "value": "data/MythicDungeonTools"
+      },
+      {
+        "type": "glob",
+        "value": "data/MythicDungeonTools/**"
+      },
+      {
+        "type": "folder",
+        "value": "scripts"
+      },
+      {
+        "type": "glob",
+        "value": "scripts/**"
+      },
+      {
+        "type": "file",
+        "value": "mythicstats_dps.html"
+      },
+      {
+        "type": "file",
+        "value": "package.json"
+      },
+      {
+        "type": "file",
+        "value": "package-lock.json"
+      },
+      {
+        "type": "file",
+        "value": ".eslintrc.js"
+      },
+      {
+        "type": "file",
+        "value": "generate_guides.js"
+      },
+      {
+        "type": "file",
+        "value": "fix_nav.js"
+      },
+      {
+        "type": "file",
+        "value": "test.js"
+      },
+      {
+        "type": "file",
+        "value": "data/parse_lua.js"
+      },
+      {
+        "type": "file",
+        "value": "data/stitch_maps.js"
+      }
+    ],
     "include": []
   },
   "appid": "wx5fbc2dbfaa783a19",

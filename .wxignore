@@ -1,0 +1,13 @@
+node_modules/
+data/MythicDungeonTools/
+scripts/
+generate_guides.js
+fix_nav.js
+test.js
+mythicstats_dps.html
+data/parse_lua.js
+data/stitch_maps.js
+package.json
+package-lock.json
+.eslintrc.js
+.git/
