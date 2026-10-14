@@ -51,7 +51,14 @@
     <view class="nav-card" bindtap="navigateToLoot">
       <view class="card-content">
         <view class="card-title">第二赛季掉落</view>
-        <view class="card-desc">全网最全掉落指北，支持多职业查询。</view>
+        <view class="card-desc">支持主副属性与装备部位精准筛选。</view>
+      </view>
+    </view>
+
+    <view class="nav-card" bindtap="navigateToMdt">
+      <view class="card-content">
+        <view class="card-title" style="color: #a855f7;">大秘境路线 (Alpha)</view>
+        <view class="card-desc">地图交互规划路线与波次，精准计算敌军部队进度。</view>
       </view>
     </view>
 
@@ -59,13 +66,6 @@
       <view class="card-content">
         <view class="card-title">BiS 装备推荐</view>
         <view class="card-desc">全职业毕业装备、附魔、宝石权威指南。</view>
-      </view>
-    </view>
-
-    <view class="nav-card" bindtap="navigateToMdt">
-      <view class="card-content">
-        <view class="card-title" style="color: #a855f7;">大秘境路线 (Alpha)</view>
-        <view class="card-desc">在地图上交互规划路线进度，体验技术原型。</view>
       </view>
     </view>
 
