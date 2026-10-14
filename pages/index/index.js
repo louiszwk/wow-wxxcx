@@ -197,11 +197,5 @@ Page({
     wx.navigateTo({
       url: '/pages/token/token'
     });
-  },
-
-  navigateToNews() {
-    wx.navigateTo({
-      url: '/pages/news/news'
-    });
   }
 });
