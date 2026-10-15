@@ -29,6 +29,11 @@ Page({
 
     const savedTheme = wx.getStorageSync('app_theme') || 'dark';
     this.setData({ theme: savedTheme });
+
+    if (wx.showShareMenu) {
+      wx.showShareMenu({ menus: ['shareAppMessage', 'shareTimeline'] });
+    }
+
     this.fetchData();
   },
 
@@ -90,7 +95,9 @@ Page({
     this.setData({ showMetaModal: false });
   },
 
-  preventTouchMove() { },
+  preventBubble() {},
+
+  preventTouchMove() {},
 
   showLoadingOverlay() {
     this.setData({ showCustomLoading: true });
@@ -394,6 +401,13 @@ Page({
   },
 
   onShareAppMessage() {
+    return {
+      title: '魔兽世界大米前百车队与专精出场率',
+      path: '/pages/topmeta/topmeta'
+    };
+  },
+
+  onShareTimeline() {
     return {
       title: '魔兽世界大米前百车队与专精出场率',
       path: '/pages/topmeta/topmeta'

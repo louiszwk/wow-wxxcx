@@ -1,0 +1,113 @@
+<view class="page-container theme-{{theme}}">
+  <!-- Custom Nav Header -->
+  <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+    <text class="back-icon">‹</text>
+    <text class="back-text">返回</text>
+  </view>
+
+  <!-- Title -->
+  <view class="header">
+    <view class="title">种族与职业介绍</view>
+    <view class="subtitle">暴雪无限服全新种族 · 种族特长与职业魔改</view>
+    <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+  </view>
+
+  <!-- Segmented Switcher -->
+  <view class="mode-tabs">
+    <view class="mode-tab {{activeTab === 'races' ? 'active' : ''}}" data-tab="races" bindtap="switchTab">
+      <text class="tab-icon">👑</text>
+      <text>种族特长全览</text>
+    </view>
+    <view class="mode-tab {{activeTab === 'classes' ? 'active' : ''}}" data-tab="classes" bindtap="switchTab">
+      <text class="tab-icon">⚔️</text>
+      <text>全职业与无限服机制</text>
+    </view>
+  </view>
+
+  <!-- TAB 1: 种族介绍 -->
+  <block wx:if="{{activeTab === 'races'}}">
+    <!-- Filter Chips -->
+    <view class="filter-row">
+      <view 
+        wx:for="{{filterList}}" 
+        wx:key="id" 
+        class="filter-chip {{raceFilter === item.id ? 'active' : ''}}" 
+        data-filter="{{item.id}}" 
+        bindtap="setRaceFilter"
+      >
+        {{item.label}}
+      </view>
+    </view>
+
+    <!-- Races List -->
+    <view class="races-list">
+      <view 
+        class="race-card {{item.id === 'race_celestial' ? 'celestial-card' : ''}}" 
+        wx:for="{{displayRaces}}" 
+        wx:key="id"
+      >
+        <view class="race-header">
+          <view class="race-title-box">
+            <view class="race-name">{{item.name}}</view>
+            <view class="race-faction">{{item.faction}}</view>
+          </view>
+          <view class="race-badge {{item.id === 'race_celestial' ? 'celestial-badge' : ''}}">
+            {{item.badge}}
+          </view>
+        </view>
+
+        <view class="race-desc">{{item.desc}}</view>
+
+        <!-- Traits -->
+        <view class="traits-box">
+          <view class="traits-title">🌟 核心种族特长：</view>
+          <view class="trait-item" wx:for="{{item.traits}}" wx:for-item="trait" wx:key="name">
+            <text class="trait-name">{{trait.name}}：</text>
+            <text class="trait-desc">{{trait.desc}}</text>
+          </view>
+        </view>
+
+        <!-- Available Classes -->
+        <view class="classes-row">
+          <text class="classes-lbl">可选职业：</text>
+          <view class="class-tags">
+            <text class="class-tag" wx:for="{{item.availableClasses}}" wx:for-item="cls" wx:key="*this">{{cls}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- TAB 2: 职业介绍 -->
+  <block wx:if="{{activeTab === 'classes'}}">
+    <view class="classes-list">
+      <view class="class-card" wx:for="{{allClasses}}" wx:key="name" style="border-top: 3px solid {{item.color}};">
+        <view class="class-card-header">
+          <view class="class-icon-wrapper" style="background: {{item.color}}22; border-color: {{item.color}};">
+            <text class="class-big-icon">{{item.icon}}</text>
+          </view>
+          <view class="class-info-col">
+            <view class="class-name-row">
+              <text class="class-title" style="color: {{item.color}};">{{item.name}}</text>
+            </view>
+            <view class="class-role">{{item.role}}</view>
+          </view>
+        </view>
+
+        <!-- Specs -->
+        <view class="specs-row">
+          <text class="specs-lbl">专精方向：</text>
+          <view class="spec-pills">
+            <text class="spec-pill" wx:for="{{item.specs}}" wx:for-item="spec" wx:key="*this">{{spec}}</text>
+          </view>
+        </view>
+
+        <!-- Infinite Feature Highlight -->
+        <view class="infinite-perk-box">
+          <view class="perk-title">🌌 暴雪无限服专属优化：</view>
+          <view class="perk-content">{{item.infiniteFeature}}</view>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

@@ -1,0 +1,539 @@
+<view class="page-container theme-{{theme}}">
+  <scroll-view class="scrollarea" scroll-y="true">
+    <!-- 顶部自定义导航栏 -->
+    <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+      <text class="back-icon">‹</text>
+      <text class="back-text">返回</text>
+    </view>
+
+    <!-- 标题与主题切换 -->
+    <view class="header">
+      <view class="title-wrap">
+        <text class="header-icon">🎮</text>
+        <text class="title">艾泽拉斯游乐场</text>
+      </view>
+      <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+    </view>
+
+    <!-- 顶部横幅 Banner -->
+    <view class="hero-banner">
+      <view class="hero-glow"></view>
+      <view class="hero-badge">WOW ARCADE HUB · 16 GAMES</view>
+      <view class="hero-title">高玩特训营 & 经典魔兽街机</view>
+      <view class="hero-desc">“进本前先来两把热身，打断不空、走位不慌、神装到手！”</view>
+      <view class="hero-stats-row">
+        <view class="hero-stat-item">
+          <text class="stat-num">16</text>
+          <text class="stat-label">精品游戏</text>
+        </view>
+        <view class="hero-stat-sep"></view>
+        <view class="hero-stat-item">
+          <text class="stat-num">100%</text>
+          <text class="stat-label">指尖畅玩</text>
+        </view>
+        <view class="hero-stat-sep"></view>
+        <view class="hero-stat-item">
+          <text class="stat-num">即开即玩</text>
+          <text class="stat-label">无缝体验</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 分类标签栏 -->
+    <view class="tabs-scroll">
+      <view class="tab-item {{activeTab === 'all' ? 'tab-active' : ''}}" data-tab="all" bindtap="setTab">
+        <text>全部 (16)</text>
+      </view>
+      <view class="tab-item {{activeTab === 'reaction' ? 'tab-active' : ''}}" data-tab="reaction" bindtap="setTab">
+        <text>⚡ 反应手速</text>
+      </view>
+      <view class="tab-item {{activeTab === 'puzzle' ? 'tab-active' : ''}}" data-tab="puzzle" bindtap="setTab">
+        <text>🧩 经典益智</text>
+      </view>
+      <view class="tab-item {{activeTab === 'arcade' ? 'tab-active' : ''}}" data-tab="arcade" bindtap="setTab">
+        <text>🕹️ 街机挑战</text>
+      </view>
+    </view>
+
+    <!-- 小游戏卡片列表 (8 款游戏) -->
+    <view class="games-list">
+      
+      <!-- 游戏 1: 秒断特训营 -->
+      <view class="game-card kick-card" wx:if="{{activeTab === 'all' || activeTab === 'reaction' || activeTab === 'arcade'}}" bindtap="goToKickGame">
+        <view class="game-card-bg-glow"></view>
+        <view class="game-top">
+          <view class="game-icon-box kick-icon">⚡</view>
+          <view class="game-meta">
+            <view class="game-tags">
+              <text class="game-tag hot-tag">HOT</text>
+              <text class="game-tag">手速测试</text>
+              <text class="game-tag">反应力</text>
+            </view>
+            <view class="game-title">秒断特训营</view>
+            <view class="game-subtitle">极限读条打断 / 钢条免疫防误按</view>
+          </view>
+        </view>
+        <view class="game-desc">
+          模拟大秘境高威胁小怪读条！识别普通法术与钢条护盾，测试你的压哨与秒断反应时间（ms），冲刺角斗士段位。
+        </view>
+        <view class="game-footer">
+          <view class="record-box">
+            <text class="record-label">最佳战绩:</text>
+            <text class="record-val">{{stats.kickBestScore > 0 ? stats.kickBestScore + '分 (' + stats.kickBestTitle + ')' : '暂无测试'}}</text>
+          </view>
+          <view class="play-btn kick-btn">
+            <text>开始特训</text>
+            <text class="arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 游戏 2: 泰坦神装 2048 (新上线) -->
+      <view class="game-card titan-card" wx:if="{{activeTab === 'all' || activeTab === 'puzzle'}}" bindtap="goTo2048Game">
+        <view class="game-card-bg-glow"></view>
+        <view class="game-top">
+          <view class="game-icon-box titan-icon">⚔️</view>
+          <view class="game-meta">
+            <view class="game-tags">
+              <text class="game-tag new-tag">NEW</text>
+              <text class="game-tag">经典 2048</text>
+              <text class="game-tag">装备合成</text>
+            </view>
+            <view class="game-title">泰坦神装 2048</view>
+            <view class="game-subtitle">滑动合成！布甲 ➔ 史诗 ➔ 传说 ➔ 泰坦神兵</view>
+          </view>
+        </view>
+        <view class="game-desc">
+          风靡全球的经典 2048 套上魔兽装备进化！支持手势滑动与悔步撤回，合成神圣 2048 泰坦创世神兵！
+        </view>
+        <view class="game-footer">
+          <view class="record-box">
+            <text class="record-label">最高铸造分:</text>
+            <text class="record-val">{{stats.best2048}}</text>
+          </view>
+          <view class="play-btn titan-btn">
+            <text>装备合成</text>
+            <text class="arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 游戏 3: 矿洞打穴居人 (打地鼠 新上线) -->
+      <view class="game-card mole-card" wx:if="{{activeTab === 'all' || activeTab === 'reaction' || activeTab === 'arcade'}}" bindtap="goToMoleGame">
+        <view class="game-card-bg-glow"></view>
+        <view class="game-top">
+          <view class="game-icon-box mole-icon">⛏️</view>
+          <view class="game-meta">
+            <view class="game-tags">
+              <text class="game-tag new-tag">NEW</text>
+              <text class="game-tag">狂暴打地鼠</text>
+              <text class="game-tag">30s 极速</text>
+            </view>
+            <view class="game-title">矿洞打穴居人</view>
+            <view class="game-subtitle">疯狂暴击！清理穴居人与哇啦啦鱼人</view>
+          </view>
+        </view>
+        <view class="game-desc">
+          暴富矿洞暴乱！30 秒疯狂敲击穴居人 🧌、鱼人 🐟 与黄金地精 💰，千万提防地精烈性炸药桶 💣！
+        </view>
+        <view class="game-footer">
+          <view class="record-box">
+            <text class="record-label">最高纪录:</text>
+            <text class="record-val">{{stats.moleBestScore}}</text>
+          </view>
+          <view class="play-btn mole-btn">
+            <text>下井挥锤</text>
+            <text class="arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 游戏 4: 驭龙高飞 (Flappy Gryphon 新上线) -->
+      <view class="game-card flappy-card" wx:if="{{activeTab === 'all' || activeTab === 'arcade' || activeTab === 'reaction'}}" bindtap="goToFlappyGame">
+        <view class="game-card-bg-glow"></view>
+        <view class="game-top">
+          <view class="game-icon-box flappy-icon">🦅</view>
+          <view class="game-meta">
+            <view class="game-tags">
+              <text class="game-tag new-tag">NEW</text>
+              <text class="game-tag">Flappy Bird</text>
+              <text class="game-tag">经典街机</text>
+            </view>
+            <view class="game-title">驭龙高飞 (Flappy)</view>
+            <view class="game-subtitle">飞翔的狮鹫！轻触拍打翅膀穿越石柱</view>
+          </view>
+        </view>
+        <view class="game-desc">
+          轻触屏幕控制狮鹫/巨龙振翅起飞，穿越黑石山熔岩悬崖与障碍石柱，考验绝对指尖控制与节奏感！
+        </view>
+        <view class="game-footer">
+          <view class="record-box">
+            <text class="record-label">最佳穿越:</text>
+            <text class="record-val">{{stats.flappyBestScore}}</text>
+          </view>
+          <view class="play-btn flappy-btn">
+            <text>振翅起飞</text>
+            <text class="arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 游戏 5: 贪吃幼龙 (Snake 新上线) -->
+      <view class="game-card snake-card" wx:if="{{activeTab === 'all' || activeTab === 'arcade' || activeTab === 'puzzle'}}" bindtap="goToSnakeGame">
+        <view class="game-card-bg-glow"></view>
+        <view class="game-top">
+          <view class="game-icon-box snake-icon">🐍</view>
+          <view class="game-meta">
+            <view class="game-tags">
+              <text class="game-tag new-tag">NEW</text>
+              <text class="game-tag">经典贪吃蛇</text>
+              <text class="game-tag">巨龙巡天</text>
+            </view>
+            <view class="game-title">贪吃幼龙 (Snake)</view>
+            <view class="game-subtitle">吞噬龙蛋与奥术水晶，巨龙体长冲刺</view>
+          </view>
+        </view>
+        <view class="game-desc">
+          经典贪吃蛇魔兽版！操纵雏龙在要塞空域吞噬翡翠龙蛋 🥚 与奥术水晶 💎，支持滑动与十字键双操作！
+        </view>
+        <view class="game-footer">
+          <view class="record-box">
+            <text class="record-label">最高得分:</text>
+            <text class="record-val">{{stats.snakeBestScore}}</text>
+          </view>
+          <view class="play-btn snake-btn">
+            <text>巨龙巡航</text>
+            <text class="arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 游戏 6: 艾泽拉斯百晓生 -->
+      <view class="game-card quiz-card" wx:if="{{activeTab === 'all' || activeTab === 'puzzle'}}" bindtap="goToQuizGame">
+        <view class="game-card-bg-glow"></view>
+        <view class="game-top">
+          <view class="game-icon-box quiz-icon">📚</view>
+          <view class="game-meta">
+            <view class="game-tags">
+              <text class="game-tag fun-tag">知识闯关</text>
+              <text class="game-tag">12.1 S2</text>
+              <text class="game-tag">经典名梗</text>
+            </view>
+            <view class="game-title">艾泽拉斯百晓生</view>
+            <view class="game-subtitle">大秘机制、词缀应对与趣味问答</view>
+          </view>
+        </view>
+        <view class="game-desc">
+          涵盖最新大秘境副本机制、词缀解法、职业关键常识与经典魔兽趣闻。限时连击作答，附带赛后错题复盘！
+        </view>
+        <view class="game-footer">
+          <view class="record-box">
+            <text class="record-label">最佳称号:</text>
+            <text class="record-val">{{stats.quizBestTitle}}</text>
+          </view>
+          <view class="play-btn quiz-btn">
+            <text>进入答题</text>
+            <text class="arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 游戏 7: 技能记忆连连看 -->
+      <view class="game-card memory-card" wx:if="{{activeTab === 'all' || activeTab === 'puzzle'}}" bindtap="goToMemoryGame">
+        <view class="game-card-bg-glow"></view>
+        <view class="game-top">
+          <view class="game-icon-box memory-icon">🃏</view>
+          <view class="game-meta">
+            <view class="game-tags">
+              <text class="game-tag memory-tag">记忆考验</text>
+              <text class="game-tag">职业标志</text>
+              <text class="game-tag">翻牌配对</text>
+            </view>
+            <view class="game-title">技能记忆连连看</view>
+            <view class="game-subtitle">全职业标志技能翻牌配对挑战</view>
+          </view>
+        </view>
+        <view class="game-desc">
+          嗜血、无敌、斩杀、冰箱、战复... 翻开卡牌找到相同技能图标，比拼最少步数与最短用时，赢取三星好评！
+        </view>
+        <view class="game-footer">
+          <view class="record-box">
+            <text class="record-label">最佳成绩:</text>
+            <text class="record-val">{{stats.memoryBestTime !== '暂无纪录' ? stats.memoryBestTime + ' (★' + stats.memoryBestStars + ')' : '暂无挑战'}}</text>
+          </view>
+          <view class="play-btn memory-btn">
+            <text>翻牌挑战</text>
+            <text class="arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 游戏 8: 词缀走位大挑战 -->
+      <view class="game-card dodge-card" wx:if="{{activeTab === 'all' || activeTab === 'reaction'}}" bindtap="goToDodgeGame">
+        <view class="game-card-bg-glow"></view>
+        <view class="game-top">
+          <view class="game-icon-box dodge-icon">🏃</view>
+          <view class="game-meta">
+            <view class="game-tags">
+              <text class="game-tag hard-tag">极限走位</text>
+              <text class="game-tag">火山血池</text>
+              <text class="game-tag">生存考验</text>
+            </view>
+            <view class="game-title">词缀走位大挑战</view>
+            <view class="game-subtitle">九宫格瞬移避雷！拒绝当团队地雷</view>
+          </view>
+        </view>
+        <view class="game-desc">
+          脚底火山喷发？满地血池风雷？预警圈出现后以极速移至安全格子，随着波数增加节奏越来越快，测测你能坚持几轮！
+        </view>
+        <view class="game-footer">
+          <view class="record-box">
+            <text class="record-label">最高生存:</text>
+            <text class="record-val">{{stats.dodgeBestWaves !== '暂无纪录' ? stats.dodgeBestWaves + ' (' + stats.dodgeBestTitle + ')' : '暂无挑战'}}</text>
+          </view>
+          <view class="play-btn dodge-btn">
+            <text>身法特训</text>
+            <text class="arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 游戏 9: 达拉然魔法宝石消消乐 -->
+      <view class="game-card" style="border-left: 4px solid #c084fc;" wx:if="{{activeTab === 'all' || activeTab === 'puzzle'}}" bindtap="goToMatch3Game">
+        <view class="game-top">
+          <view class="game-icon-box" style="background: rgba(192, 132, 252, 0.2); color: #c084fc;">🔮</view>
+          <view class="game-meta">
+            <view class="game-tags">
+              <text class="game-tag new-tag">NEW</text>
+              <text class="game-tag">三消益智</text>
+              <text class="game-tag">连锁消除</text>
+            </view>
+            <view class="game-title">达拉然宝石消消乐</view>
+            <view class="game-subtitle">符文宝石三消 / 连锁连击冲击 1200 分</view>
+          </view>
+        </view>
+        <view class="game-desc">
+          交换奥术、冰霜、烈焰等6系符文宝石！3连及以上消除得分，触发多重连锁反应，考验步数规划与三消眼力。
+        </view>
+        <view class="game-footer">
+          <view class="record-box">
+            <text class="record-label">玩法特色:</text>
+            <text class="record-val" style="color: #c084fc;">25步连锁消除</text>
+          </view>
+          <view class="play-btn" style="background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);">
+            <text>开始消除</text>
+            <text class="arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 游戏 10: 地精工程排雷营 -->
+      <view class="game-card" style="border-left: 4px solid #f59e0b;" wx:if="{{activeTab === 'all' || activeTab === 'puzzle'}}" bindtap="goToMinesGame">
+        <view class="game-top">
+          <view class="game-icon-box" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;">💣</view>
+          <view class="game-meta">
+            <view class="game-tags">
+              <text class="game-tag new-tag">NEW</text>
+              <text class="game-tag">经典扫雷</text>
+              <text class="game-tag">逻辑推理</text>
+            </view>
+            <view class="game-title">地精工程排雷营</view>
+            <view class="game-subtitle">时间就是金钱 / 避开10颗地精高爆炸药</view>
+          </view>
+        </view>
+        <view class="game-desc">
+          经典9x9扫雷！插旗探雷开路，数字提示避雷，翻出所有安全格子通关，严防地精炸弹引爆！
+        </view>
+        <view class="game-footer">
+          <view class="record-box">
+            <text class="record-label">玩法特色:</text>
+            <text class="record-val" style="color: #f59e0b;">插旗排雷双模</text>
+          </view>
+          <view class="play-btn" style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);">
+            <text>开始排雷</text>
+            <text class="arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 游戏 11: 战歌五子棋 -->
+      <view class="game-card" style="border-left: 4px solid #ef4444;" wx:if="{{activeTab === 'all' || activeTab === 'puzzle'}}" bindtap="goToGomokuGame">
+        <view class="game-top">
+          <view class="game-icon-box" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">⚔️</view>
+          <view class="game-meta">
+            <view class="game-tags">
+              <text class="game-tag new-tag">NEW</text>
+              <text class="game-tag">五子棋</text>
+              <text class="game-tag">阵营对战</text>
+            </view>
+            <view class="game-title">战歌五子棋</view>
+            <view class="game-subtitle">部落战斧 vs 联盟坚盾 / 棋盘连珠</view>
+          </view>
+        </view>
+        <view class="game-desc">
+          经典11x11棋盘博弈！部落暗红血滴石 vs 联盟湛蓝星芒石，支持人机对战与双人同屏对弈。
+        </view>
+        <view class="game-footer">
+          <view class="record-box">
+            <text class="record-label">玩法特色:</text>
+            <text class="record-val" style="color: #ef4444;">AI / 双人同屏</text>
+          </view>
+          <view class="play-btn" style="background: linear-gradient(135deg, #ef4444 0%, #38bdf8 100%);">
+            <text>进入对弈</text>
+            <text class="arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 游戏 12: 嗜血拔刀测试 -->
+      <view class="game-card" style="border-left: 4px solid #22c55e;" wx:if="{{activeTab === 'all' || activeTab === 'reaction'}}" bindtap="goToReactionGame">
+        <view class="game-top">
+          <view class="game-icon-box" style="background: rgba(34, 197, 94, 0.2); color: #22c55e;">⚡</view>
+          <view class="game-meta">
+            <view class="game-tags">
+              <text class="game-tag new-tag">NEW</text>
+              <text class="game-tag">反应手速</text>
+              <text class="game-tag">专精评级</text>
+            </view>
+            <view class="game-title">嗜血拔刀测试</view>
+            <view class="game-subtitle">毫秒级神经反射 / 狂暴战极限手速</view>
+          </view>
+        </view>
+        <view class="game-desc">
+          萨满开嗜血啦！变绿瞬间拼尽全力点击屏幕，精确到毫秒记录你的神经反射，获取魔兽全专精专属评价！
+        </view>
+        <view class="game-footer">
+          <view class="record-box">
+            <text class="record-label">玩法特色:</text>
+            <text class="record-val" style="color: #22c55e;">毫秒精准测量</text>
+          </view>
+          <view class="play-btn" style="background: linear-gradient(135deg, #eab308 0%, #22c55e 100%);">
+            <text>测试反应</text>
+            <text class="arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 游戏 13: 圣光之锤打砖块 -->
+      <view class="game-card" style="border-left: 4px solid #fbbf24;" wx:if="{{activeTab === 'all' || activeTab === 'arcade'}}" bindtap="goToBreakoutGame">
+        <view class="game-top">
+          <view class="game-icon-box" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24;">🔨</view>
+          <view class="game-meta">
+            <view class="game-tags">
+              <text class="game-tag new-tag">NEW</text>
+              <text class="game-tag">经典打砖块</text>
+              <text class="game-tag">街机弹球</text>
+            </view>
+            <view class="game-title">圣光之锤打砖块</view>
+            <view class="game-subtitle">圣盾接球反弹 / 击碎天灾魔石</view>
+          </view>
+        </view>
+        <view class="game-desc">
+          移动圣盾反弹圣光飞锤，击碎普通石砖、加固黑曜石与自爆火药桶，波次难度逐渐升级！
+        </view>
+        <view class="game-footer">
+          <view class="record-box">
+            <text class="record-label">玩法特色:</text>
+            <text class="record-val" style="color: #fbbf24;">圣盾反弹连击</text>
+          </view>
+          <view class="play-btn" style="background: linear-gradient(135deg, #f59e0b 0%, #38bdf8 100%);">
+            <text>挥锤开打</text>
+            <text class="arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 游戏 14: 达拉然奥术方块 (俄罗斯方块) -->
+      <view class="game-card" style="border-left: 4px solid #06b6d4;" wx:if="{{activeTab === 'all' || activeTab === 'arcade' || activeTab === 'puzzle'}}" bindtap="goToTetrisGame">
+        <view class="game-top">
+          <view class="game-icon-box" style="background: rgba(6, 182, 212, 0.2); color: #06b6d4;">🧱</view>
+          <view class="game-meta">
+            <view class="game-tags">
+              <text class="game-tag new-tag">NEW</text>
+              <text class="game-tag">俄罗斯方块</text>
+              <text class="game-tag">硬降消行</text>
+            </view>
+            <view class="game-title">达拉然奥术方块</view>
+            <view class="game-subtitle">奥术符文砖块 / 旋转堆叠消行</view>
+          </view>
+        </view>
+        <view class="game-desc">
+          经典四格骨牌俄罗斯方块！左移右移旋转与一键硬降，多行消去获得高额连击奥术积分。
+        </view>
+        <view class="game-footer">
+          <view class="record-box">
+            <text class="record-label">玩法特色:</text>
+            <text class="record-val" style="color: #06b6d4;">经典7骨牌</text>
+          </view>
+          <view class="play-btn" style="background: linear-gradient(135deg, #06b6d4 0%, #a855f7 100%);">
+            <text>方块消行</text>
+            <text class="arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 游戏 15: 战歌峡谷井字棋 -->
+      <view class="game-card" style="border-left: 4px solid #f43f5e;" wx:if="{{activeTab === 'all' || activeTab === 'puzzle'}}" bindtap="goToTicTacToeGame">
+        <view class="game-top">
+          <view class="game-icon-box" style="background: rgba(244, 63, 94, 0.2); color: #f43f5e;">🎯</view>
+          <view class="game-meta">
+            <view class="game-tags">
+              <text class="game-tag new-tag">NEW</text>
+              <text class="game-tag">井字棋</text>
+              <text class="game-tag">极速智斗</text>
+            </view>
+            <view class="game-title">战歌峡谷井字棋</view>
+            <view class="game-subtitle">战斧 vs 坚盾 / 3x3 极速胜负</view>
+          </view>
+        </view>
+        <view class="game-desc">
+          简单刺激！智能 AI 与双人同屏对决，部落战斧 vs 联盟坚盾，3子连线夺下战歌军旗！
+        </view>
+        <view class="game-footer">
+          <view class="record-box">
+            <text class="record-label">玩法特色:</text>
+            <text class="record-val" style="color: #f43f5e;">Minimax智能AI</text>
+          </view>
+          <view class="play-btn" style="background: linear-gradient(135deg, #ef4444 0%, #38bdf8 100%);">
+            <text>极速对决</text>
+            <text class="arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 游戏 16: 哀嚎洞穴迷宫寻宝 -->
+      <view class="game-card" style="border-left: 4px solid #10b981;" wx:if="{{activeTab === 'all' || activeTab === 'arcade' || activeTab === 'puzzle'}}" bindtap="goToMazeGame">
+        <view class="game-top">
+          <view class="game-icon-box" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">🐾</view>
+          <view class="game-meta">
+            <view class="game-tags">
+              <text class="game-tag new-tag">NEW</text>
+              <text class="game-tag">迷宫探秘</text>
+              <text class="game-tag">寻宝脱困</text>
+            </view>
+            <view class="game-title">哀嚎洞穴迷宫寻宝</view>
+            <view class="game-subtitle">德鲁伊探秘 / 收集宝藏寻找出口</view>
+          </view>
+        </view>
+        <view class="game-desc">
+          程序化随机迷宫！操控小德鲁伊在哀嚎洞穴中寻路，收集沿途稀有龙蛋宝藏，找到达拉然传送门快速脱困！
+        </view>
+        <view class="game-footer">
+          <view class="record-box">
+            <text class="record-label">玩法特色:</text>
+            <text class="record-val" style="color: #10b981;">随机迷宫生成</text>
+          </view>
+          <view class="play-btn" style="background: linear-gradient(135deg, #10b981 0%, #38bdf8 100%);">
+            <text>寻路探秘</text>
+            <text class="arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+    </view>
+
+    <view class="footer-tip">
+      <text>⚔️ 16 款经典游戏即开即玩 · 本地实时保存最佳纪录 ⚔️</text>
+    </view>
+  </scroll-view>
+</view>

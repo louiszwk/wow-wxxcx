@@ -25,6 +25,11 @@ Page({
 
     const savedTheme = wx.getStorageSync('app_theme') || 'dark';
     this.setData({ theme: savedTheme });
+
+    if (wx.showShareMenu) {
+      wx.showShareMenu({ menus: ['shareAppMessage', 'shareTimeline'] });
+    }
+
     this.fetchData();
   },
 
@@ -210,5 +215,19 @@ Page({
 
   getClsMap() {
     return { 'Death Knight':'死骑', 'Demon Hunter':'恶魔猎手', 'Druid':'德鲁伊', 'Evoker':'唤魔师', 'Hunter':'猎人', 'Mage':'法师', 'Monk':'武僧', 'Paladin':'圣骑士', 'Priest':'牧师', 'Rogue':'潜行者', 'Shaman':'萨满', 'Warlock':'术士', 'Warrior':'战士' };
+  },
+
+  onShareAppMessage() {
+    return {
+      title: '魔兽世界大秘境专精强度排行榜',
+      path: '/pages/meta/meta'
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: '魔兽世界大秘境专精强度排行榜',
+      path: '/pages/meta/meta'
+    };
   }
 });

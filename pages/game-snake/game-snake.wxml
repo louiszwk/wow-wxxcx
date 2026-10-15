@@ -1,0 +1,86 @@
+<view class="page-container theme-{{theme}}">
+  <scroll-view class="scrollarea" scroll-y="true">
+    
+    <!-- 顶部导航 -->
+    <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+      <text class="back-icon">‹</text>
+      <text class="back-text">游乐场</text>
+    </view>
+
+    <!-- 标题与主题切换 -->
+    <view class="header">
+      <view class="title-wrap">
+        <text class="title">🐍 贪吃幼龙 (Snake)</text>
+      </view>
+      <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+    </view>
+
+    <!-- 顶栏计分面板 -->
+    <view class="snake-hud">
+      <view class="hud-item">
+        <text class="hud-lbl">当前积分</text>
+        <text class="hud-val score-val">{{score}}</text>
+      </view>
+      <view class="hud-item">
+        <text class="hud-lbl">巨龙体长</text>
+        <text class="hud-val length-val">{{dragonLength}} 节</text>
+      </view>
+      <view class="hud-item">
+        <text class="hud-lbl">最高得分</text>
+        <text class="hud-val best-val">{{bestScore}}</text>
+      </view>
+    </view>
+
+    <!-- 16x16 贪吃蛇核心棋盘 (支持手势触摸滑动) -->
+    <view class="snake-arena" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
+      <view class="grid-container">
+        <view 
+          class="snake-cell cell-{{item.type}}"
+          wx:for="{{gridCells}}"
+          wx:key="index">
+          <text wx:if="{{item.type === 'head'}}">🐲</text>
+          <text wx:elif="{{item.type === 'egg'}}">🥚</text>
+          <text wx:elif="{{item.type === 'crystal'}}">💎</text>
+        </view>
+      </view>
+
+      <!-- 准备界面浮层 -->
+      <view class="board-overlay ready-overlay" wx:if="{{gameState === 'ready'}}">
+        <view class="overlay-content">
+          <view class="overlay-icon">🐲</view>
+          <view class="overlay-title">巨龙巡天贪吃挑战</view>
+          <view class="overlay-desc">吞食翡翠龙蛋 🥚 与奥术水晶 💎，躲避要塞高墙与自身巨尾！</view>
+          <button class="overlay-btn" bindtap="startGame">巨龙起航 ➔</button>
+        </view>
+      </view>
+
+      <!-- 游戏结束浮层 -->
+      <view class="board-overlay over-overlay" wx:if="{{gameState === 'game_over'}}">
+        <view class="overlay-content">
+          <view class="overlay-icon">{{resultSummary.badge}}</view>
+          <view class="overlay-title">「{{resultSummary.title}}」</view>
+          <view class="overlay-desc">最终体长: {{resultSummary.length}} 节 · 获得积分: {{resultSummary.score}}</view>
+          <button class="overlay-btn" bindtap="startGame">重振龙威 ↻</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部十字方向控制键 -->
+    <view class="dpad-box">
+      <view class="dpad-btn up-btn" data-dir="up" bindtap="onKeyDir">▲</view>
+      <view class="dpad-middle">
+        <view class="dpad-btn left-btn" data-dir="left" bindtap="onKeyDir">◀</view>
+        <view class="dpad-center-pad">滑动/点按</view>
+        <view class="dpad-btn right-btn" data-dir="right" bindtap="onKeyDir">▶</view>
+      </view>
+      <view class="dpad-btn down-btn" data-dir="down" bindtap="onKeyDir">▼</view>
+    </view>
+
+    <!-- 食物得分说明 -->
+    <view class="food-legend">
+      <text class="fl-item">🥚 翡翠龙蛋 (+10分 / +1节)</text>
+      <text class="fl-item">💎 奥术水晶 (+30分 / +2节)</text>
+    </view>
+
+  </scroll-view>
+</view>

@@ -1,97 +1,308 @@
 <view class="page-container theme-{{theme}}">
   <view class="header" style="padding-top: {{navBarHeight}}px;">
-    <view class="theme-toggle" bindtap="toggleTheme">
-      <text class="icon">{{theme === 'light' ? '🌙' : '☀️'}}</text>
-    </view>
     <view class="hero-section">
-      <view class="title">艾泽拉斯的微风</view>
-      <view class="subtitle" bindtap="onSubtitleTap">魔兽世界大秘境核心向工具箱</view>
+      <view class="hero-title-box">
+        <view class="theme-toggle" bindtap="toggleTheme">
+          <text class="icon">{{theme === 'light' ? '🌙' : '☀️'}}</text>
+        </view>
+        <view class="title">艾泽拉斯的微风</view>
+      </view>
+      <view class="subtitle" bindtap="onSubtitleTap">魔兽世界核心向工具箱</view>
+    </view>
+
+    <!-- 顶部核心 Tab 栏目: 正式服 / 无限服 / 游乐场 -->
+    <view class="top-nav-tabs">
+      <view class="main-tab-item {{currentTab === 'retail' ? 'active' : ''}}" data-tab="retail" bindtap="switchMainTab">
+        <text class="tab-label">正式服</text>
+      </view>
+      <view class="main-tab-item {{currentTab === 'remix' ? 'active' : ''}}" data-tab="remix" bindtap="switchMainTab">
+        <text class="tab-label">无限服</text>
+      </view>
+      <view class="main-tab-item {{currentTab === 'arcade' ? 'active' : ''}}" data-tab="arcade" bindtap="switchMainTab">
+        <text class="tab-label">游乐场</text>
+      </view>
     </view>
   </view>
 
-  <!-- Weekly Dashboard -->
-  <view class="dashboard-section">
-    <!-- Token Price -->
-    <view class="dash-card token-card" bindtap="navigateToToken">
-      <view class="dash-info">
-        <text class="dash-label">时光徽章 (国服)</text>
-        <view class="dash-price-row">
-          <text class="dash-value {{tokenError ? 'error-text' : ''}}">{{tokenPrice}}</text>
-          <view class="retry-pill" wx:if="{{tokenError}}" catchtap="fetchTokenPrice">
+  <!-- ================= TAB 1: 正式服 ================= -->
+  <block wx:if="{{currentTab === 'retail'}}">
+    <!-- Weekly Dashboard -->
+    <view class="dashboard-section">
+      <!-- Token Price -->
+      <view class="dash-card token-card" bindtap="navigateToToken">
+        <view class="dash-info">
+          <text class="dash-label">时光徽章 (国服)</text>
+          <view class="dash-price-row">
+            <text class="dash-value {{tokenError ? 'error-text' : ''}}">{{tokenPrice}}</text>
+            <view class="retry-pill" wx:if="{{tokenError}}" catchtap="fetchTokenPrice">
+              <text class="retry-icon">↻</text>
+              <text>重试</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- Affixes -->
+      <view class="dash-card affixes-card">
+        <view class="dash-header">
+          <text class="dash-title">本周词缀 (国服)</text>
+        </view>
+        
+        <view class="affix-loading" wx:if="{{isLoadingAffixes}}">正在获取...</view>
+        <view class="affix-tags" wx:elif="{{affixes.length > 0}}">
+          <view class="affix-tag" wx:for="{{affixes}}" wx:key="id">{{item.name}}</view>
+        </view>
+        <view class="affix-error-row" wx:else>
+          <text class="affix-error-text">获取失败</text>
+          <view class="retry-pill" catchtap="fetchAffixes">
             <text class="retry-icon">↻</text>
             <text>重试</text>
           </view>
         </view>
       </view>
     </view>
-    
-    <!-- Affixes -->
-    <view class="dash-card affixes-card">
-      <view class="dash-header">
-        <text class="dash-title">本周词缀 (国服)</text>
+
+    <!-- Main Navigation Grid -->
+    <view class="nav-grid">
+      <view class="nav-card" bindtap="navigateToMeta">
+        <view class="card-content">
+          <view class="card-title">大秘境强度榜</view>
+          <view class="card-desc">实时追踪 14+ 层强度评级。</view>
+        </view>
       </view>
-      
-      <view class="affix-loading" wx:if="{{isLoadingAffixes}}">正在获取...</view>
-      <view class="affix-tags" wx:elif="{{affixes.length > 0}}">
-        <view class="affix-tag" wx:for="{{affixes}}" wx:key="id">{{item.name}}</view>
+
+      <view class="nav-card" bindtap="navigateToTopMeta">
+        <view class="card-content">
+          <view class="card-title">大米前百数据</view>
+          <view class="card-desc">实时追踪高层大秘境前100名车队阵容与专精出场率。</view>
+        </view>
       </view>
-      <view class="affix-error-row" wx:else>
-        <text class="affix-error-text">获取失败</text>
-        <view class="retry-pill" catchtap="fetchAffixes">
-          <text class="retry-icon">↻</text>
-          <text>重试</text>
+
+      <view class="nav-card" bindtap="navigateToLoot">
+        <view class="card-content">
+          <view class="card-title">第二赛季掉落</view>
+          <view class="card-desc">支持主副属性与装备部位精准筛选。</view>
+        </view>
+      </view>
+
+      <view class="nav-card" bindtap="navigateToMdt">
+        <view class="card-content">
+          <view class="card-title" style="color: #a855f7;">大秘境路线 (Alpha)</view>
+          <view class="card-desc">地图交互规划路线与波次，精准计算敌军部队进度。</view>
+        </view>
+      </view>
+
+      <view class="nav-card" bindtap="navigateToBis">
+        <view class="card-content">
+          <view class="card-title">BiS 装备和攻略</view>
+          <view class="card-desc">全职业毕业装备、附魔、宝石权威指南 (敬请期待)。</view>
+        </view>
+      </view>
+
+      <view class="nav-card" bindtap="goToInfiniteTerms">
+        <view class="card-content">
+          <view class="card-title" style="color: #ec4899;">魔兽术语与黑话</view>
+          <view class="card-desc">全网最全魔兽术语与黑话速查！GCD、仇恨OT、顺劈、断条机制全收录。</view>
         </view>
       </view>
     </view>
-  </view>
+  </block>
 
-  <view class="nav-grid">
-    <view class="nav-card" bindtap="navigateToMeta">
-      <view class="card-content">
-        <view class="card-title">大秘境强度榜</view>
-        <view class="card-desc">实时追踪 14+ 层强度评级。</view>
-      </view>
+  <!-- ================= TAB 2: 无限服 (Blizzard Project Infinite) ================= -->
+  <block wx:if="{{currentTab === 'remix'}}">
+    <!-- 无限服 Hero Banner -->
+    <view class="remix-hero-banner infinite-hero-banner">
+      <view class="remix-glow infinite-glow"></view>
+      <view class="remix-badge">BLIZZARD · 暴雪官方无限服</view>
+      <view class="remix-title">🌌 魔兽世界「无限服」</view>
+      <view class="remix-desc">全新60级探索框架 · 天裔精灵新种族 · 专属天赋树 · 航线与社区工具</view>
     </view>
 
-    <view class="nav-card" bindtap="navigateToTopMeta">
-      <view class="card-content">
-        <view class="card-title">大米前百数据</view>
-        <view class="card-desc">实时追踪高层大秘境前100名车队阵容与专精出场率。</view>
+    <!-- 无限服 5 大功能卡片 -->
+    <view class="nav-grid">
+      <!-- 1: 世界地图npc航线查询 -->
+      <view class="nav-card" bindtap="goToInfiniteMap">
+        <view class="card-content">
+          <view class="card-title" style="color: #38bdf8;">🗺️ 世界地图与航线查询</view>
+          <view class="card-desc">东部王国、卡利姆多与无限探索区飞行NPC坐标速查，支持一键路线规划与坐标宏复制。</view>
+        </view>
+      </view>
+
+      <!-- 2: 天赋模拟器 -->
+      <view class="nav-card" bindtap="goToInfiniteTalents">
+        <view class="card-content">
+          <view class="card-title" style="color: #f59e0b;">⚡ 60级天赋模拟器</view>
+          <view class="card-desc">全职业三系经典与无限分支天赋树加点模拟 (敬请期待)。</view>
+        </view>
+      </view>
+
+      <!-- 3: 种族、职业介绍 -->
+      <view class="nav-card" bindtap="goToInfiniteClasses">
+        <view class="card-content">
+          <view class="card-title" style="color: #a855f7;">🛡️ 种族与职业介绍</view>
+          <view class="card-desc">独占全新种族【天裔精灵】星界特长全解析，全职业专精与无限服专属魔改机制速览。</view>
+        </view>
+      </view>
+
+      <!-- 4: 许愿 -->
+      <view class="nav-card" bindtap="goToInfiniteWishes">
+        <view class="card-content">
+          <view class="card-title" style="color: #fbbf24;">✨ 艾泽拉斯祈愿池</view>
+          <view class="card-desc">向圣泉投掷金币许下毕业心愿！风剑、提布、凤凰坐骑欧气祈福与全服祝福互动墙。</view>
+        </view>
+      </view>
+
+      <!-- 5: 魔兽术语板块 -->
+      <view class="nav-card" bindtap="goToInfiniteTerms">
+        <view class="card-content">
+          <view class="card-title" style="color: #ec4899;">魔兽术语与黑话</view>
+          <view class="card-desc">全网最全魔兽术语与黑话速查！GCD、仇恨OT、顺劈、钢条断条、减伤链与神装全收录。</view>
+        </view>
       </view>
     </view>
+  </block>
 
-    <view class="nav-card" bindtap="navigateToLoot">
-      <view class="card-content">
-        <view class="card-title">第二赛季掉落</view>
-        <view class="card-desc">支持主副属性与装备部位精准筛选。</view>
-      </view>
+  <!-- ================= TAB 3: 游乐场 (Arcade) ================= -->
+  <block wx:if="{{currentTab === 'arcade'}}">
+    <!-- 游乐场顶部介绍 (纯展示，无冗余跳转) -->
+    <view class="arcade-hero-banner">
+      <view class="arcade-glow"></view>
+      <view class="arcade-badge">ARCADE · 即点即玩</view>
+      <view class="arcade-title">🎮 艾泽拉斯游乐场</view>
+      <view class="arcade-desc">经典魔兽主题小游戏！点击下方任意卡片即可直接开玩，战绩自动保存。</view>
     </view>
 
-    <view class="nav-card" bindtap="navigateToMdt">
-      <view class="card-content">
-        <view class="card-title" style="color: #a855f7;">大秘境路线 (Alpha)</view>
-        <view class="card-desc">地图交互规划路线与波次，精准计算敌军部队进度。</view>
+    <!-- 8 款小游戏即点即玩卡片 -->
+    <view class="nav-grid">
+      <!-- 1: 2048 -->
+      <view class="nav-card game-item-card" bindtap="goTo2048Game">
+        <view class="card-content">
+          <view class="card-title" style="color: #38bdf8;">⚔️ 泰坦神装 2048</view>
+          <view class="card-desc">滑动合成！布甲 ➔ 史诗 ➔ 传说 ➔ 泰坦神兵！带悔步撤回。</view>
+        </view>
+      </view>
+
+      <!-- 2: 打地鼠 -->
+      <view class="nav-card game-item-card" bindtap="goToMoleGame">
+        <view class="card-content">
+          <view class="card-title" style="color: #f59e0b;">⛏️ 矿洞打穴居人</view>
+          <view class="card-desc">暴富矿洞狂暴 30 秒！猛砸穴居人与鱼人，提防炸药桶！</view>
+        </view>
+      </view>
+
+      <!-- 3: Flappy -->
+      <view class="nav-card game-item-card" bindtap="goToFlappyGame">
+        <view class="card-content">
+          <view class="card-title" style="color: #06b6d4;">🦅 驭龙高飞 (Flappy)</view>
+          <view class="card-desc">飞翔的狮鹫！轻触拍打翅膀穿越石柱，考验指尖控制。</view>
+        </view>
+      </view>
+
+      <!-- 4: 贪吃蛇 -->
+      <view class="nav-card game-item-card" bindtap="goToSnakeGame">
+        <view class="card-content">
+          <view class="card-title" style="color: #22c55e;">🐍 贪吃幼龙 (Snake)</view>
+          <view class="card-desc">吞食翡翠龙蛋与奥术水晶，巨龙体长无限成长！</view>
+        </view>
+      </view>
+
+      <!-- 5: 秒断特训 -->
+      <view class="nav-card game-item-card" bindtap="goToKickGame">
+        <view class="card-content">
+          <view class="card-title" style="color: #eab308;">⚡ 秒断特训营</view>
+          <view class="card-desc">大秘境读条打断反应测试，识别银盾钢条防误按！</view>
+        </view>
+      </view>
+
+      <!-- 6: 百晓生 -->
+      <view class="nav-card game-item-card" bindtap="goToQuizGame">
+        <view class="card-content">
+          <view class="card-title" style="color: #8b5cf6;">📚 艾泽拉斯百晓生</view>
+          <view class="card-desc">12.1 S2 机制、词缀解法与历史名梗答题挑战，带错题本。</view>
+        </view>
+      </view>
+
+      <!-- 7: 连连看 -->
+      <view class="nav-card game-item-card" bindtap="goToMemoryGame">
+        <view class="card-content">
+          <view class="card-title" style="color: #ec4899;">🃏 技能连连看</view>
+          <view class="card-desc">全职业标志技能翻牌消除配对，赢取三星好评！</view>
+        </view>
+      </view>
+
+      <!-- 8: 走位避雷 -->
+      <view class="nav-card game-item-card" bindtap="goToDodgeGame">
+        <view class="card-content">
+          <view class="card-title" style="color: #f97316;">🏃 词缀走位大挑战</view>
+          <view class="card-desc">九宫格身法避雷！躲避火山、血池与风雷，极限生存。</view>
+        </view>
+      </view>
+
+      <!-- 9: 魔法宝石消消乐 -->
+      <view class="nav-card game-item-card" bindtap="goToMatch3Game">
+        <view class="card-content">
+          <view class="card-title" style="color: #c084fc;">🔮 达拉然宝石消消乐</view>
+          <view class="card-desc">经典符文三消！交换奥术冰霜烈焰宝石，连击连锁消除挑战！</view>
+        </view>
+      </view>
+
+      <!-- 10: 地精排雷 -->
+      <view class="nav-card game-item-card" bindtap="goToMinesGame">
+        <view class="card-content">
+          <view class="card-title" style="color: #f59e0b;">💣 地精工程排雷营</view>
+          <view class="card-desc">经典扫雷！小心脚下 10 颗高爆炸药，插旗探雷考验逻辑推理！</view>
+        </view>
+      </view>
+
+      <!-- 11: 战歌五子棋 -->
+      <view class="nav-card game-item-card" bindtap="goToGomokuGame">
+        <view class="card-content">
+          <view class="card-title" style="color: #ef4444;">⚔️ 战歌五子棋 (PvP/AI)</view>
+          <view class="card-desc">联盟 vs 部落 棋盘博弈！支持高能人机对战与双人同屏对弈。</view>
+        </view>
+      </view>
+
+      <!-- 12: 嗜血拔刀测试 -->
+      <view class="nav-card game-item-card" bindtap="goToReactionGame">
+        <view class="card-content">
+          <view class="card-title" style="color: #22c55e;">⚡ 嗜血拔刀反应测试</view>
+          <view class="card-desc">毫秒级神经反射测量！变绿瞬间狂暴拔刀，获取魔兽专精评价！</view>
+        </view>
+      </view>
+
+      <!-- 13: 圣光打砖块 -->
+      <view class="nav-card game-item-card" bindtap="goToBreakoutGame">
+        <view class="card-content">
+          <view class="card-title" style="color: #fbbf24;">🔨 圣光之锤打砖块</view>
+          <view class="card-desc">滑动圣盾反弹圣光飞锤，击碎天灾魔石砖块与自爆火药桶！</view>
+        </view>
+      </view>
+
+      <!-- 14: 达拉然奥术方块 (俄罗斯方块) -->
+      <view class="nav-card game-item-card" bindtap="goToTetrisGame">
+        <view class="card-content">
+          <view class="card-title" style="color: #06b6d4;">🧱 达拉然奥术方块</view>
+          <view class="card-desc">经典俄罗斯方块！奥术符文砖块旋转堆叠，硬降消行冲击高分！</view>
+        </view>
+      </view>
+
+      <!-- 15: 战歌井字棋 -->
+      <view class="nav-card game-item-card" bindtap="goToTicTacToeGame">
+        <view class="card-content">
+          <view class="card-title" style="color: #f43f5e;">🎯 战歌峡谷井字棋</view>
+          <view class="card-desc">3x3 极速智力争锋！部落战斧 vs 联盟坚盾，3连绝杀战歌峡谷！</view>
+        </view>
+      </view>
+
+      <!-- 16: 哀嚎洞穴迷宫 -->
+      <view class="nav-card game-item-card" bindtap="goToMazeGame">
+        <view class="card-content">
+          <view class="card-title" style="color: #10b981;">🐾 哀嚎洞穴迷宫寻宝</view>
+          <view class="card-desc">德鲁伊变身探秘迷宫！收集稀有洞穴宝藏，寻找传送门快速脱困！</view>
+        </view>
       </view>
     </view>
-
-    <view class="nav-card" bindtap="navigateToBis">
-      <view class="card-content">
-        <view class="card-title">BiS 装备和攻略</view>
-        <view class="card-desc">全职业毕业装备、附魔、宝石权威指南 (敬请期待)。</view>
-      </view>
-    </view>
-
-    <!-- 暂时隐藏配装栏目 -->
-    <!--
-    <view class="nav-card" bindtap="navigateToBuild">
-      <view class="card-content">
-        <view class="card-title" style="color: #38bdf8;">配装</view>
-        <view class="card-desc">按专精自由模拟配装，区分双手与主副手，实时收益统计与清单分享。</view>
-      </view>
-    </view>
-    -->
-
-  </view>
+  </block>
   
   <view class="footer">
     <text>Data Driven World of Warcraft</text>

@@ -1,0 +1,174 @@
+<view class="page-container theme-{{theme}}">
+  <!-- Custom Nav Header -->
+  <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+    <text class="back-icon">‹</text>
+    <text class="back-text">返回</text>
+  </view>
+
+  <!-- Title -->
+  <view class="header">
+    <view class="title">魔兽术语与黑话字典</view>
+    <view class="subtitle">萌新不懵圈 · 开荒不犯怵 · 全网权威魔兽黑话速查</view>
+    <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+  </view>
+
+  <!-- Search Box -->
+  <view class="search-box">
+    <input 
+      class="search-input" 
+      placeholder="搜索术语 / 英文缩写 (如 GCD, OT, BiS, 顺劈)..." 
+      placeholder-class="placeholder" 
+      value="{{searchKeyword}}" 
+      bindinput="onSearchInput" 
+    />
+    <view class="clear-btn" wx:if="{{searchKeyword}}" bindtap="clearSearch">✕</view>
+  </view>
+
+  <!-- Top Hero Banner with Add Button -->
+  <view class="terms-hero">
+    <view class="hero-left">
+      <view class="hero-title">艾泽拉斯行话全集</view>
+      <view class="hero-desc">收录团本指令、走位机制、装备暗号与战术术语，点击可直接复制解释！</view>
+    </view>
+    <view class="submit-term-btn" bindtap="openSubmitModal">
+      <text>投稿黑话</text>
+    </view>
+  </view>
+
+  <!-- Category Filter Chips -->
+  <scroll-view class="category-scroll" scroll-x="true" enable-flex="true">
+    <view 
+      wx:for="{{categoryList}}" 
+      wx:key="id" 
+      class="cat-chip {{currentCategory === item.id ? 'active' : ''}}" 
+      data-id="{{item.id}}" 
+      bindtap="selectCategory"
+    >
+      {{item.label}}
+    </view>
+  </scroll-view>
+
+  <!-- Count Summary -->
+  <view class="summary-row">
+    <text>共找到 {{displayTerms.length}} 条术语黑话</text>
+    <text class="tip-sub">点击卡片可收藏或复制</text>
+  </view>
+
+  <!-- Terms List -->
+  <view class="terms-list">
+    <view class="term-card" wx:for="{{displayTerms}}" wx:key="id">
+      <view class="term-card-top">
+        <view class="term-header-left">
+          <view class="term-title">{{item.term}}</view>
+          <view class="term-alias" wx:if="{{item.alias}}">俗称：{{item.alias}}</view>
+        </view>
+        <view class="term-badge badge-{{item.category}}">{{item.tag}}</view>
+      </view>
+
+      <!-- Meaning / Definition -->
+      <view class="term-definition">
+        {{item.definition}}
+      </view>
+
+      <!-- Scenario Dialogue -->
+      <view class="scenario-box" wx:if="{{item.example}}">
+        <text class="scenario-text">{{item.example}}</text>
+      </view>
+
+      <!-- Pro-Tip -->
+      <view class="tip-box" wx:if="{{item.tip}}">
+        <text class="tip-icon">避坑建议：</text>
+        <text class="tip-text">{{item.tip}}</text>
+      </view>
+
+      <!-- Card Footer Actions -->
+      <view class="term-actions">
+        <view 
+          class="action-pill fav-pill {{favTerms[item.id] ? 'faved' : ''}}" 
+          data-id="{{item.id}}" 
+          bindtap="toggleFav"
+        >
+          <text>{{favTerms[item.id] ? '已收藏' : '收藏'}}</text>
+        </view>
+        <view 
+          class="action-pill copy-pill" 
+          data-term="{{item.term}}" 
+          data-def="{{item.definition}}" 
+          bindtap="copyTermExplanation"
+        >
+          <text>复制解释</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Empty State -->
+    <view class="empty-state" wx:if="{{displayTerms.length === 0}}">
+      <text class="empty-text">未搜到该术语，点击上方按钮投稿补充吧！</text>
+    </view>
+  </view>
+
+  <!-- Submit Term Modal -->
+  <view class="modal-mask" wx:if="{{showModal}}">
+    <view class="modal-box">
+      <view class="modal-header">
+        <text class="modal-title">补充魔兽术语与黑话</text>
+        <view class="modal-close" bindtap="closeSubmitModal">✕</view>
+      </view>
+
+      <view class="form-group">
+        <text class="form-label">术语名称 (中文/英文)</text>
+        <input 
+          class="form-input" 
+          placeholder="例如：假死 / 破甲 / 扫地僧" 
+          placeholder-class="placeholder" 
+          value="{{formTerm}}" 
+          bindinput="onFormTermInput" 
+        />
+      </view>
+
+      <view class="form-row">
+        <view class="form-col">
+          <text class="form-label">俗称 / 缩写</text>
+          <input 
+            class="form-input" 
+            placeholder="例如：FD / GKD" 
+            placeholder-class="placeholder" 
+            value="{{formAlias}}" 
+            bindinput="onFormAliasInput" 
+          />
+        </view>
+        <view class="form-col">
+          <text class="form-label">所属分类</text>
+          <picker mode="selector" range="{{formCategories}}" range-key="name" value="{{formCategoryIndex}}" bindchange="onFormCatChange">
+            <view class="form-picker-val">{{formCategories[formCategoryIndex].name}}</view>
+          </picker>
+        </view>
+      </view>
+
+      <view class="form-group">
+        <text class="form-label">权威解释说明</text>
+        <textarea 
+          class="form-textarea" 
+          placeholder="说明该术语的具体含义、作用与机制..." 
+          placeholder-class="placeholder" 
+          value="{{formDefinition}}" 
+          bindinput="onFormDefInput" 
+          maxlength="200"
+        ></textarea>
+      </view>
+
+      <view class="form-group">
+        <text class="form-label">实战聊天例句 (选填)</text>
+        <input 
+          class="form-input" 
+          placeholder="例如：灭团时猎人直接假死脱战保修装费！" 
+          placeholder-class="placeholder" 
+          value="{{formExample}}" 
+          bindinput="onFormExInput" 
+        />
+      </view>
+
+      <button class="submit-btn" bindtap="submitNewTerm">确认收录进字典</button>
+    </view>
+  </view>
+</view>

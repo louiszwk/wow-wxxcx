@@ -1,0 +1,118 @@
+<view class="page-container theme-{{theme}}">
+  <scroll-view class="scrollarea" scroll-y="true">
+    
+    <!-- 顶部导航 -->
+    <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+      <text class="back-icon">‹</text>
+      <text class="back-text">游乐场</text>
+    </view>
+
+    <!-- 标题与主题切换 -->
+    <view class="header">
+      <view class="title-wrap">
+        <text class="title">⚔️ 泰坦神装 2048</text>
+      </view>
+      <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+    </view>
+
+    <!-- 顶栏计分面板 -->
+    <view class="dashboard-row">
+      <view class="game-intro-tag">
+        <text class="tag-title">装备品质进化</text>
+        <text class="tag-sub">布甲 ➔ 紫装 ➔ 橙装 ➔ 泰坦神装</text>
+      </view>
+
+      <view class="scores-wrap">
+        <view class="score-card">
+          <text class="sc-label">当前得分</text>
+          <text class="sc-val">{{score}}</text>
+        </view>
+        <view class="score-card best-card">
+          <text class="sc-label">最高纪录</text>
+          <text class="sc-val">{{bestScore}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 工具栏: 撤回与重新开始 -->
+    <view class="tools-row">
+      <button class="tool-btn undo-btn {{canUndo ? '' : 'disabled'}}" bindtap="undoMove">
+        <text>↩ 悔步撤回</text>
+      </button>
+      <button class="tool-btn reset-btn" bindtap="startNewGame">
+        <text>↻ 重新开局</text>
+      </button>
+    </view>
+
+    <!-- 4x4 核心棋盘 (支持手势触摸滑动) -->
+    <view class="board-container" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
+      <view class="board-grid">
+        <view 
+          class="board-cell {{item.value > 0 ? 'cell-filled' : 'cell-empty'}}" 
+          wx:for="{{grid}}" 
+          wx:key="index"
+          style="background: {{item.bg}}; border-color: {{item.border}};">
+          
+          <block wx:if="{{item.value > 0}}">
+            <text class="cell-num" style="color: {{item.color}};">{{item.value}}</text>
+            <text class="cell-name" style="color: {{item.color}};">{{item.name}}</text>
+          </block>
+        </view>
+      </view>
+
+      <!-- 游戏结束浮层 -->
+      <view class="board-overlay" wx:if="{{isGameOver}}">
+        <view class="overlay-content">
+          <view class="overlay-icon">💀</view>
+          <view class="overlay-title">棋盘已满！无路可走</view>
+          <view class="overlay-score">最终装备铸造分: {{score}}</view>
+          <button class="overlay-btn" bindtap="startNewGame">再铸一把 ↻</button>
+        </view>
+      </view>
+
+      <!-- 胜利浮层 -->
+      <view class="board-overlay win-overlay" wx:if="{{hasWon && !isGameOver}}">
+        <view class="overlay-content">
+          <view class="overlay-icon">👑</view>
+          <view class="overlay-title">恭喜！泰坦神兵铸造成功！</view>
+          <view class="overlay-score">神级 2048 已经达成！可继续冲刺极限！</view>
+          <button class="overlay-btn" bindtap="startNewGame">再来一局</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 辅助方向键 (针对喜欢点按操作的玩家) -->
+    <view class="dpad-container">
+      <view class="dpad-row">
+        <view class="dpad-key" data-dir="up" bindtap="moveDir">▲</view>
+      </view>
+      <view class="dpad-row middle-row">
+        <view class="dpad-key" data-dir="left" bindtap="moveDir">◀</view>
+        <view class="dpad-center">滑动/点按</view>
+        <view class="dpad-key" data-dir="right" bindtap="moveDir">▶</view>
+      </view>
+      <view class="dpad-row">
+        <view class="dpad-key" data-dir="down" bindtap="moveDir">▼</view>
+      </view>
+    </view>
+
+    <!-- 底部品质图例说明 -->
+    <view class="legend-card">
+      <view class="legend-title">🛡️ 装备铸造进化树</view>
+      <view class="legend-badges">
+        <text class="lg-badge" style="color: #94a3b8;">2 布甲</text>
+        <text class="lg-arrow">→</text>
+        <text class="lg-badge" style="color: #22c55e;">8 锁甲</text>
+        <text class="lg-arrow">→</text>
+        <text class="lg-badge" style="color: #38bdf8;">16 稀有</text>
+        <text class="lg-arrow">→</text>
+        <text class="lg-badge" style="color: #c084fc;">32 史诗</text>
+        <text class="lg-arrow">→</text>
+        <text class="lg-badge" style="color: #fb923c;">64 传说</text>
+        <text class="lg-arrow">→</text>
+        <text class="lg-badge" style="color: #eab308;">2048 泰坦</text>
+      </view>
+    </view>
+
+  </scroll-view>
+</view>

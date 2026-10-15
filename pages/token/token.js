@@ -11,6 +11,10 @@ Page({
   },
 
   onLoad() {
+    if (wx.showShareMenu) {
+      wx.showShareMenu({ menus: ['shareAppMessage', 'shareTimeline'] });
+    }
+
     const app = getApp();
     if (app.globalData) {
       this.setData({
@@ -160,5 +164,19 @@ Page({
           ctx.stroke()
         })
       })
+  }
+,
+  onShareAppMessage() {
+    return {
+      title: '魔兽世界时光徽章实时金价与历史走势',
+      path: '/pages/token/token'
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: '魔兽世界时光徽章实时金价与历史走势',
+      path: '/pages/token/token'
+    };
   }
 });

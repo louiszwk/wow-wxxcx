@@ -1,0 +1,88 @@
+<view class="page-container theme-{{theme}}">
+  <!-- Custom Nav Header -->
+  <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+    <text class="back-icon">‹</text>
+    <text class="back-text">返回游乐场</text>
+  </view>
+
+  <!-- Title & Theme Toggle -->
+  <view class="header">
+    <view class="title-row">
+      <view class="title">⚡ 嗜血拔刀测试</view>
+      <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+    </view>
+    <view class="subtitle">毫秒级神经反射测量 · 变绿瞬间点击屏幕 · 严禁抢跑</view>
+  </view>
+
+  <!-- Interactive Trigger Stage (Large Tap Area) -->
+  <view 
+    class="stage-card stage-{{state}}" 
+    bindtap="onScreenTap"
+  >
+    <!-- State 1: Idle -->
+    <block wx:if="{{state === 'idle'}}">
+      <view class="stage-icon">⚔️</view>
+      <view class="stage-main-text">点击任意处开始测试</view>
+      <view class="stage-hint">准备好你的指尖，随时爆发拔刀！</view>
+    </block>
+
+    <!-- State 2: Waiting -->
+    <block wx:elif="{{state === 'waiting'}}">
+      <view class="stage-icon pulse-icon">⏳</view>
+      <view class="stage-main-text">正在祈求风暴元素...</view>
+      <view class="stage-hint warning-hint">红屏请屏息凝神，切勿提前抢跑！</view>
+    </block>
+
+    <!-- State 3: Ready (Green Burst) -->
+    <block wx:elif="{{state === 'ready'}}">
+      <view class="stage-icon flash-icon">⚡</view>
+      <view class="stage-main-text blast-text">嗜血 / 英勇开！点击！</view>
+      <view class="stage-hint">以最快速度猛戳屏幕！</view>
+    </block>
+
+    <!-- State 4: Result -->
+    <block wx:elif="{{state === 'result'}}">
+      <view class="result-number">{{currentTime}}<text class="unit">ms</text></view>
+      <view class="result-eval-title">{{evaluation.title}}</view>
+      <view class="result-eval-desc">{{evaluation.desc}}</view>
+      <view class="tap-again-prompt">轻触任意处再测一次 ↻</view>
+    </block>
+
+    <!-- State 5: Early Fault -->
+    <block wx:elif="{{state === 'early'}}">
+      <view class="stage-icon">💀</view>
+      <view class="stage-main-text early-text">严重抢跑！提前开怪！</view>
+      <view class="stage-hint">嗜血还没喊呢！倒地吃修理费！轻触重新开始</view>
+    </block>
+  </view>
+
+  <!-- Stats Dashboard -->
+  <view class="stats-panel">
+    <view class="stat-box">
+      <text class="stat-label">本次耗时</text>
+      <text class="stat-value highlight">{{currentTime > 0 ? currentTime + 'ms' : '--'}}</text>
+    </view>
+    <view class="stat-box">
+      <text class="stat-label">历史最快</text>
+      <text class="stat-value">{{bestTime < 999 ? bestTime + 'ms' : '--'}}</text>
+    </view>
+    <view class="stat-box">
+      <text class="stat-label">近5轮均值</text>
+      <text class="stat-value">{{averageTime > 0 ? averageTime + 'ms' : '--'}}</text>
+    </view>
+  </view>
+
+  <!-- Recent Trials Pills -->
+  <view class="trials-row" wx:if="{{trials.length > 0}}">
+    <text class="trials-label">最近记录：</text>
+    <view class="trial-tag" wx:for="{{trials}}" wx:key="index">{{item}}ms</view>
+    <view class="clear-btn" bindtap="resetStats">清空</view>
+  </view>
+
+  <!-- Share Button -->
+  <view class="footer-btn-row">
+    <button class="share-btn" open-type="share">
+      <text>📢 分享我的神经反应战报</text>
+    </button>
+  </view>
+</view>

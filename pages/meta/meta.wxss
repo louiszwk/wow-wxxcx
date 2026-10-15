@@ -1,14 +1,14 @@
 /* pages/meta/meta.wxss */
 /* ================= 浅色主题变量 ================= */
 .theme-light {
-  --bg-color: #f7f8fa;
-  --card-bg: #ffffff;
-  --text-primary: #333333;
-  --text-secondary: #888888;
-  --border-color: #eaeaea;
-  --bar-bg: #e5e7eb;
-  --tab-bg: #f3f4f6;
-  --tab-active-bg: #ffffff;
+  --bg-color: #e8f1f8;
+  --card-bg: #f3f7fc;
+  --text-primary: #0f2742;
+  --text-secondary: #4a6885;
+  --border-color: #cde0f0;
+  --bar-bg: #d7e7f5;
+  --tab-bg: #e2eef9;
+  --tab-active-bg: #f3f7fc;
 }
 
 /* ================= 深色主题变量 ================= */

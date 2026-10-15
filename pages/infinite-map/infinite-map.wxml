@@ -1,0 +1,163 @@
+<view class="page-container theme-{{theme}}">
+  <!-- Custom Nav Header -->
+  <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+    <text class="back-icon">‹</text>
+    <text class="back-text">返回</text>
+  </view>
+
+  <!-- Header Title -->
+  <view class="header">
+    <view class="title">世界地图与航线查询</view>
+    <view class="subtitle">暴雪无限服 · 飞行点与NPC航线速查</view>
+    <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+  </view>
+
+  <!-- Segmented Tab Switcher -->
+  <view class="mode-tabs">
+    <view class="mode-tab {{activeTab === 'list' ? 'active' : ''}}" data-tab="list" bindtap="switchModeTab">
+      <text class="tab-icon">🗺️</text>
+      <text>飞行点全览与搜索</text>
+    </view>
+    <view class="mode-tab {{activeTab === 'planner' ? 'active' : ''}}" data-tab="planner" bindtap="switchModeTab">
+      <text class="tab-icon">🧭</text>
+      <text>智能航线规划</text>
+    </view>
+  </view>
+
+  <!-- TAB A: 飞行点全览与搜索 -->
+  <block wx:if="{{activeTab === 'list'}}">
+    <!-- Search Bar -->
+    <view class="search-box">
+      <text class="search-icon">🔍</text>
+      <input 
+        class="search-input" 
+        placeholder="搜索区域 / 飞行NPC / 目的地 / 坐标..." 
+        placeholder-class="placeholder" 
+        value="{{searchKeyword}}" 
+        bindinput="onSearchInput" 
+      />
+      <view class="clear-btn" wx:if="{{searchKeyword}}" bindtap="clearSearch">✕</view>
+    </view>
+
+    <!-- Filter Chips Scroll -->
+    <scroll-view class="filter-scroll" scroll-x="true" enable-flex="true">
+      <view 
+        wx:for="{{filterOptions}}" 
+        wx:key="id" 
+        class="filter-chip {{currentFilter === item.id ? 'active' : ''}}" 
+        data-filter="{{item.id}}" 
+        bindtap="setFilter"
+      >
+        {{item.label}}
+      </view>
+    </scroll-view>
+
+    <!-- Flight List Count -->
+    <view class="list-summary">
+      <text>找到 {{filteredList.length}} 个可用飞行枢纽</text>
+      <text class="tip-sub">点击目的地可快速追踪航线</text>
+    </view>
+
+    <!-- Flight Cards -->
+    <view class="flight-list">
+      <view class="flight-card faction-{{item.faction === '联盟' ? 'alliance' : (item.faction === '部落' ? 'horde' : 'neutral')}}" wx:for="{{filteredList}}" wx:key="id">
+        <view class="flight-top">
+          <view class="zone-info">
+            <view class="zone-title">{{item.zone}}</view>
+            <view class="continent-tag">{{item.continent}}</view>
+          </view>
+          <view class="faction-badge badge-{{item.faction === '联盟' ? 'alliance' : (item.faction === '部落' ? 'horde' : 'neutral')}}">
+            {{item.faction}}
+          </view>
+        </view>
+
+        <view class="npc-row">
+          <text class="npc-icon">{{item.faction === '联盟' ? '🦅' : (item.faction === '部落' ? '🦇' : '🦉')}}</text>
+          <view class="npc-details">
+            <text class="npc-name">{{item.npc}}</text>
+            <text class="npc-coord">{{item.coord}}</text>
+          </view>
+          <view class="copy-coord-btn" data-zone="{{item.zone}}" data-coord="{{item.coord}}" bindtap="copyCoord">
+            <text class="copy-icon">📋</text>
+            <text>复制宏</text>
+          </view>
+        </view>
+
+        <!-- Connected Flight Routes -->
+        <view class="routes-container">
+          <text class="routes-label">直达航线 ({{item.connections.length}}条):</text>
+          <view class="routes-tags">
+            <view 
+              class="route-pill" 
+              wx:for="{{item.connections}}" 
+              wx:for-item="conn" 
+              wx:key="*this" 
+              data-zone="{{conn}}" 
+              bindtap="jumpToZone"
+            >
+              ➔ {{conn}}
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="empty-state" wx:if="{{filteredList.length === 0}}">
+        <text class="empty-icon">🧭</text>
+        <text class="empty-text">未找到匹配的飞行点，换个关键词试试吧</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- TAB B: 智能航线规划 -->
+  <block wx:if="{{activeTab === 'planner'}}">
+    <view class="planner-card">
+      <view class="planner-title">✈️ 航程中转与用时测算</view>
+      <view class="planner-desc">选择起点与终点飞行站，自动计算最优空中走廊与耗时</view>
+
+      <view class="picker-row">
+        <view class="picker-box">
+          <text class="picker-label">出发地</text>
+          <picker mode="selector" range="{{startZones}}" value="{{startIndex}}" bindchange="onStartChange">
+            <view class="picker-value">{{startZones[startIndex]}}</view>
+          </picker>
+        </view>
+
+        <view class="swap-icon">➔</view>
+
+        <view class="picker-box">
+          <text class="picker-label">目的地</text>
+          <picker mode="selector" range="{{destZones}}" value="{{destIndex}}" bindchange="onDestChange">
+            <view class="picker-value">{{destZones[destIndex]}}</view>
+          </picker>
+        </view>
+      </view>
+
+      <button class="plan-btn" bindtap="planRoute">开始规划航线</button>
+
+      <!-- Route Calculation Result -->
+      <view class="result-box" wx:if="{{routeResult}}">
+        <view class="result-badge {{routeResult.type}}">
+          {{routeResult.type === 'direct' ? '✨ 直达航线' : (routeResult.type === 'transfer' ? '🔄 中转航线' : '⛵ 跨海跨陆线路')}}
+        </view>
+
+        <view class="hops-timeline">
+          <view class="hop-item" wx:for="{{routeResult.hops}}" wx:key="*this">
+            <view class="hop-dot"></view>
+            <view class="hop-text">{{item}}</view>
+          </view>
+        </view>
+
+        <view class="result-details">
+          <view class="detail-row">
+            <text class="detail-label">预计用时：</text>
+            <text class="detail-val highlight">{{routeResult.flightTime}}</text>
+          </view>
+          <view class="detail-row">
+            <text class="detail-label">领航员指南：</text>
+            <text class="detail-val">{{routeResult.npc}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

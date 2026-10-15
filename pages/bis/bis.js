@@ -89,6 +89,10 @@ Page({
   },
 
   onLoad() {
+    if (wx.showShareMenu) {
+      wx.showShareMenu({ menus: ['shareAppMessage', 'shareTimeline'] });
+    }
+
     const sysInfo = wx.getSystemInfoSync();
     const menuButtonInfo = wx.getMenuButtonBoundingClientRect();
     this.setData({
@@ -126,5 +130,19 @@ Page({
     wx.navigateTo({
       url: `/pages/bis-detail/bis-detail?class=${encodeURIComponent(className)}&slug=${classId}&specs=${specsStr}`
     });
+  }
+,
+  onShareAppMessage() {
+    return {
+      title: '魔兽世界全职业 BiS 装备推荐与指南',
+      path: '/pages/bis/bis'
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: '魔兽世界全职业 BiS 装备推荐与指南',
+      path: '/pages/bis/bis'
+    };
   }
 });

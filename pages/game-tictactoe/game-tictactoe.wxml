@@ -1,0 +1,88 @@
+<view class="page-container theme-{{theme}}">
+  <!-- Custom Nav Header -->
+  <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+    <text class="back-icon">‹</text>
+    <text class="back-text">返回游乐场</text>
+  </view>
+
+  <!-- Title & Theme Toggle -->
+  <view class="header">
+    <view class="title-row">
+      <view class="title">🎯 战歌井字棋</view>
+      <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+    </view>
+    <view class="subtitle">战歌峡谷极速争锋 · ⚔️部落先手 vs 🛡️联盟后手 · 3连即胜</view>
+  </view>
+
+  <!-- Mode Selector & Turn Display -->
+  <view class="top-bar">
+    <view class="mode-tabs">
+      <view 
+        class="tab-item {{vsMode === 'ai' ? 'active' : ''}}" 
+        data-mode="ai" 
+        bindtap="switchMode"
+      >
+        <text>挑战智能AI</text>
+      </view>
+      <view 
+        class="tab-item {{vsMode === 'pvp' ? 'active' : ''}}" 
+        data-mode="pvp" 
+        bindtap="switchMode"
+      >
+        <text>双人同屏</text>
+      </view>
+    </view>
+
+    <view class="turn-box">
+      <text class="turn-desc">轮到：</text>
+      <view class="turn-tag {{turn === 'X' ? 'horde-tag' : 'alliance-tag'}}">
+        <text>{{turn === 'X' ? '⚔️ 部落' : '🛡️ 联盟'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 3x3 Grid Board -->
+  <view class="board-wrapper">
+    <view class="grid-3x3">
+      <view 
+        wx:for="{{board}}" 
+        wx:key="index" 
+        class="cell {{item ? 'occupied' : ''}} {{winningLine.includes(index) ? 'winning-cell' : ''}}"
+        data-index="{{index}}"
+        bindtap="onCellTap"
+      >
+        <view class="stone-icon" wx:if="{{item === 'X'}}">⚔️</view>
+        <view class="stone-icon" wx:elif="{{item === 'O'}}">🛡️</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Reset Button -->
+  <view class="controls">
+    <button class="reset-btn" bindtap="resetGame">🔄 清空棋盘重来</button>
+  </view>
+
+  <!-- Stats -->
+  <view class="stats-panel">
+    <view class="stat-pill horde-stat">部落胜：{{stats.xWins}}</view>
+    <view class="stat-pill draw-stat">平局：{{stats.draws}}</view>
+    <view class="stat-pill alliance-stat">联盟胜：{{stats.oWins}}</view>
+  </view>
+
+  <!-- Win / Draw Modal -->
+  <view class="modal-mask" wx:if="{{status !== 'playing'}}">
+    <view class="modal-card">
+      <view class="modal-icon">{{status === 'won' ? (winner === 'X' ? '⚔️' : '🛡️') : '⚖️'}}</view>
+      <view class="modal-title">
+        {{status === 'won' ? (winner === 'X' ? '部落斩获胜利！' : '联盟夺得旗帜！') : '战歌平局！势均力敌！'}}
+      </view>
+      <view class="modal-desc">
+        {{status === 'won' ? (winner === 'X' ? '为了部落！3连绝杀战歌峡谷！' : '为了联盟！坚实盾阵破解攻势！') : '双方身法旗鼓相当，互不相让！'}}
+      </view>
+      <view class="modal-btn-row">
+        <button class="modal-btn primary" bindtap="resetGame">再战一局</button>
+        <button class="modal-btn secondary" open-type="share">分享棋局</button>
+      </view>
+    </view>
+  </view>
+</view>

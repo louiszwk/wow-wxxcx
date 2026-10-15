@@ -21,6 +21,10 @@ Page({
   },
   
   onLoad(options) {
+    if (wx.showShareMenu) {
+      wx.showShareMenu({ menus: ['shareAppMessage', 'shareTimeline'] });
+    }
+
     const app = getApp();
     if (app.globalData) {
       this.setData({
@@ -141,5 +145,19 @@ Page({
     wx.navigateTo({
       url: `/pages/webview/webview?url=${encodeURIComponent(searchUrl)}`
     });
+  }
+,
+  onShareAppMessage() {
+    return {
+      title: '魔兽世界全职业 BiS 毕业装备详情',
+      path: '/pages/bis-detail/bis-detail'
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: '魔兽世界全职业 BiS 毕业装备详情',
+      path: '/pages/bis-detail/bis-detail'
+    };
   }
 });

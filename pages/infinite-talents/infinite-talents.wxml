@@ -1,0 +1,164 @@
+<view class="page-container theme-{{theme}}">
+  <!-- Custom Nav Header -->
+  <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+    <text class="back-icon">‹</text>
+    <text class="back-text">返回</text>
+  </view>
+
+  <!-- Title -->
+  <view class="header">
+    <view class="title">60级权威天赋模拟器</view>
+    <view class="subtitle">魔兽世界经典怀旧服 · 7层天赋树与主流配装一键加点</view>
+    <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+  </view>
+
+  <!-- Class Selector -->
+  <scroll-view class="class-picker-scroll" scroll-x="true" enable-flex="true">
+    <view 
+      wx:for="{{classList}}" 
+      wx:key="id" 
+      class="class-pill {{selectedClass === item.id ? 'active' : ''}}" 
+      data-id="{{item.id}}" 
+      bindtap="selectClass"
+    >
+      <text class="cls-icon">{{item.icon}}</text>
+      <text>{{item.name}}</text>
+    </view>
+  </scroll-view>
+
+  <!-- Points & Level Bar -->
+  <view class="points-bar">
+    <view class="points-stat">
+      <text class="stat-num">{{pointsRemaining}}</text>
+      <text class="stat-label">剩余点数 (已用 {{pointsSpent}}/51)</text>
+    </view>
+    <view class="level-badge">等级 60</view>
+    <view class="reset-actions">
+      <view class="mini-btn" bindtap="resetActiveTree">重置本系</view>
+      <view class="mini-btn reset-all" bindtap="resetAll">全部重置</view>
+      <view class="mini-btn copy-btn" bindtap="copyTalentCode">复制天赋码</view>
+    </view>
+  </view>
+
+  <!-- Presets Scroll -->
+  <view class="presets-section" wx:if="{{presets.length > 0}}">
+    <view class="preset-label">🔥 权威主流流派：</view>
+    <scroll-view class="preset-scroll" scroll-x="true" enable-flex="true">
+      <view 
+        wx:for="{{presets}}" 
+        wx:key="name" 
+        class="preset-chip" 
+        data-index="{{index}}" 
+        bindtap="onPresetSelect"
+      >
+        <text class="preset-name">{{item.name}}</text>
+        <text class="preset-desc">{{item.desc}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 3 Tree Tabs -->
+  <view class="tree-tabs-bar">
+    <view 
+      wx:for="{{trees}}" 
+      wx:key="id" 
+      class="tree-tab-btn {{activeTreeIndex === index ? 'active' : ''}}" 
+      data-index="{{index}}" 
+      bindtap="switchTree"
+    >
+      <text class="tree-name">{{item.name}}</text>
+      <text class="tree-pts">({{treePoints[index]}}点)</text>
+    </view>
+  </view>
+
+  <!-- 7-Row x 4-Col Talent Grid Canvas -->
+  <view class="talent-tree-grid">
+    <view class="grid-row" wx:for="{{currentMatrix}}" wx:key="rowNum">
+      <!-- Left tier required points badge -->
+      <view class="tier-indicator {{item.isTierUnlocked ? 'unlocked' : 'locked'}}">
+        <text class="tier-pts">{{item.requiredPoints}}点</text>
+      </view>
+
+      <!-- 4 columns -->
+      <view class="grid-cols">
+        <view 
+          wx:for="{{item.cols}}" 
+          wx:for-item="cell" 
+          wx:key="col" 
+          class="grid-cell {{cell.skill ? (cell.skill.rank === cell.skill.max ? 'maxed' : (cell.skill.rank > 0 ? 'allocated' : (cell.skill.isLocked ? 'locked' : 'available'))) : 'empty'}}"
+          data-skill-id="{{cell.skill ? cell.skill.id : ''}}"
+          bindtap="onCellTap"
+        >
+          <block wx:if="{{cell.skill}}">
+            <view class="node-icon-box">
+              <text class="node-icon">{{cell.skill.icon}}</text>
+              <view class="lock-overlay" wx:if="{{cell.skill.isLocked && cell.skill.rank === 0}}">🔒</view>
+            </view>
+            <view class="rank-badge {{cell.skill.rank === cell.skill.max ? 'rank-max' : ''}}">
+              {{cell.skill.rank}}/{{cell.skill.max}}
+            </view>
+          </block>
+          <block wx:else>
+            <view class="cell-placeholder"></view>
+          </block>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Classic WoW Talent Tooltip Modal -->
+  <view class="tooltip-mask" wx:if="{{showTooltip && selectedSkill}}" bindtap="closeTooltip">
+    <view class="tooltip-card" catchtap="preventBubble">
+      <view class="tooltip-header">
+        <view class="tooltip-title-box">
+          <text class="tooltip-icon">{{selectedSkill.icon}}</text>
+          <view>
+            <view class="tooltip-title">{{selectedSkill.name}}</view>
+            <view class="tooltip-rank">等级 {{selectedSkill.rank}} / {{selectedSkill.max}}</view>
+          </view>
+        </view>
+        <view class="tooltip-close" bindtap="closeTooltip">✕</view>
+      </view>
+
+      <!-- Requirements warning if unmet -->
+      <view class="tooltip-warning" wx:if="{{selectedSkill.isLocked}}">
+        <text wx:if="{{treePoints[activeTreeIndex] < (selectedSkill.row - 1) * 5}}">
+          ⚠️ 需要在当前天赋树投入 {{ (selectedSkill.row - 1) * 5 }} 点才能学习
+        </text>
+        <text wx:elif="{{selectedSkill.prereqName}}">
+          ⚠️ 需要先点满前置天赋【{{selectedSkill.prereqName}}】
+        </text>
+      </view>
+
+      <!-- Current Rank Description -->
+      <view class="tooltip-body">
+        <view class="rank-desc-label">当前效果：</view>
+        <view class="rank-desc-text">
+          {{selectedSkill.rank > 0 ? selectedSkill.ranks[selectedSkill.rank - 1] : selectedSkill.ranks[0]}}
+        </view>
+      </view>
+
+      <!-- Next Rank Description (if not maxed) -->
+      <view class="tooltip-body next-rank" wx:if="{{selectedSkill.rank > 0 && selectedSkill.rank < selectedSkill.max}}">
+        <view class="rank-desc-label">下一等级效果：</view>
+        <view class="rank-desc-text green-text">
+          {{selectedSkill.ranks[selectedSkill.rank]}}
+        </view>
+      </view>
+
+      <!-- Stepper Actions in Tooltip -->
+      <view class="tooltip-actions">
+        <button 
+          class="tooltip-btn minus-btn {{selectedSkill.rank === 0 ? 'disabled' : ''}}" 
+          catchtap="tryReducePoint"
+          data-skill-id="{{selectedSkill.id}}"
+        >- 减少 1 点</button>
+        <button 
+          class="tooltip-btn plus-btn {{selectedSkill.rank === selectedSkill.max || selectedSkill.isLocked || pointsRemaining <= 0 ? 'disabled' : ''}}" 
+          catchtap="tryAddPoint"
+          data-skill-id="{{selectedSkill.id}}"
+        >+ 增加 1 点</button>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,182 @@
+<view class="page-container theme-{{theme}}">
+  <scroll-view class="scrollarea" scroll-y="true">
+    
+    <!-- 顶部导航 -->
+    <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+      <text class="back-icon">‹</text>
+      <text class="back-text">游乐场</text>
+    </view>
+
+    <!-- 标题与主题切换 -->
+    <view class="header">
+      <view class="title-wrap">
+        <text class="title">📚 艾泽拉斯百晓生</text>
+      </view>
+      <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+    </view>
+
+    <!-- 1. 准备界面 (Ready) -->
+    <view class="ready-view" wx:if="{{gameState === 'ready'}}">
+      <view class="intro-card">
+        <view class="intro-icon">📜</view>
+        <view class="intro-title">魔兽趣味知识大挑战</view>
+        <view class="intro-desc">
+          涵盖 12.1 S2 最新大秘境机制、词缀应对、职业关键保命神技与魔兽经典历史名梗！
+        </view>
+
+        <view class="quiz-highlights">
+          <view class="highlight-item">
+            <text class="hl-badge">精选</text>
+            <text class="hl-text">每轮 10 道题目随机抽取，答对连击高倍加分</text>
+          </view>
+          <view class="highlight-item">
+            <text class="hl-badge">限时</text>
+            <text class="hl-text">每题 15 秒限时倒计时，作答越快得分越高</text>
+          </view>
+          <view class="highlight-item">
+            <text class="hl-badge">复盘</text>
+            <text class="hl-text">赛后提供错题本与机制详析，助你秒懂副本机制</text>
+          </view>
+        </view>
+
+        <button class="primary-btn start-btn" bindtap="startQuiz">
+          <text class="btn-text">开始答题</text>
+        </button>
+      </view>
+    </view>
+
+    <!-- 2. 答题界面 (Playing) -->
+    <view class="playing-view" wx:if="{{gameState === 'playing'}}">
+      
+      <!-- 进度与计时状态栏 -->
+      <view class="quiz-top-bar">
+        <view class="quiz-progress">
+          <text class="current-q">{{currentIndex + 1}}</text>
+          <text class="total-q">/ {{totalQuestions}}</text>
+        </view>
+        
+        <view class="quiz-timer {{timeLeft <= 5 ? 'timer-urgent' : ''}}">
+          <text class="timer-icon">⏱️</text>
+          <text class="timer-sec">{{timeLeft}}s</text>
+        </view>
+
+        <view class="quiz-score-box">
+          <text class="q-score">{{score}}</text>
+          <text class="q-score-lbl">分</text>
+        </view>
+      </view>
+
+      <!-- 倒计时进度条 -->
+      <view class="timer-track">
+        <view class="timer-fill {{timeLeft <= 5 ? 'fill-urgent' : ''}}" style="width: {{timerPercent}}%;"></view>
+      </view>
+
+      <!-- 连击提示 -->
+      <view class="combo-pill" wx:if="{{combo > 1}}">
+        <text>🔥 连续答对 x{{combo}} (+{{(combo - 1) * 20}}连击分)</text>
+      </view>
+
+      <!-- 题目卡片 -->
+      <view class="question-card">
+        <view class="question-category">
+          <text class="cat-tag">{{currentQuestion.category}}</text>
+        </view>
+        
+        <view class="question-text">
+          {{currentQuestion.question}}
+        </view>
+
+        <!-- 选项列表 -->
+        <view class="options-list">
+          <view 
+            class="option-item {{isAnswered ? (index === currentQuestion.answer ? 'option-correct' : (index === selectedOption ? 'option-wrong' : 'option-faded')) : ''}}" 
+            wx:for="{{currentQuestion.options}}" 
+            wx:key="index"
+            data-index="{{index}}"
+            bindtap="selectOption">
+            
+            <view class="option-prefix">{{index === 0 ? 'A' : (index === 1 ? 'B' : (index === 2 ? 'C' : 'D'))}}</view>
+            <view class="option-content">{{item}}</view>
+            
+            <view class="option-status-icon" wx:if="{{isAnswered}}">
+              <text wx:if="{{index === currentQuestion.answer}}">✓</text>
+              <text wx:elif="{{index === selectedOption}}">✕</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 答题解析展示 -->
+        <view class="explanation-box" wx:if="{{isAnswered}}">
+          <view class="exp-title">
+            <text class="exp-icon">{{isCorrect ? '💡 回答正确' : '⚠️ 遗憾答错'}}</text>
+          </view>
+          <view class="exp-content">{{currentQuestion.explain}}</view>
+          <button class="next-btn" bindtap="nextQuestion">
+            <text>{{currentIndex + 1 < totalQuestions ? '下一题 →' : '查看最终成绩 →'}}</text>
+          </button>
+        </view>
+
+      </view>
+
+    </view>
+
+    <!-- 3. 结算界面 (Game Over) -->
+    <view class="gameover-view" wx:if="{{gameState === 'game_over'}}">
+      <view class="result-card">
+        <view class="result-badge-top" wx:if="{{resultSummary.isNewBest}}">🎉 创下个人新高！</view>
+
+        <view class="rank-crown">{{resultSummary.rankBadge}}</view>
+        <view class="rank-tier">{{resultSummary.rankTier}}</view>
+        <view class="rank-title">「{{resultSummary.rankTitle}}」</view>
+
+        <view class="score-spotlight">
+          <text class="spotlight-num">{{resultSummary.score}}</text>
+          <text class="spotlight-unit">挑战得分</text>
+        </view>
+
+        <view class="stats-grid">
+          <view class="stat-card">
+            <text class="sc-val">{{resultSummary.correctCount}} / {{resultSummary.total}}</text>
+            <text class="sc-lbl">答对题数</text>
+          </view>
+          <view class="stat-card">
+            <text class="sc-val">{{resultSummary.accuracyPct}}%</text>
+            <text class="sc-lbl">正确率</text>
+          </view>
+          <view class="stat-card">
+            <text class="sc-val">{{resultSummary.maxCombo}} 次</text>
+            <text class="sc-lbl">最高连对</text>
+          </view>
+        </view>
+
+        <!-- 错题复盘本 (如果有错题) -->
+        <view class="review-box" wx:if="{{wrongAnswers.length > 0}}">
+          <view class="review-title">📝 错题复盘与机制速记 ({{wrongAnswers.length}}题)</view>
+          <view class="review-item" wx:for="{{wrongAnswers}}" wx:key="index">
+            <view class="review-q">{{item.question}}</view>
+            <view class="review-ans-row">
+              <text class="your-ans">你的回答: {{item.yourChoice}}</text>
+              <text class="right-ans">正确答案: {{item.correctChoice}}</text>
+            </view>
+            <view class="review-exp">💡 {{item.explain}}</view>
+          </view>
+        </view>
+
+        <view class="result-actions">
+          <button class="primary-btn retry-btn" bindtap="startQuiz">
+            <text class="btn-text">再测一把 ↻</text>
+          </button>
+          <button class="secondary-btn share-btn" open-type="share">
+            <text class="btn-text">考考公会队友 📤</text>
+          </button>
+        </view>
+
+        <view class="back-link" bindtap="navigateBack">
+          <text>返回游乐场大厅</text>
+        </view>
+
+      </view>
+    </view>
+
+  </scroll-view>
+</view>

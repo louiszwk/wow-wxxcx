@@ -1,0 +1,123 @@
+<view class="page-container theme-{{theme}}">
+  <!-- Custom Nav Header -->
+  <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+    <text class="back-icon">‹</text>
+    <text class="back-text">返回游乐场</text>
+  </view>
+
+  <!-- Title & Theme Toggle -->
+  <view class="header">
+    <view class="title-row">
+      <view class="title">🧱 达拉然奥术方块</view>
+      <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+    </view>
+    <view class="subtitle">魔兽奥术符文砖块 · 旋转堆叠消行 · 达拉然经典传承</view>
+  </view>
+
+  <!-- Main Game Area: Board + Side Panel -->
+  <view class="game-layout">
+    <!-- Board (10x18) -->
+    <view class="board-frame">
+      <view 
+        wx:for="{{displayGrid}}" 
+        wx:for-item="row" 
+        wx:for-index="r" 
+        wx:key="r" 
+        class="tetris-row"
+      >
+        <view 
+          wx:for="{{row}}" 
+          wx:for-item="color" 
+          wx:for-index="c" 
+          wx:key="c" 
+          class="tetris-cell {{color ? 'filled' : ''}}"
+          style="{{color ? 'background-color: ' + color + '; border-color: ' + color + ';' : ''}}"
+        ></view>
+      </view>
+
+      <!-- Ready to Start Overlay -->
+      <view class="board-overlay" wx:if="{{gameState === 'ready'}}" bindtap="startGame">
+        <view class="overlay-icon">▶️</view>
+        <view class="overlay-text">轻触开始游戏</view>
+      </view>
+    </view>
+
+    <!-- Side Panel -->
+    <view class="side-panel">
+      <!-- Next Piece Box -->
+      <view class="side-card">
+        <text class="card-title">下一个</text>
+        <view class="preview-box">
+          <view wx:for="{{nextPiecePreview}}" wx:for-item="prow" wx:key="index" class="p-row">
+            <view 
+              wx:for="{{prow}}" 
+              wx:for-item="pcell" 
+              wx:key="index" 
+              class="p-cell {{pcell ? 'p-filled' : ''}}"
+            ></view>
+          </view>
+        </view>
+      </view>
+
+      <!-- Stats Box -->
+      <view class="side-card">
+        <text class="card-title">得分</text>
+        <text class="card-val highlight">{{score}}</text>
+      </view>
+
+      <view class="side-card">
+        <text class="card-title">已消行数</text>
+        <text class="card-val">{{lines}}</text>
+      </view>
+
+      <view class="side-card">
+        <text class="card-title">难度速度</text>
+        <text class="card-val">LV {{level}}</text>
+      </view>
+
+      <view class="side-card">
+        <text class="card-title">历史最高</text>
+        <text class="card-val">{{bestScore}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Virtual D-Pad Game Controls -->
+  <view class="virtual-controls">
+    <view class="ctrl-row">
+      <view class="ctrl-btn rotate-btn" bindtap="rotate">
+        <text class="btn-icon">↻</text>
+        <text class="btn-text">旋转</text>
+      </view>
+      <view class="ctrl-btn drop-btn" bindtap="hardDrop">
+        <text class="btn-icon">⏬</text>
+        <text class="btn-text">硬降</text>
+      </view>
+    </view>
+
+    <view class="ctrl-row arrows-row">
+      <view class="ctrl-btn arrow-btn" bindtap="moveLeft">
+        <text class="btn-icon">◀</text>
+      </view>
+      <view class="ctrl-btn arrow-btn" bindtap="moveDown">
+        <text class="btn-icon">▼</text>
+      </view>
+      <view class="ctrl-btn arrow-btn" bindtap="moveRight">
+        <text class="btn-icon">▶</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Game Over Modal -->
+  <view class="modal-mask" wx:if="{{gameState === 'over'}}">
+    <view class="modal-card">
+      <view class="modal-icon">🧱</view>
+      <view class="modal-title">方块已封顶！</view>
+      <view class="modal-desc">本局最终积分：<text class="modal-score">{{score}}</text> 分，消去 {{lines}} 行</view>
+      <view class="modal-btn-row">
+        <button class="modal-btn primary" bindtap="initBoard">重新开局</button>
+        <button class="modal-btn secondary" open-type="share">分享战绩</button>
+      </view>
+    </view>
+  </view>
+</view>

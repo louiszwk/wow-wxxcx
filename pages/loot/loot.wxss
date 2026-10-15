@@ -20,20 +20,20 @@ page {
 
 /* ================= 浅色主题 ================= */
 .theme-light {
-  --bg-color: #f4f5f7;
-  --text-color: #333333;
-  --header-bg: #ffffff;
-  --header-border: #e5e5ea;
-  --title-color: #0070dd;
-  --subtitle-color: #888888;
+  --bg-color: #e8f1f8;
+  --text-color: #0f2742;
+  --header-bg: #f3f7fc;
+  --header-border: #cde0f0;
+  --title-color: #0284c7;
+  --subtitle-color: #4a6885;
   
-  --card-bg: #ffffff;
-  --card-border: #e5e5ea;
-  --card-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+  --card-bg: #f3f7fc;
+  --card-border: #cde0f0;
+  --card-shadow: 0 4rpx 12rpx rgba(15, 39, 66, 0.05);
   
-  --dungeon-header-bg: #fafafa;
-  --dungeon-name-color: #333333;
-  --dungeon-content-bg: #ffffff;
+  --dungeon-header-bg: #e2eef9;
+  --dungeon-name-color: #0f2742;
+  --dungeon-content-bg: #f3f7fc;
   
   --boss-name-color: #d82e2e;
   --boss-border: #eeeeee;

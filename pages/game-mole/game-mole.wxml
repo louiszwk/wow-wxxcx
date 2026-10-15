@@ -1,0 +1,165 @@
+<view class="page-container theme-{{theme}}">
+  <scroll-view class="scrollarea" scroll-y="true">
+    
+    <!-- 顶部导航 -->
+    <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+      <text class="back-icon">‹</text>
+      <text class="back-text">游乐场</text>
+    </view>
+
+    <!-- 标题与主题切换 -->
+    <view class="header">
+      <view class="title-wrap">
+        <text class="title">⛏️ 矿洞打穴居人</text>
+      </view>
+      <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+    </view>
+
+    <!-- 1. 准备界面 (Ready) -->
+    <view class="ready-view" wx:if="{{gameState === 'ready'}}">
+      <view class="intro-card">
+        <view class="intro-icon">⛏️</view>
+        <view class="intro-title">暴富矿洞狂暴打击</view>
+        <view class="intro-desc">
+          矿洞深处穴居人和鱼人大量骚扰！手持巨锤在 30 秒内迅速击退他们，注意别敲到地精炸药桶！
+        </view>
+
+        <view class="target-list">
+          <view class="target-item">
+            <text class="tg-icon">🧌</text>
+            <view class="tg-meta">
+              <text class="tg-name">穴居人普通矿工</text>
+              <text class="tg-score">+10 分</text>
+            </view>
+          </view>
+          <view class="target-item">
+            <text class="tg-icon">🐟</text>
+            <view class="tg-meta">
+              <text class="tg-name">哇啦啦鱼人劫掠者</text>
+              <text class="tg-score" style="color: #38bdf8;">+20 分</text>
+            </view>
+          </view>
+          <view class="target-item">
+            <text class="tg-icon">💰</text>
+            <view class="tg-meta">
+              <text class="tg-name">黄金地精 (稀有闪现)</text>
+              <text class="tg-score" style="color: #fbbf24;">+50 分</text>
+            </view>
+          </view>
+          <view class="target-item">
+            <text class="tg-icon">💣</text>
+            <view class="tg-meta">
+              <text class="tg-name">地精烈性炸药桶</text>
+              <text class="tg-score" style="color: #ef4444;">-30 分 (严禁敲击)</text>
+            </view>
+          </view>
+        </view>
+
+        <button class="primary-btn start-btn" bindtap="startGame">
+          <text class="btn-text">下井开凿 (30s)</text>
+        </button>
+      </view>
+    </view>
+
+    <!-- 2. 游戏对战界面 (Playing) -->
+    <view class="playing-view" wx:if="{{gameState === 'playing'}}">
+      
+      <!-- 游戏顶栏 HUD -->
+      <view class="mole-hud">
+        <view class="hud-item">
+          <text class="hud-lbl">剩余时间</text>
+          <text class="hud-val time-val {{timeLeft <= 5 ? 'time-urgent' : ''}}">{{timeLeft}}s</text>
+        </view>
+        <view class="hud-item">
+          <text class="hud-lbl">击中目标</text>
+          <text class="hud-val">{{hits}}</text>
+        </view>
+        <view class="hud-item">
+          <text class="hud-lbl">当前积分</text>
+          <text class="hud-val score-val">{{score}}</text>
+        </view>
+      </view>
+
+      <!-- 连击提示与反馈 -->
+      <view class="combo-pill" wx:if="{{combo > 1}}">
+        <text>🔥 狂暴连击 x{{combo}}！(+{{(combo - 1) * 5}}分)</text>
+      </view>
+
+      <!-- 3x3 矿坑洞穴网格 -->
+      <view class="mine-grid">
+        <view 
+          class="mine-hole {{item.active ? 'hole-active' : ''}} {{item.isHit ? 'hole-hit' : ''}}"
+          wx:for="{{holes}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onWhackTap">
+          
+          <!-- 矿坑土堆外框 -->
+          <view class="hole-rim"></view>
+
+          <!-- 冒出的怪物 -->
+          <view class="mole-entity {{item.mole.type}}" wx:if="{{item.active}}">
+            <text class="entity-icon">{{item.mole.icon}}</text>
+          </view>
+
+          <!-- 击中受击光效 -->
+          <view class="hit-splat" wx:if="{{item.isHit}}">
+            <text class="splat-txt">💥</text>
+          </view>
+
+        </view>
+      </view>
+
+      <!-- 击中悬浮飘字反馈 -->
+      <view class="hit-toast {{lastHitFeedback.type}}" wx:if="{{lastHitFeedback}}">
+        <text>{{lastHitFeedback.text}}</text>
+      </view>
+
+    </view>
+
+    <!-- 3. 结算界面 (Game Over) -->
+    <view class="gameover-view" wx:if="{{gameState === 'game_over'}}">
+      <view class="result-card">
+        <view class="result-badge-top" wx:if="{{resultSummary.isNewBest}}">🎉 刷新个人最高纪录！</view>
+
+        <view class="rank-crown">{{resultSummary.badge}}</view>
+        <view class="rank-title">「{{resultSummary.title}}」</view>
+
+        <view class="score-spotlight">
+          <text class="spotlight-num">{{resultSummary.score}}</text>
+          <text class="spotlight-unit">矿洞狂击总分</text>
+        </view>
+
+        <view class="stats-grid">
+          <view class="stat-card">
+            <text class="sc-val">{{resultSummary.hits}} 次</text>
+            <text class="sc-lbl">敲击命中</text>
+          </view>
+          <view class="stat-card">
+            <text class="sc-val">{{resultSummary.maxCombo}} 次</text>
+            <text class="sc-lbl">最高连击</text>
+          </view>
+          <view class="stat-card">
+            <text class="sc-val">{{resultSummary.accuracy}}%</text>
+            <text class="sc-lbl">挥锤命中率</text>
+          </view>
+        </view>
+
+        <view class="result-actions">
+          <button class="primary-btn retry-btn" bindtap="startGame">
+            <text class="btn-text">再砸一把 ↻</text>
+          </button>
+          <button class="secondary-btn share-btn" open-type="share">
+            <text class="btn-text">分享矿工战绩 🚀</text>
+          </button>
+        </view>
+
+        <view class="back-link" bindtap="navigateBack">
+          <text>返回游乐场大厅</text>
+        </view>
+
+      </view>
+    </view>
+
+  </scroll-view>
+</view>

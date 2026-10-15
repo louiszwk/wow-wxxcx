@@ -19,6 +19,10 @@ Page({
   },
 
   onLoad() {
+    if (wx.showShareMenu) {
+      wx.showShareMenu({ menus: ['shareAppMessage', 'shareTimeline'] });
+    }
+
     const app = getApp();
     if (app.globalData) {
       this.setData({
@@ -208,5 +212,19 @@ Page({
       loading: false
     });
     this.applyFilter();
+  }
+,
+  onShareAppMessage() {
+    return {
+      title: '魔兽世界大秘境第二赛季掉落速查',
+      path: '/pages/loot/loot'
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: '魔兽世界大秘境第二赛季掉落速查',
+      path: '/pages/loot/loot'
+    };
   }
 });

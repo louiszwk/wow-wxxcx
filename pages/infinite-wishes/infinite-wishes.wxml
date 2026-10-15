@@ -1,0 +1,123 @@
+<view class="page-container theme-{{theme}}">
+  <!-- Custom Nav Header -->
+  <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+    <text class="back-icon">‹</text>
+    <text class="back-text">返回</text>
+  </view>
+
+  <!-- Title -->
+  <view class="header">
+    <view class="title">无限服祈愿池</view>
+    <view class="subtitle">投掷金币 · 愿圣光保佑你开服出风剑与提布</view>
+    <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+  </view>
+
+  <!-- Fountain Hero Card -->
+  <view class="fountain-hero">
+    <view class="fountain-glow"></view>
+    <view class="fountain-icon">⛲</view>
+    <view class="fountain-title">达拉然魔力许愿之泉</view>
+    <view class="fountain-desc">汇聚全服冒险者的欧气与祝福，金币入水必出金光</view>
+
+    <view class="fountain-action-row">
+      <view class="make-wish-btn" bindtap="openWishModal">
+        <text class="btn-coin">🪙</text>
+        <text>投币许愿 (+欧气)</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Filter Chips -->
+  <scroll-view class="category-scroll" scroll-x="true" enable-flex="true">
+    <view 
+      wx:for="{{categoryList}}" 
+      wx:key="id" 
+      class="cat-chip {{currentCategory === item.id ? 'active' : ''}}" 
+      data-id="{{item.id}}" 
+      bindtap="selectCategory"
+    >
+      {{item.label}}
+    </view>
+  </scroll-view>
+
+  <!-- Wishes Wall List -->
+  <view class="wishes-grid">
+    <view class="wish-card" wx:for="{{displayWishes}}" wx:key="id">
+      <view class="wish-top">
+        <view class="author-box">
+          <text class="class-avatar">{{item.classIcon}}</text>
+          <view class="author-meta">
+            <text class="author-name">{{item.author}}</text>
+            <text class="wish-date">{{item.date}}</text>
+          </view>
+        </view>
+        <view class="wish-cat-tag">{{item.category}}</view>
+      </view>
+
+      <view class="wish-body">
+        “{{item.text}}”
+      </view>
+
+      <view class="wish-footer">
+        <view 
+          class="like-btn {{likedWishes[item.id] ? 'liked' : ''}}" 
+          data-id="{{item.id}}" 
+          bindtap="likeWish"
+        >
+          <text class="like-heart">{{likedWishes[item.id] ? '❤️' : '🤍'}}</text>
+          <text class="like-count">{{item.likes}} 次祝福</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Make Wish Modal -->
+  <view class="modal-mask" wx:if="{{showModal}}">
+    <view class="modal-box">
+      <view class="modal-header">
+        <text class="modal-title">🪙 向圣泉投币许愿</text>
+        <view class="modal-close" bindtap="closeWishModal">✕</view>
+      </view>
+
+      <view class="form-group">
+        <text class="form-label">冒险者昵称</text>
+        <input 
+          class="form-input" 
+          placeholder="例如：熔火之心狂暴战" 
+          placeholder-class="placeholder" 
+          value="{{formAuthor}}" 
+          bindinput="onAuthorInput" 
+        />
+      </view>
+
+      <view class="form-row">
+        <view class="form-col">
+          <text class="form-label">所属职业</text>
+          <picker mode="selector" range="{{formClasses}}" range-key="name" value="{{formClassIndex}}" bindchange="onClassChange">
+            <view class="form-picker-val">{{formClasses[formClassIndex].icon}} {{formClasses[formClassIndex].name}}</view>
+          </picker>
+        </view>
+        <view class="form-col">
+          <text class="form-label">心愿分类</text>
+          <picker mode="selector" range="{{formCategories}}" value="{{formCategoryIndex}}" bindchange="onCategoryChange">
+            <view class="form-picker-val">{{formCategories[formCategoryIndex]}}</view>
+          </picker>
+        </view>
+      </view>
+
+      <view class="form-group">
+        <text class="form-label">许愿内容 (心诚则灵)</text>
+        <textarea 
+          class="form-textarea" 
+          placeholder="写下你在魔兽无限服的愿望，例如：今晚MC出风脸！打黑翼不灭团！" 
+          placeholder-class="placeholder" 
+          value="{{formContent}}" 
+          bindinput="onContentInput" 
+          maxlength="150"
+        ></textarea>
+      </view>
+
+      <button class="submit-btn" bindtap="submitWish">投掷金币 · 许下心愿</button>
+    </view>
+  </view>
+</view>

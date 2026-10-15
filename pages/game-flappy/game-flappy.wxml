@@ -1,0 +1,59 @@
+<view class="page-container theme-{{theme}}">
+  
+  <!-- 顶部导航 -->
+  <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+    <text class="back-icon">‹</text>
+    <text class="back-text">游乐场</text>
+  </view>
+
+  <!-- 标题与主题切换 -->
+  <view class="header">
+    <view class="title-wrap">
+      <text class="title">🦅 驭龙高飞 (Flappy)</text>
+    </view>
+    <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+  </view>
+
+  <!-- Canvas 游戏主舞台 -->
+  <view class="canvas-wrap" bindtap="onCanvasTap">
+    <canvas type="2d" id="flappyCanvas" class="flappy-canvas"></canvas>
+
+    <!-- 准备界面提示浮层 -->
+    <view class="overlay ready-overlay" wx:if="{{gameState === 'ready'}}">
+      <view class="ready-badge">CLASSIC ARCADE</view>
+      <view class="ready-icon">🦅</view>
+      <view class="ready-title">点击屏幕拍打翅膀</view>
+      <view class="ready-desc">穿越黑石悬崖石柱，考验指尖微操与节奏感！</view>
+      <view class="tap-hint">轻触屏幕任意区域起飞 ➔</view>
+    </view>
+
+    <!-- 游戏结束浮层 -->
+    <view class="overlay over-overlay" wx:if="{{gameState === 'game_over'}}">
+      <view class="result-box">
+        <view class="res-badge" wx:if="{{resultSummary.isNewBest}}">🎉 刷新最高纪录！</view>
+        <view class="res-medal">{{resultSummary.medal}}</view>
+        <view class="res-title">「{{resultSummary.title}}」</view>
+
+        <view class="score-row">
+          <view class="score-item">
+            <text class="si-val">{{resultSummary.score}}</text>
+            <text class="si-lbl">本次穿越</text>
+          </view>
+          <view class="score-item">
+            <text class="si-val" style="color: #f59e0b;">{{resultSummary.best}}</text>
+            <text class="si-lbl">历史最佳</text>
+          </view>
+        </view>
+
+        <button class="res-btn restart-btn" catchtap="startGame">再次起飞 ↻</button>
+        <button class="res-btn share-btn" open-type="share">分享战绩 🚀</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作提示 -->
+  <view class="bottom-tips">
+    <text>💡 每次轻触屏幕使狮鹫/巨龙上升，松开自然下坠</text>
+  </view>
+
+</view>
