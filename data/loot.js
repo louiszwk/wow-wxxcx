@@ -2,12 +2,12 @@
 module.exports = [
   {
     "id": 1,
-    "name": "剧毒深渊",
+    "name": "烈毒之渊",
     "expanded": false,
     "encounters": [
       {
         "id": 101,
-        "name": "缠绕灵魂者奈克扎利",
+        "name": "盘魂者内克扎莉",
         "order": 1,
         "items": [
           {
@@ -126,7 +126,7 @@ module.exports = [
           },
           {
             "id": 100152,
-            "name": "奈克扎利的灵魂行者",
+            "name": "内克扎莉的灵魂行者",
             "quality": {
               "type": "EPIC"
             },
@@ -259,7 +259,7 @@ module.exports = [
       },
       {
         "id": 103,
-        "name": "埋葬哨兵",
+        "name": "陵寝哨兵",
         "order": 2,
         "items": [
           {
@@ -435,7 +435,7 @@ module.exports = [
       },
       {
         "id": 109,
-        "name": "恶毒者瓦什尼克",
+        "name": "万毒邪祟者瓦什尼克",
         "order": 3,
         "items": [
           {
@@ -590,7 +590,7 @@ module.exports = [
       },
       {
         "id": 107,
-        "name": "失落的探险家",
+        "name": "迷失的探险者",
         "order": 4,
         "items": [
           {
@@ -764,7 +764,7 @@ module.exports = [
       },
       {
         "id": 106,
-        "name": "海峡",
+        "name": "斯索拉克",
         "order": 5,
         "items": [
           {
@@ -920,7 +920,7 @@ module.exports = [
       },
       {
         "id": 104,
-        "name": "双生尖牙",
+        "name": "双生毒牙",
         "order": 6,
         "items": [
           {
@@ -1076,7 +1076,7 @@ module.exports = [
       },
       {
         "id": 102,
-        "name": "讨价还价的皇冠",
+        "name": "盘卷祭坛",
         "order": 7,
         "items": [
           {
@@ -1308,7 +1308,7 @@ module.exports = [
       },
       {
         "id": 105,
-        "name": "乌拉泰克",
+        "name": "乌拉特克",
         "order": 8,
         "items": [
           {
@@ -1385,7 +1385,7 @@ module.exports = [
           },
           {
             "id": 100214,
-            "name": "乌拉泰克的贪婪之心",
+            "name": "乌拉特克的贪婪之心",
             "quality": {
               "type": "EPIC"
             },
@@ -1587,7 +1587,7 @@ module.exports = [
           },
           {
             "id": 100179,
-            "name": "剧毒深渊护腿",
+            "name": "烈毒之渊护腿",
             "quality": {
               "type": "EPIC"
             },
@@ -10871,12 +10871,12 @@ module.exports = [
   },
   {
     "id": 6,
-    "name": "潮缚岩洞",
+    "name": "潮缚石窟",
     "expanded": false,
     "encounters": [
       {
         "id": 601,
-        "name": "唤波者尼姆瑞萨",
+        "name": "尼姆瑞莎·唤波者",
         "order": 1,
         "items": [
           {

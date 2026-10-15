@@ -5,6 +5,7 @@
     "pages/meta/meta",
     "pages/topmeta/topmeta",
     "pages/token/token",
+    "pages/build/build",
     "pages/bis/bis",
     "pages/bis-detail/bis-detail",
     "pages/admin/admin"

@@ -157,13 +157,50 @@ Page({
   // 加载真实静态数据（当前赛季大秘境数据）
   loadLootData() {
     // 强制排序团本/玩法
-    const order = ["剧毒深渊", "潮缚岩洞", "史诗钥石", "套装", "地下堡", "狩猎"];
+    const order = ["烈毒之渊", "剧毒深渊", "潮缚石窟", "潮缚岩洞", "史诗钥石", "套装", "地下堡", "狩猎"];
     realLootData.sort((a, b) => {
       let idxA = order.indexOf(a.name);
       let idxB = order.indexOf(b.name);
       if (idxA === -1) idxA = 999;
       if (idxB === -1) idxB = 999;
       return idxA - idxB;
+    });
+
+    realLootData.forEach(d => {
+      if (d.encounters) {
+        d.encounters.sort((a, b) => (a.order || 999) - (b.order || 999));
+        d.encounters.forEach(e => {
+          if (e.items) {
+            e.items.forEach(item => {
+              if (item.stats) {
+                const list = [];
+                if (item.stats.crit) list.push({ name: '暴击', short: '暴', weight: Number(item.stats.crit), color: '#f43f5e' });
+                if (item.stats.haste) list.push({ name: '急速', short: '急', weight: Number(item.stats.haste), color: '#38bdf8' });
+                if (item.stats.mastery) list.push({ name: '精通', short: '精', weight: Number(item.stats.mastery), color: '#4ade80' });
+                if (item.stats.versa) list.push({ name: '全能', short: '全', weight: Number(item.stats.versa), color: '#c084fc' });
+
+                if (list.length > 0) {
+                  const sum = list.reduce((a, b) => a + b.weight, 0);
+                  list.sort((a, b) => b.weight - a.weight);
+                  let allocated = 0;
+                  list.forEach((st, idx) => {
+                    const rawVal = Math.round(st.weight * 10) / 10;
+                    st.displayVal = rawVal;
+                    if (idx === list.length - 1) {
+                      st.percent = 100 - allocated;
+                    } else {
+                      st.percent = Math.round((st.weight / sum) * 100);
+                      allocated += st.percent;
+                    }
+                  });
+                  item.stats.ratioList = list;
+                  item.stats.ratioText = list.map(st => `${st.name} ${st.percent}%`).join(' / ');
+                }
+              }
+            });
+          }
+        });
+      }
     });
 
     this.setData({

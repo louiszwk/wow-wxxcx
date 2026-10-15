@@ -22,8 +22,15 @@
       <text>正在实时获取最新数据...</text>
     </view>
     
-    <view class="status-message" wx:if="{{!loading && errorMsg}}" style="color: #F87171;">
-      <text>{{errorMsg}}</text>
+    <view class="error-container" wx:if="{{!loading && errorMsg}}">
+      <view class="error-content">
+        <text class="error-icon">⚠️</text>
+        <text class="error-text">{{errorMsg}}</text>
+      </view>
+      <view class="retry-btn" bindtap="retryFetch">
+        <text class="retry-btn-icon">↻</text>
+        <text>点击重试</text>
+      </view>
     </view>
 
     <!-- DPS 视图 -->

@@ -1,88 +1,374 @@
+<!--pages/admin/admin.wxml-->
 <view class="admin-page">
-  <view class="header">
-    <text class="title">攻略录入系统</text>
-    <text class="subtitle">PC端微信也可完美使用键盘录入</text>
-  </view>
-
-  <view class="form-group">
-    <view class="label">选择职业与专精</view>
-    <picker mode="multiSelector" bindchange="onSpecChange" bindcolumnchange="onClassColumnChange" value="{{pickerIndex}}" range="{{pickerRange}}">
-      <view class="picker-box">
-        当前录入：<text class="highlight">{{selectedClass.name}} - {{selectedSpec.name}}</text>
+  <!-- 顶部控制台导航与切换标签 -->
+  <view class="admin-topbar">
+    <view class="topbar-info">
+      <view class="topbar-title">🛠️ 管理控制台</view>
+      <view class="topbar-subtitle">已验证权限 (louiskkk) · 支持管理全部数据库与推荐出装</view>
+    </view>
+    <view class="nav-tabs">
+      <view class="nav-tab {{activeTab === 'build' ? 'active' : ''}}" bindtap="switchTab" data-tab="build">
+        <text class="tab-icon">🎯</text>
+        <text>推荐出装编辑</text>
       </view>
-    </picker>
-  </view>
-
-  <view class="card">
-    <view class="card-title">一、天赋代码 (Talents)</view>
-    <view class="input-item">
-      <text>大秘境天赋串</text>
-      <input class="input" placeholder="请输入天赋字符串" model:value="{{talentsMythic}}" />
-    </view>
-    <view class="input-item">
-      <text>团本天赋串</text>
-      <input class="input" placeholder="请输入天赋字符串" model:value="{{talentsRaid}}" />
-    </view>
-    <view class="input-item">
-      <text>天赋一句话点评</text>
-      <textarea class="textarea" placeholder="如：大秘境注重AOE..." model:value="{{talentsDesc}}"></textarea>
+      <view class="nav-tab {{activeTab === 'db' ? 'active' : ''}}" bindtap="switchTab" data-tab="db">
+        <text class="tab-icon">🗄️</text>
+        <text>各数据库管理</text>
+      </view>
     </view>
   </view>
 
-  <view class="card">
-    <view class="card-title">二、核心消耗品 (Consumables)</view>
-    <view class="grid-2">
-      <view class="input-item"><text>合剂</text><input class="input" model:value="{{cFlask}}" /></view>
-      <view class="input-item"><text>爆发药水</text><input class="input" model:value="{{cPotion}}" /></view>
-      <view class="input-item"><text>食物</text><input class="input" model:value="{{cFood}}" /></view>
-      <view class="input-item"><text>武器附魔</text><input class="input" model:value="{{cWeapon}}" /></view>
-      <view class="input-item" style="grid-column: span 2;"><text>宝石</text><input class="input" model:value="{{cGems}}" /></view>
+  <!-- ======================================================== -->
+  <!-- 模块一：推荐出装编辑 (activeTab === 'build')             -->
+  <!-- ======================================================== -->
+  <view class="tab-content" wx:if="{{activeTab === 'build'}}">
+    <!-- 职业与专精选择器卡片 -->
+    <view class="card selector-card">
+      <view class="card-header">
+        <text class="section-title">选择目标职业与专精</text>
+        <text class="section-tag" style="color: {{selectedClass.color}};">{{selectedClass.name}} - {{selectedSpec.name}}</text>
+      </view>
+      
+      <picker mode="multiSelector" bindchange="onSpecChange" bindcolumnchange="onClassColumnChange" value="{{pickerIndex}}" range="{{pickerRange}}">
+        <view class="picker-display-btn">
+          <view class="picker-current">
+            <text class="class-icon-badge">{{selectedClass.icon || '⚔️'}}</text>
+            <text class="class-name-text" style="color: {{selectedClass.color}};">{{selectedClass.name}}</text>
+            <text class="divider">/</text>
+            <text class="spec-name-text">{{selectedSpec.name}}</text>
+          </view>
+          <view class="picker-action">点击切换职业专精 ▾</view>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 16 部位推荐装备配置 -->
+    <view class="card">
+      <view class="card-header">
+        <view class="title-with-badge">
+          <text class="section-title">推荐装备配置 (共 16 部位)</text>
+          <text class="mini-counter">已配置 {{configuredSlotsCount}} / 16 部位</text>
+        </view>
+        <view class="header-action-pill" bindtap="quickFillFrom121Set">
+          <text>⚡ 快速载入该职业12.1套装</text>
+        </view>
+      </view>
+      <view class="tip-banner">
+        💡 点击各部位旁的 <text class="highlight-text">「🔍 选择 12.1 装备」</text> 可直接从第二赛季 629 件真实掉落与制造业装备库中一键填入，也可手动输入自定义说明。
+      </view>
+
+      <view class="gear-slot-list">
+        <block wx:for="{{slotsList}}" wx:key="key">
+          <view class="gear-slot-row">
+            <view class="slot-label-col">
+              <text class="slot-icon">{{item.icon}}</text>
+              <text class="slot-name">{{item.name}}</text>
+            </view>
+
+            <view class="slot-inputs-col">
+              <view class="input-line">
+                <input class="gear-name-input" placeholder="装备名称（留空表示暂未配置）" value="{{gearForm[item.key].name}}" bindinput="onGearFieldInput" data-slot="{{item.key}}" data-field="name" />
+                <view class="quick-pick-btn" bindtap="openGearPicker" data-slot="{{item.key}}" data-slotname="{{item.name}}">
+                  🔍 选 12.1 装备
+                </view>
+              </view>
+              <view class="input-line">
+                <input class="gear-desc-input" placeholder="获取来源 / 绿字组合 / 附魔美化说明" value="{{gearForm[item.key].desc}}" bindinput="onGearFieldInput" data-slot="{{item.key}}" data-field="desc" />
+                <view class="clear-slot-btn" wx:if="{{gearForm[item.key].name}}" bindtap="clearSingleSlot" data-slot="{{item.key}}">
+                  清空
+                </view>
+              </view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- 核心天赋代码与解析 -->
+    <view class="card">
+      <view class="card-header">
+        <text class="section-title">推荐天赋代码 (Talents)</text>
+      </view>
+      <view class="input-item">
+        <text class="input-label">大秘境天赋字符串 (Mythic+)</text>
+        <input class="text-input" placeholder="游戏内导出的大秘境天赋字符串" value="{{talentsMythic}}" bindinput="onBuildFieldInput" data-field="talentsMythic" />
+      </view>
+      <view class="input-item">
+        <text class="input-label">团本天赋字符串 (Raid)</text>
+        <input class="text-input" placeholder="游戏内导出的团本天赋字符串" value="{{talentsRaid}}" bindinput="onBuildFieldInput" data-field="talentsRaid" />
+      </view>
+      <view class="input-item">
+        <text class="input-label">天赋核心流派点评与手法思路</text>
+        <textarea class="textarea-input" placeholder="如：大秘境推荐英雄天赋【圣殿骑士】，依靠灰烬觉醒和倾天圣威触发高频大锤..." value="{{talentsDesc}}" bindinput="onBuildFieldInput" data-field="talentsDesc"></textarea>
+      </view>
+    </view>
+
+    <!-- 推荐物资与消耗品 -->
+    <view class="card">
+      <view class="card-header">
+        <text class="section-title">推荐消耗品 (Consumables)</text>
+      </view>
+      <view class="grid-2">
+        <view class="input-item">
+          <text class="input-label">合剂 (Flask)</text>
+          <input class="text-input" placeholder="如：淬火混沌合剂" value="{{cFlask}}" bindinput="onBuildFieldInput" data-field="cFlask" />
+        </view>
+        <view class="input-item">
+          <text class="input-label">爆发药水 (Potion)</text>
+          <input class="text-input" placeholder="如：淬火药水" value="{{cPotion}}" bindinput="onBuildFieldInput" data-field="cPotion" />
+        </view>
+        <view class="input-item">
+          <text class="input-label">食物 (Food)</text>
+          <input class="text-input" placeholder="如：狂暴宴飨 / 贝壳杂烩" value="{{cFood}}" bindinput="onBuildFieldInput" data-field="cFood" />
+        </view>
+        <view class="input-item">
+          <text class="input-label">武器附魔 (Weapon)</text>
+          <input class="text-input" placeholder="如：贝雷达尔之赐" value="{{cWeapon}}" bindinput="onBuildFieldInput" data-field="cWeapon" />
+        </view>
+        <view class="input-item" style="grid-column: span 2;">
+          <text class="input-label">宝石配置 (Gems)</text>
+          <input class="text-input" placeholder="如：主属性顶石巨匠之眼 + 致命坚固绿柱石" value="{{cGems}}" bindinput="onBuildFieldInput" data-field="cGems" />
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部保存按钮 -->
+    <view class="submit-action-box">
+      <view class="primary-btn save-build-btn" bindtap="saveBuildData">
+        💾 保存并发布当前专精推荐出装 (同步至 wow_guides)
+      </view>
     </view>
   </view>
 
-  <view class="card">
-    <view class="card-title">三、BiS 毕业装备 (共14部位)</view>
-    <view class="tip">请填入准确的装备名称（留空则不显示该部位）</view>
-    
-    <view class="gear-section">左侧栏位</view>
-    <view class="grid-2">
-      <view class="input-item"><text>头部</text><input class="input" model:value="{{gHead}}" /></view>
-      <view class="input-item"><text>项链</text><input class="input" model:value="{{gNeck}}" /></view>
-      <view class="input-item"><text>肩部</text><input class="input" model:value="{{gShoulder}}" /></view>
-      <view class="input-item"><text>背部</text><input class="input" model:value="{{gBack}}" /></view>
-      <view class="input-item"><text>胸部</text><input class="input" model:value="{{gChest}}" /></view>
-      <view class="input-item"><text>腕部</text><input class="input" model:value="{{gWrist}}" /></view>
+  <!-- ======================================================== -->
+  <!-- 模块二：各数据库管理 (activeTab === 'db')                -->
+  <!-- ======================================================== -->
+  <view class="tab-content" wx:if="{{activeTab === 'db'}}">
+    <!-- 集合选择与管理工具栏 -->
+    <view class="card db-toolbar-card">
+      <view class="card-header">
+        <text class="section-title">选择操作的数据表 (Collection)</text>
+        <text class="section-tag">{{currentCollection}} ({{dbTotalCount}} 条记录)</text>
+      </view>
+
+      <view class="collection-switch-row">
+        <view class="col-pill {{currentCollection === 'wow_equipment' ? 'active' : ''}}" bindtap="switchCollection" data-name="wow_equipment">
+          <text class="pill-badge">装备库</text>
+          <text>wow_equipment</text>
+        </view>
+        <view class="col-pill {{currentCollection === 'wow_guides' ? 'active' : ''}}" bindtap="switchCollection" data-name="wow_guides">
+          <text class="pill-badge">推荐库</text>
+          <text>wow_guides</text>
+        </view>
+      </view>
+
+      <!-- 搜索栏与快捷操作 -->
+      <view class="db-actions-row">
+        <view class="search-input-box">
+          <text class="search-icon">🔍</text>
+          <input class="db-search-input" placeholder="搜索名称 / 部位 / 职业 / 副本 / ID..." value="{{dbSearchQuery}}" bindinput="onDbSearchInput" />
+          <text class="clear-icon" wx:if="{{dbSearchQuery}}" bindtap="clearDbSearch">✕</text>
+        </view>
+        <view class="btn-group">
+          <view class="action-btn add-btn" bindtap="openNewRecordModal">
+            <text>+ 新增记录</text>
+          </view>
+          <view class="action-btn refresh-btn" bindtap="fetchCollectionData">
+            <text>↻ 刷新</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 快捷批量同步 12.1 S2 数据库至云端按钮 -->
+      <view class="sync-banner" wx:if="{{currentCollection === 'wow_equipment'}}">
+        <view class="sync-banner-text">
+          <text class="sync-title">12.1 S2 官方纯净数据库</text>
+          <text class="sync-desc">本地已编排 629 件装备（含团本、大秘境、地下堡、套装、狩猎及全套火花制造业），已剔除所有旧版本装备。</text>
+        </view>
+        <view class="sync-exec-btn" bindtap="syncAll121EquipmentToCloud">
+          {{syncStatusText || '⚡ 一键同步至云端'}}
+        </view>
+      </view>
     </view>
 
-    <view class="gear-section">右侧栏位</view>
-    <view class="grid-2">
-      <view class="input-item"><text>手部</text><input class="input" model:value="{{gHands}}" /></view>
-      <view class="input-item"><text>腰部</text><input class="input" model:value="{{gWaist}}" /></view>
-      <view class="input-item"><text>腿部</text><input class="input" model:value="{{gLegs}}" /></view>
-      <view class="input-item"><text>脚部</text><input class="input" model:value="{{gFeet}}" /></view>
-      <view class="input-item"><text>戒指1</text><input class="input" model:value="{{gRing1}}" /></view>
-      <view class="input-item"><text>戒指2</text><input class="input" model:value="{{gRing2}}" /></view>
-      <view class="input-item"><text>饰品1</text><input class="input" model:value="{{gTrinket1}}" /></view>
-      <view class="input-item"><text>饰品2</text><input class="input" model:value="{{gTrinket2}}" /></view>
-    </view>
+    <!-- 记录列表展示 -->
+    <view class="db-list-section">
+      <view class="list-status-header">
+        <text>共找到 {{filteredRecords.length}} 条记录</text>
+        <text class="cloud-status">{{isUsingLocalFallback ? '本地离线数据展示' : '微信云端实时数据'}}</text>
+      </view>
 
-    <view class="gear-section">武器栏位</view>
-    <view class="input-item">
-      <text>主手/双手武器</text>
-      <input class="input" model:value="{{gWeaponMain}}" />
-    </view>
-    <view class="input-item">
-      <text>副手 (选填)</text>
-      <input class="input" model:value="{{gWeaponOff}}" />
+      <view class="loading-box" wx:if="{{isLoadingDb}}">
+        <text>正在读取数据库记录...</text>
+      </view>
+
+      <view class="empty-box" wx:elif="{{filteredRecords.length === 0}}">
+        <text class="empty-icon">📂</text>
+        <text class="empty-text">当前集合暂无匹配记录\n可点击上方“新增记录”或“一键同步”</text>
+      </view>
+
+      <view class="record-card-list" wx:else>
+        <block wx:for="{{filteredRecords}}" wx:key="_id">
+          <view class="record-card">
+            <view class="record-header">
+              <view class="record-title-box">
+                <text class="record-title {{item.quality === 'EPIC' ? 'epic-color' : ''}}">{{item.name || item.className + '-' + item.specName || item._id}}</text>
+                <text class="badge-mini" wx:if="{{item.slot}}">{{item.slot}}</text>
+                <text class="badge-mini" wx:if="{{item.source_dungeon}}">{{item.source_dungeon}}</text>
+                <text class="badge-mini crafted" wx:if="{{item.is_crafted}}">制造业</text>
+              </view>
+              <view class="record-actions">
+                <view class="action-btn-mini edit" bindtap="openEditRecordModal" data-record="{{item}}">✏️ 编辑</view>
+                <view class="action-btn-mini delete" bindtap="confirmDeleteRecord" data-record="{{item}}">🗑️ 删除</view>
+              </view>
+            </view>
+
+            <view class="record-body">
+              <view class="record-prop" wx:if="{{item.source_desc}}">
+                <text class="prop-key">来源：</text>
+                <text class="prop-val">{{item.source_desc}}</text>
+              </view>
+              <view class="record-prop" wx:if="{{item.stat_combo}}">
+                <text class="prop-key">属性组合：</text>
+                <text class="prop-val highlight">{{item.stat_combo}}</text>
+              </view>
+              <view class="record-prop" wx:if="{{item.secondary_stats && item.secondary_stats.ratio_text}}">
+                <text class="prop-key">绿字比例：</text>
+                <text class="prop-val">{{item.secondary_stats.ratio_text}}</text>
+              </view>
+              <view class="record-prop" wx:if="{{item.talents && item.talents.desc}}">
+                <text class="prop-key">专精打法：</text>
+                <text class="prop-val line-clamp-2">{{item.talents.desc}}</text>
+              </view>
+            </view>
+
+            <view class="record-footer">
+              <text class="doc-id">ID: {{item.id || item._id}}</text>
+            </view>
+          </view>
+        </block>
+      </view>
     </view>
   </view>
 
-  <view class="card">
-    <view class="card-title">四、高级数据 (JSON覆盖)</view>
-    <view class="tip">如果你想直接修改输出循环等极其复杂的结构，可以在此粘贴 JSON (留空则不覆盖)</view>
-    <textarea class="textarea json-area" placeholder="JSON 字符串" model:value="{{advancedJson}}"></textarea>
+  <!-- ======================================================== -->
+  <!-- 弹窗一：12.1 S2 装备快速选择抽屉 (isGearPickerOpen)       -->
+  <!-- ======================================================== -->
+  <view class="modal-mask" wx:if="{{isGearPickerOpen}}" bindtap="closeGearPicker"></view>
+  <view class="drawer-modal {{isGearPickerOpen ? 'open' : ''}}">
+    <view class="drawer-header">
+      <view class="drawer-title">
+        <text class="drawer-tag">{{targetSlotName}}</text>
+        <text>选择 12.1 S2 装备 (共 {{gearCandidates.length}} 件)</text>
+      </view>
+      <view class="drawer-close" bindtap="closeGearPicker">✕</view>
+    </view>
+
+    <!-- 装备搜索框 -->
+    <view class="drawer-search">
+      <input class="drawer-search-input" placeholder="搜索装备名称 / 制造业 / 副本 / 绿字..." value="{{gearPickerQuery}}" bindinput="onGearPickerSearch" />
+    </view>
+
+    <!-- 候选装备列表 -->
+    <scroll-view class="drawer-scroll-list" scroll-y="true">
+      <view class="empty-candidate" wx:if="{{gearCandidates.length === 0}}">
+        <text>未检索到对应部位装备，可尝试清除搜索词</text>
+      </view>
+
+      <view class="candidate-row" wx:for="{{gearCandidates}}" wx:key="id" bindtap="selectGearItem" data-item="{{item}}">
+        <view class="candidate-info">
+          <view class="candidate-name-line">
+            <text class="candidate-name epic-color">{{item.name}}</text>
+            <text class="candidate-badge-crafted" wx:if="{{item.is_crafted}}">制造业 · {{item.profession}}</text>
+            <text class="candidate-badge-slot">{{item.slot}}</text>
+            <text class="candidate-badge-armor">{{item.item_class}}</text>
+          </view>
+          <view class="candidate-stats-line" wx:if="{{item.secondary_stats && item.secondary_stats.ratio_text}}">
+            <text class="ratio-text">{{item.secondary_stats.ratio_text}}</text>
+            <text class="source-text">({{item.source_desc}})</text>
+          </view>
+          <view class="candidate-stats-line" wx:else>
+            <text class="source-text">{{item.source_desc}}</text>
+          </view>
+        </view>
+        <view class="candidate-select-btn">选用</view>
+      </view>
+    </scroll-view>
   </view>
 
-  <view class="submit-btn" bindtap="saveData">保存并同步至云端数据库</view>
-  <view class="bottom-padding"></view>
+  <!-- ======================================================== -->
+  <!-- 弹窗二：数据记录编辑 / 新增弹窗 (isRecordModalOpen)      -->
+  <!-- ======================================================== -->
+  <view class="modal-mask" wx:if="{{isRecordModalOpen}}" bindtap="closeRecordModal"></view>
+  <view class="record-edit-dialog" wx:if="{{isRecordModalOpen}}">
+    <view class="dialog-header">
+      <text class="dialog-title">{{isAddingRecord ? '+ 新增数据记录' : '✏️ 编辑数据记录'}} ({{currentCollection}})</text>
+      <view class="mode-switch-tabs">
+        <view class="mode-tab {{!isJsonEditMode ? 'active' : ''}}" bindtap="switchEditMode" data-json="{{false}}">表单模式</view>
+        <view class="mode-tab {{isJsonEditMode ? 'active' : ''}}" bindtap="switchEditMode" data-json="{{true}}">JSON 模式</view>
+      </view>
+      <view class="dialog-close" bindtap="closeRecordModal">✕</view>
+    </view>
+
+    <!-- 表单编辑模式 -->
+    <scroll-view class="dialog-body" scroll-y="true" wx:if="{{!isJsonEditMode}}">
+      <view class="edit-form-item">
+        <text class="form-label">装备/记录名称 (name):</text>
+        <input class="form-input" value="{{recordFormData.name}}" bindinput="onRecordFormInput" data-field="name" />
+      </view>
+
+      <view class="edit-form-grid-2">
+        <view class="edit-form-item">
+          <text class="form-label">部位 (slot):</text>
+          <input class="form-input" value="{{recordFormData.slot}}" bindinput="onRecordFormInput" data-field="slot" />
+        </view>
+        <view class="edit-form-item">
+          <text class="form-label">护甲/类别 (item_class):</text>
+          <input class="form-input" value="{{recordFormData.item_class}}" bindinput="onRecordFormInput" data-field="item_class" />
+        </view>
+      </view>
+
+      <view class="edit-form-grid-2">
+        <view class="edit-form-item">
+          <text class="form-label">来源副本/途径 (source_dungeon):</text>
+          <input class="form-input" value="{{recordFormData.source_dungeon}}" bindinput="onRecordFormInput" data-field="source_dungeon" />
+        </view>
+        <view class="edit-form-item">
+          <text class="form-label">掉落首领/专业 (source_boss):</text>
+          <input class="form-input" value="{{recordFormData.source_boss}}" bindinput="onRecordFormInput" data-field="source_boss" />
+        </view>
+      </view>
+
+      <view class="edit-form-item">
+        <text class="form-label">详细来源描述 (source_desc):</text>
+        <input class="form-input" value="{{recordFormData.source_desc}}" bindinput="onRecordFormInput" data-field="source_desc" />
+      </view>
+
+      <view class="edit-form-item">
+        <text class="form-label">绿字属性组合 (stat_combo):</text>
+        <input class="form-input" value="{{recordFormData.stat_combo}}" bindinput="onRecordFormInput" data-field="stat_combo" />
+      </view>
+
+      <view class="edit-form-item">
+        <text class="form-label">描述/备注 (description):</text>
+        <textarea class="form-textarea" value="{{recordFormData.description}}" bindinput="onRecordFormInput" data-field="description"></textarea>
+      </view>
+
+      <view class="switch-row">
+        <text class="form-label">是否制造业装备 (is_crafted):</text>
+        <switch checked="{{recordFormData.is_crafted}}" bindchange="onRecordCraftedChange" color="#38bdf8" />
+      </view>
+    </scroll-view>
+
+    <!-- JSON 源码深度编辑模式 -->
+    <view class="dialog-body json-body" wx:else>
+      <view class="json-tip">💻 支持直接修改或新增任意嵌套字段，保存时自动进行格式校验</view>
+      <textarea class="json-editor-textarea" value="{{recordJsonString}}" bindinput="onRecordJsonInput" maxlength="-1"></textarea>
+    </view>
+
+    <view class="dialog-footer">
+      <view class="dialog-btn cancel-btn" bindtap="closeRecordModal">取消</view>
+      <view class="dialog-btn save-btn" bindtap="saveRecord">保存并同步至数据库</view>
+    </view>
+  </view>
 </view>

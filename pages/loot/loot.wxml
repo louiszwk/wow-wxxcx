@@ -62,13 +62,20 @@
                         <text class="loot-name {{loot.quality.type}}">{{loot.name}}</text>
                         <text class="loot-type">{{loot.item_class.name}} - {{loot.inventory_type.name}} <text class="loot-main-stat" wx:if="{{loot.stats.main}}">({{loot.stats.main}})</text></text>
                         
-                        <!-- 绿字属性展示 -->
+                        <!-- 绿字属性与详细急速暴击比例展示 -->
                         <view class="loot-stats" wx:if="{{loot.stats.combo}}">
-                          <text class="stat-badge combo">{{loot.stats.combo}}</text>
-                          <text class="stat-badge crit" wx:if="{{loot.stats.crit}}">暴: {{loot.stats.crit}}</text>
-                          <text class="stat-badge haste" wx:if="{{loot.stats.haste}}">急: {{loot.stats.haste}}</text>
-                          <text class="stat-badge mastery" wx:if="{{loot.stats.mastery}}">精: {{loot.stats.mastery}}</text>
-                          <text class="stat-badge versa" wx:if="{{loot.stats.versa}}">全: {{loot.stats.versa}}</text>
+                          <text class="stat-badge combo" wx:if="{{!loot.stats.ratioText}}">{{loot.stats.combo}}</text>
+                          <block wx:if="{{loot.stats.ratioList && loot.stats.ratioList.length > 0}}">
+                            <text class="stat-badge {{st.short === '暴' ? 'crit' : st.short === '急' ? 'haste' : st.short === '精' ? 'mastery' : 'versa'}}" wx:for="{{loot.stats.ratioList}}" wx:for-item="st" wx:key="name">
+                              {{st.name}}: {{st.percent}}% ({{st.displayVal}})
+                            </text>
+                          </block>
+                          <block wx:else>
+                            <text class="stat-badge crit" wx:if="{{loot.stats.crit}}">暴: {{loot.stats.crit}}</text>
+                            <text class="stat-badge haste" wx:if="{{loot.stats.haste}}">急: {{loot.stats.haste}}</text>
+                            <text class="stat-badge mastery" wx:if="{{loot.stats.mastery}}">精: {{loot.stats.mastery}}</text>
+                            <text class="stat-badge versa" wx:if="{{loot.stats.versa}}">全: {{loot.stats.versa}}</text>
+                          </block>
                         </view>
                       </view>
                     </view>

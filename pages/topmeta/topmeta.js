@@ -9,12 +9,11 @@ Page({
     allExpanded: false,
     loading: true,
     errorMsg: '',
-    currentPage: 0,
     scrollTop: 0,
     showMetaModal: false,
     showCustomLoading: false,
     loadingDots: '',
-    allRankings: null,
+    allRankings: [],
     isRefreshing: false
   },
 
@@ -66,10 +65,10 @@ Page({
   toggleAllRosters() {
     const newExpanded = !this.data.allExpanded;
     if (this.data.runsData) {
-      const updatedRuns = this.data.runsData.map(r => {
-        r.expanded = newExpanded;
-        return r;
-      });
+      const updatedRuns = this.data.runsData.map(r => ({
+        ...r,
+        expanded: newExpanded
+      }));
       this.setData({
         runsData: updatedRuns,
         allExpanded: newExpanded
@@ -77,22 +76,13 @@ Page({
     }
   },
 
-  updateRunsFromLocal() {
-    const size = 20;
-    const start = this.data.currentPage * size;
-    const end = start + size;
-    const sliced = this.data.allRankings.slice(start, end);
-    this.processRuns(sliced);
-  },
-
   showStatisticsModal() {
     if (this.data.allRankings && this.data.allRankings.length > 0) {
-      const size = Math.min((this.data.currentPage + 1) * 20, this.data.allRankings.length);
-      const sliced = this.data.allRankings.slice(0, size);
-      this.processMetaStats(sliced);
+      const top100 = this.data.allRankings.slice(0, 100);
+      this.processMetaStats(top100);
       this.setData({ showMetaModal: true });
     } else {
-      wx.showToast({ title: '数据加载中', icon: 'none' });
+      wx.showToast({ title: '数据加载中...', icon: 'none' });
     }
   },
 
@@ -132,11 +122,11 @@ Page({
       errorMsg: '',
       metaData: null,
       runsData: null,
-      currentPage: 0,
       allRankings: [],
-      isRefreshing: true
+      isRefreshing: true,
+      allExpanded: false
     });
-    this.fetchRunsRealtime(0, cb);
+    this.fetchRunsRealtime(cb);
   },
 
   onPullDownRefresh() {
@@ -146,58 +136,15 @@ Page({
     });
   },
 
-  fetchRunsRealtime(targetPage, cb) {
+  // 获取 Raider.io 前100名大秘境数据（5页并发请求，无数据库缓存）
+  fetchRunsRealtime(cb) {
     this.showLoadingOverlay();
 
-    // 直接发起实时请求获取 Raider.io 最新大秘境队伍数据（不使用数据库缓存）
-    wx.cloud.callFunction({
-      name: 'proxyRequest',
-      data: {
-        url: `https://raider.io/api/v1/mythic-plus/runs?region=world&dungeon=all&page=${targetPage}`,
-        method: 'GET'
-      },
-      success: (res) => {
-        const result = res.result;
-        if (result && result.success && result.data && result.data.rankings) {
-          let currentRankings = this.data.allRankings || [];
-          const newRankings = result.data.rankings;
-          currentRankings = currentRankings.slice(0, targetPage * 20).concat(newRankings);
-          this.setData({
-            allRankings: currentRankings,
-            currentPage: targetPage,
-            loading: false,
-            isRefreshing: false,
-            scrollTop: 0
-          });
-          this.updateRunsFromLocal();
-          this.hideLoadingOverlay();
+    const pageMap = {};
+    let firstBatchShown = false;
 
-          // 若首屏实时加载成功，静默并发预取后续页码的实时数据，丰富出场率统计样本
-          if (targetPage === 0) {
-            this.prefetchAdditionalPages([1, 2, 3, 4]);
-          }
-        } else {
-          this.hideLoadingOverlay();
-          this.setData({ loading: false, isRefreshing: false });
-          wx.showToast({ title: '数据异常稍后再试', icon: 'none' });
-        }
-      },
-      fail: (err) => {
-        console.error('实时请求失败:', err);
-        this.hideLoadingOverlay();
-        this.setData({ loading: false, isRefreshing: false, errorMsg: '获取实时数据失败，请下拉重试' });
-        wx.showToast({ title: '数据异常稍后再试', icon: 'none' });
-      },
-      complete: () => {
-        if (typeof cb === 'function') cb();
-      }
-    });
-  },
-
-  // 并发预取后续页数（仅走实时网络请求，不使用任何数据库缓存）
-  prefetchAdditionalPages(pages) {
-    const requests = pages.map(page =>
-      wx.cloud.callFunction({
+    const fetchPage = (page) => {
+      return wx.cloud.callFunction({
         name: 'proxyRequest',
         data: {
           url: `https://raider.io/api/v1/mythic-plus/runs?region=world&dungeon=all&page=${page}`,
@@ -205,47 +152,74 @@ Page({
         }
       }).then(res => {
         if (res && res.result && res.result.success && res.result.data && res.result.data.rankings) {
-          return { page, rankings: res.result.data.rankings };
-        }
-        return null;
-      }).catch(() => null)
-    );
+          pageMap[page] = res.result.data.rankings;
 
-    Promise.all(requests).then(results => {
-      let combined = (this.data.allRankings || []).slice();
-      results.filter(Boolean).sort((a, b) => a.page - b.page).forEach(r => {
-        const start = r.page * 20;
-        combined = combined.slice(0, start).concat(r.rankings);
+          // 若首屏 page=0 先到达，迅速显示前20条，大幅降低体感白屏时间
+          if (page === 0 && !firstBatchShown && this.data.loading) {
+            firstBatchShown = true;
+            this.hideLoadingOverlay();
+            this.setData({
+              allRankings: pageMap[0],
+              loading: false,
+              isRefreshing: false
+            });
+            this.processRuns(pageMap[0]);
+          }
+        }
+      }).catch(err => {
+        console.error(`Page ${page} 请求异常:`, err);
       });
-      this.setData({ allRankings: combined });
+    };
+
+    const requests = [0, 1, 2, 3, 4].map(p => fetchPage(p));
+
+    Promise.all(requests).then(() => {
+      let combined = [];
+      for (let p = 0; p < 5; p++) {
+        if (pageMap[p]) {
+          combined = combined.concat(pageMap[p]);
+        }
+      }
+      // 严格截取前100个
+      combined = combined.slice(0, 100);
+
+      if (combined.length > 0) {
+        this.setData({
+          allRankings: combined,
+          loading: false,
+          isRefreshing: false,
+          scrollTop: 0
+        });
+        this.processRuns(combined);
+        // 固定计算前100个队伍的职业与专精出场率
+        this.processMetaStats(combined);
+        this.hideLoadingOverlay();
+      } else {
+        this.hideLoadingOverlay();
+        this.setData({
+          loading: false,
+          isRefreshing: false,
+          errorMsg: '获取实时数据失败，请下拉重试'
+        });
+        wx.showToast({ title: '数据异常稍后再试', icon: 'none' });
+      }
+    }).catch(err => {
+      console.error('获取实时数据失败:', err);
+      this.hideLoadingOverlay();
+      this.setData({
+        loading: false,
+        isRefreshing: false,
+        errorMsg: '获取实时数据失败，请下拉重试'
+      });
+      wx.showToast({ title: '数据异常稍后再试', icon: 'none' });
+    }).finally(() => {
+      if (typeof cb === 'function') cb();
     });
   },
 
-  prevPage() {
-    if (this.data.currentPage > 0 && !this.data.showCustomLoading) {
-      this.setData({ allExpanded: false });
-      const targetPage = this.data.currentPage - 1;
-      this.setData({ currentPage: targetPage });
-      if (this.data.allRankings && this.data.allRankings.length > targetPage * 20) {
-        this.updateRunsFromLocal();
-      } else {
-        this.fetchRunsRealtime(targetPage);
-      }
-    }
-  },
-
-  nextPage() {
-    if (!this.data.showCustomLoading) {
-      const targetPage = this.data.currentPage + 1;
-      this.setData({ allExpanded: false });
-
-      if (this.data.allRankings && this.data.allRankings.length >= (targetPage + 1) * 20) {
-        this.setData({ currentPage: targetPage });
-        this.updateRunsFromLocal();
-      } else {
-        this.fetchRunsRealtime(targetPage);
-      }
-    }
+  retryFetch() {
+    this.setData({ errorMsg: '' });
+    this.fetchTopRuns();
   },
 
   processMetaStats(allRuns) {
@@ -352,7 +326,7 @@ Page({
       'Den of Nalorakk': '纳洛拉克的洞穴',
       'Kings\' Rest': '诸王之眠',
       'Murder Row': '密谋小径',
-      'Temple of Sethraliss': '赛塔里斯神庙',
+      'Temple of Sethraliss': '塞塔里斯神庙',
       'The Blinding Vale': '夺目谷',
       'Ruby Life Pools': '红玉新生法池',
       'Arena of the Void': '虚空之竞技场',
@@ -377,6 +351,13 @@ Page({
       'The Stonevault': '矶石宝库',
       'The Dawnbreaker': '破晨号'
     };
+
+    const existingExpanded = {};
+    if (this.data.runsData) {
+      this.data.runsData.forEach(item => {
+        existingExpanded[item.rank] = item.expanded;
+      });
+    }
 
     const runsData = runs.map(r => {
       if (!r.run || !r.run.roster) return null;
@@ -405,10 +386,17 @@ Page({
         level: r.run.mythic_level,
         dungeon: dungeonMap[enDungeon] || enDungeon,
         roster: roster,
-        expanded: false
+        expanded: existingExpanded[r.rank] !== undefined ? existingExpanded[r.rank] : this.data.allExpanded
       };
     }).filter(r => r !== null).sort((a, b) => a.rank - b.rank);
 
     this.setData({ runsData: runsData });
+  },
+
+  onShareAppMessage() {
+    return {
+      title: '魔兽世界大米前百车队与专精出场率',
+      path: '/pages/topmeta/topmeta'
+    };
   }
 });

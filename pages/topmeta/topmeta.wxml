@@ -5,15 +5,30 @@
       <text class="back-text">返回</text>
     </view>
     <view class="header">
-      <view class="title">
-        顶层大秘境
-        <text class="expand-all-btn" wx:if="{{runsData.length > 0}}" bindtap="toggleAllRosters">{{allExpanded ? '全部收起' : '全部展开'}}</text>
-      </view>
+      <view class="title">大米前百数据</view>
       <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
     </view>
     
-    <view class="status-message" wx:if="{{errorMsg}}" style="color: #F87171;">
-      <text>{{errorMsg}}</text>
+    <view class="top-toolbar" wx:if="{{!loading && !errorMsg && runsData && runsData.length > 0}}">
+      <view class="run-count-tag">
+        <text class="tag-dot"></text>
+        <text>TOP 100 顶尖车队</text>
+      </view>
+      <view class="toolbar-actions">
+        <text class="action-btn" bindtap="toggleAllRosters">{{allExpanded ? '全部收起' : '全部展开'}}</text>
+        <text class="action-btn stat-action-btn" bindtap="showStatisticsModal">前百统计</text>
+      </view>
+    </view>
+    
+    <view class="error-container" wx:if="{{errorMsg}}">
+      <view class="error-content">
+        <text class="error-icon">⚠️</text>
+        <text class="error-text">{{errorMsg}}</text>
+      </view>
+      <view class="retry-btn" bindtap="retryFetch">
+        <text class="retry-btn-icon">↻</text>
+        <text>点击重试</text>
+      </view>
     </view>
     
     <block wx:if="{{!loading && !errorMsg && runsData}}">
@@ -38,22 +53,22 @@
       </view>
     </block>
 
-    <view class="pagination" wx:if="{{!loading && !errorMsg}}">
-      <view class="btn prev-btn {{currentPage === 0 ? 'disabled' : ''}}" bindtap="prevPage">上一页</view>
-      <view class="btn stat-btn" bindtap="showStatisticsModal">前{{(currentPage + 1) * 20}}统计</view>
-      <view class="btn next-btn" bindtap="nextPage">下一页</view>
-    </view>
-
-    <view class="footer" wx:if="{{!loading}}">
+    <view class="footer" wx:if="{{!loading && !errorMsg}}">
       <view>数据基于 Raider.io 实时抓取</view>
-      <view>仅统计顶端车队阵容</view>
+      <view>已展示全部前 100 名顶尖车队阵容</view>
     </view>
   </scroll-view>
+
+  <!-- 悬浮统计按钮 -->
+  <view class="floating-stat-btn" wx:if="{{!loading && !errorMsg && runsData && runsData.length > 0}}" bindtap="showStatisticsModal">
+    <text class="stat-icon">📊</text>
+    <text class="stat-text">前百统计</text>
+  </view>
 
   <view class="modal-overlay" wx:if="{{showMetaModal}}" bindtap="closeStatisticsModal">
     <view class="modal-content" catchtap="return">
       <view class="modal-header">
-        <text class="modal-title">前 {{(currentPage + 1) * 20}} 名出场率统计</text>
+        <text class="modal-title">前 100 名出场率统计</text>
         <text class="close-btn" bindtap="closeStatisticsModal">×</text>
       </view>
       <scroll-view scroll-y="true" class="modal-body" wx:if="{{metaData}}">

@@ -56,31 +56,48 @@ Page({
       specId: currentSpec.id
     }).get({
       success: (res) => {
-        if (res.data && res.data.length > 0) {
-          const data = res.data[0];
-          this.setData({
-            guideData: data,
-            leftGear: data.gear && data.gear.left ? data.gear.left : [],
-            rightGear: data.gear && data.gear.right ? data.gear.right : [],
-            weapons: data.gear && data.gear.weapons ? data.gear.weapons : [],
-            isLoading: false
-          });
+        // 如果数据库中有数据且不是旧的占位代码，优先使用云端数据
+        if (res.data && res.data.length > 0 && res.data[0].gear && res.data[0].gear.left && res.data[0].talents && !res.data[0].talents.mythicPlus.includes('...')) {
+          this.applyGuideData(res.data[0]);
         } else {
-          // 数据库中未找到该专精的攻略
-          this.setData({
-            guideData: null,
-            leftGear: [],
-            rightGear: [],
-            weapons: [],
-            isLoading: false
-          });
+          // 数据库未配置或仍是旧占位数据，使用本地最新精选攻略
+          this.loadLocalGuide(this.data.classSlug, currentSpec.id);
         }
       },
       fail: (err) => {
-        console.error('获取攻略失败:', err);
-        this.setData({ isLoading: false });
-        wx.showToast({ title: '数据库连接失败', icon: 'none' });
+        console.warn('云数据库读取失败，自动使用本地最新攻略:', err);
+        this.loadLocalGuide(this.data.classSlug, currentSpec.id);
       }
+    });
+  },
+
+  applyGuideData(data) {
+    this.setData({
+      guideData: data,
+      leftGear: data.gear && data.gear.left ? data.gear.left : [],
+      rightGear: data.gear && data.gear.right ? data.gear.right : [],
+      weapons: data.gear && data.gear.weapons ? data.gear.weapons : [],
+      isLoading: false
+    });
+  },
+
+  loadLocalGuide(classSlug, specId) {
+    try {
+      const allGuides = require('../../data/wow_guides_data.js');
+      const found = allGuides.find(g => g.classSlug === classSlug && g.specId === specId);
+      if (found) {
+        this.applyGuideData(found);
+        return;
+      }
+    } catch (e) {
+      console.error('加载本地攻略数据失败:', e);
+    }
+    this.setData({
+      guideData: null,
+      leftGear: [],
+      rightGear: [],
+      weapons: [],
+      isLoading: false
     });
   },
 

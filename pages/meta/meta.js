@@ -100,6 +100,11 @@ Page({
     });
   },
 
+  retryFetch() {
+    this.setData({ errorMsg: '' });
+    this.fetchData();
+  },
+
 
 
   processMythicstats(html) {

@@ -18,8 +18,12 @@
 
       <view class="price-display">
         <view class="price-value">
-          <text class="gold">{{price.gold}}</text>
-          <text class="unit">G</text>
+          <text class="gold {{price.gold === '调用失败' || price.gold === '数据错误' ? 'error' : ''}}">{{price.gold}}</text>
+          <text class="unit" wx:if="{{price.gold !== '调用失败' && price.gold !== '数据错误'}}">G</text>
+        </view>
+        <view class="token-retry-btn" wx:if="{{price.gold === '调用失败' || price.gold === '数据错误'}}" bindtap="refreshData">
+          <text class="retry-icon">↻</text>
+          <text>点击重试</text>
         </view>
       </view>
 

@@ -4,9 +4,11 @@ Page({
     menuButtonTop: 0,
     menuButtonHeight: 0,
     theme: 'dark',
-    affixes: [],
     tokenPrice: '获取中...',
-    isLoadingWeekly: true
+    tokenError: false,
+    affixes: [],
+    isLoadingAffixes: true,
+    affixError: false
   },
 
   onLoad() {
@@ -22,7 +24,8 @@ Page({
     const savedTheme = wx.getStorageSync('app_theme') || 'dark';
     this.setData({ theme: savedTheme });
 
-    this.fetchWeeklyData();
+    this.fetchTokenPrice();
+    this.fetchAffixes();
     this.autoSeedDatabase();
   },
 
@@ -57,26 +60,38 @@ Page({
     });
   },
 
-  fetchWeeklyData() {
-    this.setData({ isLoadingWeekly: true });
+  fetchTokenPrice() {
+    this.setData({ tokenPrice: '获取中...', tokenError: false });
 
-    // Fetch Token Price
     wx.cloud.callFunction({
       name: 'getTokenPrice',
       data: { region: 'cn' },
       success: (res) => {
         if (res.result && res.result.data && res.result.data.price) {
-          this.setData({ tokenPrice: res.result.data.price.toLocaleString() });
+          this.setData({
+            tokenPrice: res.result.data.price.toLocaleString(),
+            tokenError: false
+          });
         } else {
-          this.setData({ tokenPrice: '获取失败' });
+          this.setData({
+            tokenPrice: '获取失败',
+            tokenError: true
+          });
         }
       },
-      fail: () => {
-        this.setData({ tokenPrice: '获取失败' });
+      fail: (err) => {
+        console.error('获取时光徽章价格失败:', err);
+        this.setData({
+          tokenPrice: '获取失败',
+          tokenError: true
+        });
       }
     });
+  },
 
-    // Fetch Affixes
+  fetchAffixes() {
+    this.setData({ isLoadingAffixes: true, affixError: false });
+
     wx.cloud.callFunction({
       name: 'proxyRequest',
       data: {
@@ -109,15 +124,20 @@ Page({
               if (n.includes(key)) n = n.replace(key, shortMap[key]);
             }
             return { ...a, name: n };
-          }).filter(a => /[\u4e00-\u9fa5]/.test(a.name)); // 强制过滤掉依旧不包含中文字符的词缀
+          }).filter(a => /[\u4e00-\u9fa5]/.test(a.name));
 
-          this.setData({ affixes, isLoadingWeekly: false });
+          this.setData({
+            affixes,
+            isLoadingAffixes: false,
+            affixError: affixes.length === 0
+          });
         } else {
-          this.setData({ isLoadingWeekly: false });
+          this.setData({ isLoadingAffixes: false, affixError: true });
         }
       },
-      fail: () => {
-        this.setData({ isLoadingWeekly: false });
+      fail: (err) => {
+        console.error('获取词缀失败:', err);
+        this.setData({ isLoadingAffixes: false, affixError: true });
       }
     });
   },
@@ -141,9 +161,15 @@ Page({
     });
   },
 
+  navigateToBuild() {
+    wx.navigateTo({
+      url: '/pages/build/build'
+    });
+  },
+
   navigateToBis() {
     wx.showToast({
-      title: '数据核对录入中，敬请期待',
+      title: '敬请期待',
       icon: 'none',
       duration: 2000
     });

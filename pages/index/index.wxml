@@ -14,8 +14,14 @@
     <!-- Token Price -->
     <view class="dash-card token-card" bindtap="navigateToToken">
       <view class="dash-info">
-        <text class="dash-label">时光徽章</text>
-        <text class="dash-value">{{tokenPrice}}</text>
+        <text class="dash-label">时光徽章 (国服)</text>
+        <view class="dash-price-row">
+          <text class="dash-value {{tokenError ? 'error-text' : ''}}">{{tokenPrice}}</text>
+          <view class="retry-pill" wx:if="{{tokenError}}" catchtap="fetchTokenPrice">
+            <text class="retry-icon">↻</text>
+            <text>重试</text>
+          </view>
+        </view>
       </view>
     </view>
     
@@ -25,11 +31,17 @@
         <text class="dash-title">本周词缀 (国服)</text>
       </view>
       
-      <view class="affix-loading" wx:if="{{isLoadingWeekly}}">正在获取...</view>
+      <view class="affix-loading" wx:if="{{isLoadingAffixes}}">正在获取...</view>
       <view class="affix-tags" wx:elif="{{affixes.length > 0}}">
         <view class="affix-tag" wx:for="{{affixes}}" wx:key="id">{{item.name}}</view>
       </view>
-      <view class="affix-loading" wx:else>获取失败，请稍后重试</view>
+      <view class="affix-error-row" wx:else>
+        <text class="affix-error-text">获取失败</text>
+        <view class="retry-pill" catchtap="fetchAffixes">
+          <text class="retry-icon">↻</text>
+          <text>重试</text>
+        </view>
+      </view>
     </view>
   </view>
 
@@ -43,8 +55,8 @@
 
     <view class="nav-card" bindtap="navigateToTopMeta">
       <view class="card-content">
-        <view class="card-title">顶层出场率</view>
-        <view class="card-desc">实时追踪高层大秘境全职业专精出场率。</view>
+        <view class="card-title">大米前百数据</view>
+        <view class="card-desc">实时追踪高层大秘境前100名车队阵容与专精出场率。</view>
       </view>
     </view>
 
@@ -64,10 +76,20 @@
 
     <view class="nav-card" bindtap="navigateToBis">
       <view class="card-content">
-        <view class="card-title">BiS 装备推荐</view>
-        <view class="card-desc">全职业毕业装备、附魔、宝石权威指南。</view>
+        <view class="card-title">BiS 装备和攻略</view>
+        <view class="card-desc">全职业毕业装备、附魔、宝石权威指南 (敬请期待)。</view>
       </view>
     </view>
+
+    <!-- 暂时隐藏配装栏目 -->
+    <!--
+    <view class="nav-card" bindtap="navigateToBuild">
+      <view class="card-content">
+        <view class="card-title" style="color: #38bdf8;">配装</view>
+        <view class="card-desc">按专精自由模拟配装，区分双手与主副手，实时收益统计与清单分享。</view>
+      </view>
+    </view>
+    -->
 
   </view>
   

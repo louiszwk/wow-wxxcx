@@ -1,0 +1,595 @@
+<!--pages/build/build.wxml-->
+<view class="page-container theme-{{theme}}">
+  <!-- 自定义顶部导航栏 -->
+  <view class="nav-bar" style="padding-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px;">
+    <view class="nav-back" bindtap="onNavBack" style="height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+      <text class="back-icon">‹</text>
+      <text class="back-text">{{currentView === 'editor' ? '返回列表' : '返回'}}</text>
+    </view>
+    <view class="nav-title" style="line-height: {{menuButtonHeight}}px;">
+      {{currentView === 'editor' ? '配装模拟器' : '配装方案库'}}
+    </view>
+    <view class="theme-toggle" bindtap="toggleTheme">
+      <text class="theme-icon">{{theme === 'light' ? '🌙' : '☀️'}}</text>
+    </view>
+  </view>
+
+  <!-- ======================================================== -->
+  <!-- 视图一：配装方案列表 (currentView === 'list')             -->
+  <!-- ======================================================== -->
+  <view class="list-view-container" wx:if="{{currentView === 'list'}}">
+    <scroll-view class="list-scroll" scroll-y="true">
+      <!-- 头部概览卡片 -->
+      <view class="list-hero-card">
+        <view class="hero-content">
+          <view class="hero-title-row">
+            <text class="hero-title">12.1 S2 配装方案库</text>
+            <text class="hero-badge">共 {{filteredBuilds.length}} 套方案</text>
+          </view>
+          <view class="hero-subtitle">
+            按专精自由模拟配装，区分双手武器与主副手，全套 12.1 数据库实时统计与一键分享。
+          </view>
+        </view>
+      </view>
+
+      <!-- 职业横向滚动筛选条 -->
+      <view class="filter-bar-card">
+        <view class="filter-header">
+          <text class="filter-title">职业筛选</text>
+          <text class="filter-current-tag" style="color: {{selectedClassFilter.color || '#38bdf8'}};">{{selectedClassFilter.name}}</text>
+        </view>
+        <scroll-view class="class-scroll-row" scroll-x="true" enable-flex="true">
+          <view class="class-pill {{selectedClassFilter.id === 'all' ? 'active' : ''}}" bindtap="onSelectClassFilter" data-id="all">
+            <text class="pill-icon">🌐</text>
+            <text>全部职业</text>
+          </view>
+          <block wx:for="{{classes}}" wx:key="id">
+            <view class="class-pill {{selectedClassFilter.id === item.id ? 'active' : ''}}" bindtap="onSelectClassFilter" data-id="{{item.id}}" style="{{selectedClassFilter.id === item.id ? 'background: ' + item.color + '22; border-color: ' + item.color + '; color: ' + item.color + ';' : ''}}">
+              <text class="pill-icon">{{item.icon}}</text>
+              <text>{{item.name}}</text>
+            </view>
+          </block>
+        </scroll-view>
+
+        <!-- 专精子筛选条 (当选中具体职业时出现) -->
+        <view class="spec-sub-filter" wx:if="{{selectedClassFilter.id !== 'all' && specFilterOptions.length > 0}}">
+          <view class="spec-label">专精：</view>
+          <scroll-view class="spec-scroll-row" scroll-x="true" enable-flex="true">
+            <view class="spec-pill {{selectedSpecFilterId === 'all' ? 'active' : ''}}" bindtap="onSelectSpecFilter" data-id="all">
+              全部专精
+            </view>
+            <block wx:for="{{specFilterOptions}}" wx:key="id">
+              <view class="spec-pill {{selectedSpecFilterId === item.id ? 'active' : ''}}" bindtap="onSelectSpecFilter" data-id="{{item.id}}">
+                {{item.name}}
+              </view>
+            </block>
+          </scroll-view>
+        </view>
+      </view>
+
+      <!-- 配装方案卡片列表 -->
+      <view class="builds-grid">
+        <view class="empty-builds-box" wx:if="{{filteredBuilds.length === 0}}">
+          <text class="empty-icon">🛡️</text>
+          <text class="empty-title">暂无该专精的配装方案</text>
+          <text class="empty-desc">点击下方“创建新配装”，立即为 {{selectedClassFilter.name}} 打造 12.1 S2 毕业搭配！</text>
+          <view class="create-trigger-btn" bindtap="openNewBuildEditor">+ 立即创建配装</view>
+        </view>
+
+        <block wx:for="{{filteredBuilds}}" wx:key="id">
+          <view class="build-card" bindtap="openEditBuild" data-build="{{item}}">
+            <!-- 方案头部信息 -->
+            <view class="build-card-header">
+              <view class="build-title-row">
+                <text class="build-name">{{item.name}}</text>
+                <view class="build-tags">
+                  <text class="class-tag" style="background: {{item.classColor}}22; color: {{item.classColor}}; border: 1px solid {{item.classColor}}55;">
+                    {{item.classIcon}} {{item.className}}
+                  </text>
+                  <text class="spec-tag">{{item.specName}}</text>
+                </view>
+              </view>
+              <view class="build-meta-row">
+                <text class="equip-badge">{{item.equippedCount || 0}} / 16 部位已配</text>
+                <text class="update-time">{{item.updatedAtText || '12.1 S2'}}</text>
+              </view>
+            </view>
+
+            <!-- 绿字四维属性微型比例条 -->
+            <view class="build-stat-bar-box">
+              <view class="build-stat-progress">
+                <view class="stat-seg crit" style="width: {{item.statsSummary.critPercent || 0}}%;"></view>
+                <view class="stat-seg haste" style="width: {{item.statsSummary.hastePercent || 0}}%;"></view>
+                <view class="stat-seg mastery" style="width: {{item.statsSummary.masteryPercent || 0}}%;"></view>
+                <view class="stat-seg versa" style="width: {{item.statsSummary.versaPercent || 0}}%;"></view>
+              </view>
+              <view class="build-stat-chips">
+                <text class="chip-item crit" wx:if="{{item.statsSummary.critPercent}}">暴击 {{item.statsSummary.critPercent}}%</text>
+                <text class="chip-item haste" wx:if="{{item.statsSummary.hastePercent}}">急速 {{item.statsSummary.hastePercent}}%</text>
+                <text class="chip-item mastery" wx:if="{{item.statsSummary.masteryPercent}}">精通 {{item.statsSummary.masteryPercent}}%</text>
+                <text class="chip-item versa" wx:if="{{item.statsSummary.versaPercent}}">全能 {{item.statsSummary.versaPercent}}%</text>
+              </view>
+            </view>
+
+            <!-- 核心武器预览 (显示双手/单手) -->
+            <view class="weapon-preview-row" wx:if="{{item.weaponPreview}}">
+              <text class="weapon-preview-label">武器配置：</text>
+              <text class="weapon-preview-text">{{item.weaponPreview}}</text>
+            </view>
+
+            <!-- 底部操作按钮 -->
+            <view class="build-card-actions">
+              <view class="card-btn-primary" catchtap="openEditBuild" data-build="{{item}}">
+                <text>✏️ 编辑 / 试穿</text>
+              </view>
+              <view class="card-btn-share" catchtap="openShareModal" data-build="{{item}}">
+                <text>🔗 分享</text>
+              </view>
+              <view class="card-btn-copy" catchtap="duplicateBuild" data-build="{{item}}">
+                <text>📑 复制</text>
+              </view>
+              <view class="card-btn-delete" catchtap="confirmDeleteBuild" data-build="{{item}}">
+                <text>🗑️</text>
+              </view>
+            </view>
+          </view>
+        </block>
+      </view>
+
+      <view class="list-bottom-spacer"></view>
+    </scroll-view>
+
+    <!-- 固定底部“创建新配装”大按钮 -->
+    <view class="fixed-bottom-bar">
+      <view class="big-create-btn" bindtap="openNewBuildEditor">
+        <text class="btn-icon">✨</text>
+        <text class="btn-text">创建新配装方案</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ======================================================== -->
+  <!-- 视图二：配装模拟与编辑 (currentView === 'editor')        -->
+  <!-- ======================================================== -->
+  <view class="editor-view-container" wx:if="{{currentView === 'editor'}}">
+    <scroll-view class="main-scroll" scroll-y="true">
+      <!-- 来自好友分享的提示条 -->
+      <view class="share-import-banner" wx:if="{{isFromShare}}">
+        <view class="banner-text">
+          <text class="b-title">💡 正在查看分享方案：{{currentBuild.name}}</text>
+          <text class="b-sub">职业专精：{{currentBuild.className}} · {{currentBuild.specName}}</text>
+        </view>
+        <view class="banner-save-btn" bindtap="saveCurrentBuild">
+          💾 保存至我的方案
+        </view>
+      </view>
+
+      <!-- 方案基础配置卡片 (名称、职业、专精) -->
+      <view class="config-bar">
+        <!-- 方案名称输入 -->
+        <view class="build-name-row">
+          <text class="name-label">方案名称：</text>
+          <input class="build-name-input" placeholder="输入配装名称 (如: S2 惩戒骑大米大锤流)" value="{{currentBuild.name}}" bindinput="onBuildNameInput" />
+        </view>
+
+        <!-- 职业与专精选择器 -->
+        <view class="class-spec-selector-row">
+          <picker class="selector-picker" mode="selector" range="{{classes}}" range-key="name" bindchange="onClassChange">
+            <view class="selector-pill class-pill-btn">
+              <text class="picker-icon">{{classes[currentClassIndex].icon}}</text>
+              <text class="picker-name" style="color: {{classes[currentClassIndex].color}};">{{classes[currentClassIndex].name}}</text>
+              <text class="arrow-down">▼</text>
+            </view>
+          </picker>
+
+          <picker class="selector-picker" mode="selector" range="{{classes[currentClassIndex].specs}}" range-key="name" bindchange="onSpecChange">
+            <view class="selector-pill spec-pill-btn">
+              <text class="picker-badge">专精</text>
+              <text class="picker-name">{{classes[currentClassIndex].specs[currentSpecIndex].name}}</text>
+              <text class="arrow-down">▼</text>
+            </view>
+          </picker>
+        </view>
+
+        <!-- 专精特性与推荐说明 -->
+        <view class="spec-info-banner">
+          <view class="spec-prop-badges">
+            <text class="s-badge armor">{{classes[currentClassIndex].armor}}</text>
+            <text class="s-badge stat">{{classes[currentClassIndex].mainStat}}</text>
+            <text class="s-badge weapon">{{classes[currentClassIndex].specs[currentSpecIndex].desc}}</text>
+          </view>
+        </view>
+
+        <!-- 操作按钮组 -->
+        <view class="plan-actions">
+          <view class="action-pill save-pill" bindtap="saveCurrentBuild">
+            <text class="action-icon">💾</text>
+            <text>保存配装</text>
+          </view>
+          <view class="action-pill share-pill" bindtap="openShareModal" data-build="{{currentBuild}}">
+            <text class="action-icon">🔗</text>
+            <text>分享方案</text>
+          </view>
+          <view class="action-pill copy-pill" bindtap="exportBuildText">
+            <text class="action-icon">📋</text>
+            <text>复制清单</text>
+          </view>
+          <view class="action-pill clear-pill" bindtap="clearCurrentSlots">
+            <text class="action-icon">🗑️</text>
+            <text>重置</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 实时总属性统计卡片 -->
+      <view class="stats-card">
+        <view class="stats-header">
+          <view class="stats-title-row">
+            <text class="stats-title">总配装收益统计</text>
+            <text class="equip-count">已装配 {{statsSummary.count}} / 16 件</text>
+          </view>
+        </view>
+
+        <!-- 绿字属性比例条 -->
+        <view class="stat-bars-container">
+          <view class="stat-progress-bar">
+            <view class="bar-segment crit-bar" style="width: {{statsSummary.critPercent}}%;"></view>
+            <view class="bar-segment haste-bar" style="width: {{statsSummary.hastePercent}}%;"></view>
+            <view class="bar-segment mastery-bar" style="width: {{statsSummary.masteryPercent}}%;"></view>
+            <view class="bar-segment versa-bar" style="width: {{statsSummary.versaPercent}}%;"></view>
+          </view>
+          
+          <view class="stat-grid">
+            <view class="stat-box crit-box">
+              <text class="stat-name">暴击</text>
+              <text class="stat-value">{{statsSummary.critPercent}}%</text>
+              <text class="stat-sub">权重 {{statsSummary.critScore}}</text>
+            </view>
+            <view class="stat-box haste-box">
+              <text class="stat-name">急速</text>
+              <text class="stat-value">{{statsSummary.hastePercent}}%</text>
+              <text class="stat-sub">权重 {{statsSummary.hasteScore}}</text>
+            </view>
+            <view class="stat-box mastery-box">
+              <text class="stat-name">精通</text>
+              <text class="stat-value">{{statsSummary.masteryPercent}}%</text>
+              <text class="stat-sub">权重 {{statsSummary.masteryScore}}</text>
+            </view>
+            <view class="stat-box versa-box">
+              <text class="stat-name">全能</text>
+              <text class="stat-value">{{statsSummary.versaPercent}}%</text>
+              <text class="stat-sub">权重 {{statsSummary.versaScore}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 副本掉落来源分布 -->
+        <view class="source-distribution" wx:if="{{statsSummary.sourcesList.length > 0}}">
+          <view class="source-label">掉落来源分布：</view>
+          <view class="source-tags">
+            <view class="source-tag" wx:for="{{statsSummary.sourcesList}}" wx:key="name">
+              <text class="s-name">{{item.name}}</text>
+              <text class="s-count">{{item.count}}件</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 角色纸娃娃装备栏 (左右双列) -->
+      <view class="doll-container">
+        <!-- 左列 6 部位 -->
+        <view class="doll-column left-col">
+          <block wx:for="{{slotsConfig}}" wx:key="id" wx:if="{{item.col === 'left'}}">
+            <view class="slot-card {{equippedGear[item.id] ? 'equipped' : 'empty'}}" bindtap="openSlotDrawer" data-slot-id="{{item.id}}">
+              <view class="slot-header">
+                <view class="slot-tag-box">
+                  <text class="slot-icon">{{item.icon}}</text>
+                  <text class="slot-title">{{item.name}}</text>
+                </view>
+                <view class="slot-remove-btn" wx:if="{{equippedGear[item.id]}}" catchtap="unequipSlot" data-slot-id="{{item.id}}">×</view>
+              </view>
+
+              <view class="slot-body" wx:if="{{equippedGear[item.id]}}">
+                <view class="gear-name epic-text">{{equippedGear[item.id].name}}</view>
+                <view class="gear-tags">
+                  <text class="crafted-badge" wx:if="{{equippedGear[item.id].is_crafted}}">制造业</text>
+                  <text class="stat-ratio-badge" wx:if="{{equippedGear[item.id].secondary_stats && equippedGear[item.id].secondary_stats.ratio_text}}">{{equippedGear[item.id].secondary_stats.ratio_text}}</text>
+                  <text class="stat-badge" wx:elif="{{equippedGear[item.id].stat_combo}}">{{equippedGear[item.id].stat_combo}}</text>
+                  <text class="armor-badge">{{equippedGear[item.id].item_class}}</text>
+                </view>
+                <view class="source-desc">{{equippedGear[item.id].source_desc}}</view>
+              </view>
+
+              <view class="slot-body empty-body" wx:else>
+                <text class="empty-prompt">+ 选择装备</text>
+              </view>
+            </view>
+          </block>
+        </view>
+
+        <!-- 右列 6 部位 -->
+        <view class="doll-column right-col">
+          <block wx:for="{{slotsConfig}}" wx:key="id" wx:if="{{item.col === 'right'}}">
+            <view class="slot-card {{equippedGear[item.id] ? 'equipped' : 'empty'}}" bindtap="openSlotDrawer" data-slot-id="{{item.id}}">
+              <view class="slot-header">
+                <view class="slot-tag-box">
+                  <text class="slot-icon">{{item.icon}}</text>
+                  <text class="slot-title">{{item.name}}</text>
+                </view>
+                <view class="slot-remove-btn" wx:if="{{equippedGear[item.id]}}" catchtap="unequipSlot" data-slot-id="{{item.id}}">×</view>
+              </view>
+
+              <view class="slot-body" wx:if="{{equippedGear[item.id]}}">
+                <view class="gear-name epic-text">{{equippedGear[item.id].name}}</view>
+                <view class="gear-tags">
+                  <text class="crafted-badge" wx:if="{{equippedGear[item.id].is_crafted}}">制造业</text>
+                  <text class="stat-ratio-badge" wx:if="{{equippedGear[item.id].secondary_stats && equippedGear[item.id].secondary_stats.ratio_text}}">{{equippedGear[item.id].secondary_stats.ratio_text}}</text>
+                  <text class="stat-badge" wx:elif="{{equippedGear[item.id].stat_combo}}">{{equippedGear[item.id].stat_combo}}</text>
+                  <text class="armor-badge">{{equippedGear[item.id].item_class}}</text>
+                </view>
+                <view class="source-desc">{{equippedGear[item.id].source_desc}}</view>
+              </view>
+
+              <view class="slot-body empty-body" wx:else>
+                <text class="empty-prompt">+ 选择装备</text>
+              </view>
+            </view>
+          </block>
+        </view>
+      </view>
+
+      <!-- 底部武器与饰品栏 (4部位 - 重点区分双手武器与主副手) -->
+      <view class="doll-bottom-container">
+        <view class="bottom-section-title">
+          <text>武器与饰品</text>
+          <text class="sub-hint" wx:if="{{isOffHandLocked}}">🔒 主手已装备双手武器，副手已自动占用</text>
+        </view>
+        <view class="bottom-grid">
+          <!-- 饰品 1 -->
+          <view class="slot-card bottom-card {{equippedGear.trinket1 ? 'equipped' : 'empty'}}" bindtap="openSlotDrawer" data-slot-id="trinket1">
+            <view class="slot-header">
+              <view class="slot-tag-box">
+                <text class="slot-icon">🔮</text>
+                <text class="slot-title">饰品 1</text>
+              </view>
+              <view class="slot-remove-btn" wx:if="{{equippedGear.trinket1}}" catchtap="unequipSlot" data-slot-id="trinket1">×</view>
+            </view>
+            <view class="slot-body" wx:if="{{equippedGear.trinket1}}">
+              <view class="gear-name epic-text">{{equippedGear.trinket1.name}}</view>
+              <view class="gear-tags">
+                <text class="stat-ratio-badge" wx:if="{{equippedGear.trinket1.secondary_stats}}">{{equippedGear.trinket1.secondary_stats.ratio_text}}</text>
+                <text class="stat-badge" wx:else>{{equippedGear.trinket1.stat_combo}}</text>
+              </view>
+              <view class="source-desc">{{equippedGear.trinket1.source_desc}}</view>
+            </view>
+            <view class="slot-body empty-body" wx:else><text class="empty-prompt">+ 选饰品</text></view>
+          </view>
+
+          <!-- 饰品 2 -->
+          <view class="slot-card bottom-card {{equippedGear.trinket2 ? 'equipped' : 'empty'}}" bindtap="openSlotDrawer" data-slot-id="trinket2">
+            <view class="slot-header">
+              <view class="slot-tag-box">
+                <text class="slot-icon">🔮</text>
+                <text class="slot-title">饰品 2</text>
+              </view>
+              <view class="slot-remove-btn" wx:if="{{equippedGear.trinket2}}" catchtap="unequipSlot" data-slot-id="trinket2">×</view>
+            </view>
+            <view class="slot-body" wx:if="{{equippedGear.trinket2}}">
+              <view class="gear-name epic-text">{{equippedGear.trinket2.name}}</view>
+              <view class="gear-tags">
+                <text class="stat-ratio-badge" wx:if="{{equippedGear.trinket2.secondary_stats}}">{{equippedGear.trinket2.secondary_stats.ratio_text}}</text>
+                <text class="stat-badge" wx:else>{{equippedGear.trinket2.stat_combo}}</text>
+              </view>
+              <view class="source-desc">{{equippedGear.trinket2.source_desc}}</view>
+            </view>
+            <view class="slot-body empty-body" wx:else><text class="empty-prompt">+ 选饰品</text></view>
+          </view>
+
+          <!-- 主手武器 -->
+          <view class="slot-card bottom-card weapon-card {{equippedGear.mainHand ? 'equipped' : 'empty'}}" bindtap="openSlotDrawer" data-slot-id="mainHand">
+            <view class="slot-header">
+              <view class="slot-tag-box">
+                <text class="slot-icon">⚔️</text>
+                <text class="slot-title">主手武器</text>
+                <text class="weapon-type-pill" wx:if="{{equippedGear.mainHand}}">{{equippedGear.mainHand.item_class}}</text>
+              </view>
+              <view class="slot-remove-btn" wx:if="{{equippedGear.mainHand}}" catchtap="unequipSlot" data-slot-id="mainHand">×</view>
+            </view>
+            <view class="slot-body" wx:if="{{equippedGear.mainHand}}">
+              <view class="gear-name epic-text">{{equippedGear.mainHand.name}}</view>
+              <view class="gear-tags">
+                <text class="twohand-badge" wx:if="{{isMainHandTwoHanded}}">双手武器</text>
+                <text class="stat-ratio-badge" wx:if="{{equippedGear.mainHand.secondary_stats}}">{{equippedGear.mainHand.secondary_stats.ratio_text}}</text>
+                <text class="stat-badge" wx:elif="{{equippedGear.mainHand.stat_combo}}">{{equippedGear.mainHand.stat_combo}}</text>
+              </view>
+              <view class="source-desc">{{equippedGear.mainHand.source_desc}}</view>
+            </view>
+            <view class="slot-body empty-body" wx:else><text class="empty-prompt">+ 选武器</text></view>
+          </view>
+
+          <!-- 副手武器 / 盾牌 (区分双手武器锁定状态) -->
+          <view class="slot-card bottom-card weapon-card {{isOffHandLocked ? 'locked' : equippedGear.offHand ? 'equipped' : 'empty'}}" bindtap="onOffHandSlotTap" data-slot-id="offHand">
+            <view class="slot-header">
+              <view class="slot-tag-box">
+                <text class="slot-icon">🛡️</text>
+                <text class="slot-title">副手 / 盾牌</text>
+                <text class="lock-tag" wx:if="{{isOffHandLocked}}">已占用</text>
+              </view>
+              <view class="slot-remove-btn" wx:if="{{equippedGear.offHand && !isOffHandLocked}}" catchtap="unequipSlot" data-slot-id="offHand">×</view>
+            </view>
+
+            <!-- 双手武器占用锁死展示 -->
+            <view class="slot-body locked-body" wx:if="{{isOffHandLocked}}">
+              <view class="locked-title">🔒 双手武器已占用</view>
+              <view class="locked-desc">主手为双手武器，无法额外装备副手 (狂暴战双持双手除外)</view>
+            </view>
+
+            <!-- 正常已装配 -->
+            <view class="slot-body" wx:elif="{{equippedGear.offHand}}">
+              <view class="gear-name epic-text">{{equippedGear.offHand.name}}</view>
+              <view class="gear-tags">
+                <text class="stat-ratio-badge" wx:if="{{equippedGear.offHand.secondary_stats}}">{{equippedGear.offHand.secondary_stats.ratio_text}}</text>
+                <text class="armor-badge">{{equippedGear.offHand.item_class}}</text>
+              </view>
+              <view class="source-desc">{{equippedGear.offHand.source_desc}}</view>
+            </view>
+
+            <!-- 空状态 -->
+            <view class="slot-body empty-body" wx:else>
+              <text class="empty-prompt">+ 选副手/盾牌</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="footer-tip">
+        <text>数据均来自 12.1 S2 大秘境、烈毒之渊团本与全套征兆火花制造业数据库</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- ======================================================== -->
+  <!-- 装备选择抽屉 (Bottom Drawer)                             -->
+  <!-- ======================================================== -->
+  <view class="drawer-mask" wx:if="{{isDrawerOpen}}" bindtap="closeDrawer"></view>
+  <view class="drawer-container {{isDrawerOpen ? 'open' : ''}}">
+    <view class="drawer-header">
+      <view class="drawer-title-row">
+        <view class="drawer-title">
+          <text class="slot-tag-bubble">{{activeSlot.name}}</text>
+          <text>选择装备 (共 {{candidateItems.length}} 件)</text>
+        </view>
+        <view class="drawer-close-btn" bindtap="closeDrawer">✕</view>
+      </view>
+
+      <!-- 搜索输入框 -->
+      <view class="search-box">
+        <text class="search-icon">🔍</text>
+        <input class="search-input" placeholder="搜索装备名称 / 制造业 / 副本 / 绿字..." value="{{searchQuery}}" bindinput="onSearchInput" placeholder-style="color: var(--text-secondary);"/>
+      </view>
+
+      <!-- 护甲快速匹配切换 -->
+      <view class="filter-armor-toggle" bindtap="toggleArmorMatch">
+        <text class="toggle-checkbox">{{onlyMatchArmor ? '☑' : '☐'}}</text>
+        <text>优先匹配 {{classes[currentClassIndex].name}} 专精类别 ({{classes[currentClassIndex].armor}})</text>
+      </view>
+
+      <!-- 绿字属性过滤栏 -->
+      <scroll-view class="filter-scroll" scroll-x="true">
+        <view class="filter-pill-list">
+          <view class="filter-label">属性：</view>
+          <block wx:for="{{statFilters}}" wx:key="*this">
+            <view class="filter-pill {{selectedStatFilter === item ? 'active' : ''}}" bindtap="onStatFilterChange" data-stat="{{item}}">
+              {{item}}
+            </view>
+          </block>
+        </view>
+      </scroll-view>
+
+      <!-- 来源过滤栏 -->
+      <scroll-view class="filter-scroll" scroll-x="true">
+        <view class="filter-pill-list">
+          <view class="filter-label">来源：</view>
+          <block wx:for="{{dungeonFilters}}" wx:key="*this">
+            <view class="filter-pill {{selectedDungeonFilter === item ? 'active' : ''}}" bindtap="onDungeonFilterChange" data-dungeon="{{item}}">
+              {{item}}
+            </view>
+          </block>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 候选装备列表 -->
+    <scroll-view class="candidate-list-scroll" scroll-y="true">
+      <view class="unequip-action-row" wx:if="{{equippedGear[activeSlot.id]}}">
+        <view class="unequip-btn" bindtap="unequipSlot" data-slot-id="{{activeSlot.id}}">
+          <text>卸下当前已选装备 ({{equippedGear[activeSlot.id].name}})</text>
+        </view>
+      </view>
+
+      <view class="empty-candidate" wx:if="{{candidateItems.length === 0}}">
+        <text class="empty-candidate-icon">🔍</text>
+        <text class="empty-candidate-text">暂无符合筛选条件的装备\n可尝试关闭“专精类别”或清除搜索词</text>
+      </view>
+
+      <view class="candidate-card" wx:for="{{candidateItems}}" wx:key="id" bindtap="equipItem" data-item="{{item}}">
+        <view class="item-main-row">
+          <view class="item-name-box">
+            <view class="item-name-line">
+              <text class="item-name epic-text">{{item.name}}</text>
+              <text class="crafted-pill" wx:if="{{item.is_crafted}}">制造业 · {{item.profession}}</text>
+            </view>
+            <view class="item-meta-badges">
+              <text class="meta-badge armor-tag">{{item.item_class}}</text>
+              <text class="meta-badge slot-tag">{{item.slot}}</text>
+              <text class="meta-badge stat-tag" wx:if="{{item.stat_combo}}">{{item.stat_combo}}</text>
+              <text class="meta-badge emb-tag" wx:if="{{item.embellishment_compatible}}">可加美化</text>
+            </view>
+
+            <!-- 绿字急速、暴击等比例与分值展示 -->
+            <view class="item-ratio-container" wx:if="{{item.secondary_stats && item.secondary_stats.list.length > 0}}">
+              <view class="mini-ratio-bar">
+                <view class="mini-ratio-seg" wx:for="{{item.secondary_stats.list}}" wx:for-item="st" wx:key="name" style="width: {{st.percent}}%; background: {{st.color}};"></view>
+              </view>
+              <view class="ratio-chips">
+                <view class="ratio-chip" wx:for="{{item.secondary_stats.list}}" wx:for-item="st" wx:key="name">
+                  <text class="chip-dot" style="background: {{st.color}};"></text>
+                  <text class="chip-text">{{st.name}} <text class="chip-pct">{{st.percent}}%</text> (权重 {{st.weight}})</text>
+                </view>
+              </view>
+            </view>
+          </view>
+          <view class="equip-action-btn">装备</view>
+        </view>
+
+        <view class="item-footer-row">
+          <text class="item-source-text">{{item.source_desc}}</text>
+          <text class="item-main-stat" wx:if="{{item.main_stats && item.main_stats.length > 0}}">主属性: {{item.main_stats[0]}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- ======================================================== -->
+  <!-- 分享配装方案弹窗 (isShareModalOpen)                      -->
+  <!-- ======================================================== -->
+  <view class="modal-mask" wx:if="{{isShareModalOpen}}" bindtap="closeShareModal"></view>
+  <view class="share-dialog" wx:if="{{isShareModalOpen}}">
+    <view class="share-dialog-header">
+      <text class="share-dialog-title">分享配装方案</text>
+      <view class="share-close" bindtap="closeShareModal">✕</view>
+    </view>
+
+    <view class="share-dialog-body">
+      <!-- 分享卡片预览 -->
+      <view class="share-preview-card">
+        <view class="preview-title">{{sharingBuild.name}}</view>
+        <view class="preview-tags">
+          <text class="class-tag" style="color: {{sharingBuild.classColor}};">{{sharingBuild.className}}</text>
+          <text class="spec-tag">{{sharingBuild.specName}}</text>
+          <text class="equip-badge">{{sharingBuild.equippedCount || 0}} / 16 部位</text>
+        </view>
+        <view class="preview-stats" wx:if="{{sharingBuild.statsSummary}}">
+          <text>暴击 {{sharingBuild.statsSummary.critPercent}}%</text> · 
+          <text>急速 {{sharingBuild.statsSummary.hastePercent}}%</text> · 
+          <text>精通 {{sharingBuild.statsSummary.masteryPercent}}%</text> · 
+          <text>全能 {{sharingBuild.statsSummary.versaPercent}}%</text>
+        </view>
+      </view>
+
+      <view class="share-options-list">
+        <!-- 微信好友原生转发按钮 -->
+        <button open-type="share" class="share-opt-btn wechat-btn">
+          <text class="opt-icon">💬</text>
+          <text class="opt-text">直接发送给微信好友 / 车队群聊</text>
+        </button>
+
+        <!-- 复制配装清单文本与口令 -->
+        <view class="share-opt-btn copy-btn" bindtap="copyShareText">
+          <text class="opt-icon">📋</text>
+          <text class="opt-text">复制配装文字清单与导入口令</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
