@@ -1,5 +1,4 @@
 const { INITIAL_WISHES } = require('../../data/infinite_data.js');
-const { checkTextSecurity } = require('../../utils/sensitive_filter.js');
 
 Page({
   data: {
@@ -310,33 +309,10 @@ Page({
       return;
     }
 
-    // 1. 本地敏感词即时检测 (拦截违法违规、涉黄涉赌、暴恐辱骂、恶意引流广告)
-    const authorCheck = checkTextSecurity(trimmedAuthor);
-    if (!authorCheck.pass) {
-      wx.showModal({
-        title: '昵称未通过合规检测',
-        content: `冒险者昵称含有不合规内容（“${authorCheck.word || '违规词'}”），请修改后再试！`,
-        showCancel: false,
-        confirmColor: '#f59e0b'
-      });
-      return;
-    }
-
-    const contentCheck = checkTextSecurity(trimmedContent);
-    if (!contentCheck.pass) {
-      wx.showModal({
-        title: '心愿未通过合规检测',
-        content: `许愿内容包含敏感或违规词汇（“${contentCheck.word || '违规词'}”），请文明许愿！`,
-        showCancel: false,
-        confirmColor: '#f59e0b'
-      });
-      return;
-    }
-
     this.setData({ isSubmitting: true });
-    wx.showLoading({ title: '圣光验愿中...', mask: true });
+    wx.showLoading({ title: '内容安全检测中...', mask: true });
 
-    // 2. 调用微信官方云端安全内容检测 (msgSecCheck) 进行双重审核
+    // 调用微信官方安全检测接口 (security.msgSecCheck) 进行违规字词审查
     try {
       const fullText = `${trimmedAuthor}：${trimmedContent}`;
       const secRes = await wx.cloud.callFunction({
@@ -348,16 +324,15 @@ Page({
         wx.hideLoading();
         this.setData({ isSubmitting: false });
         wx.showModal({
-          title: '未通过微信内容安全审核',
-          content: secRes.result.error || '该心愿内容经系统检测存在违规信息，请调整文字后再试。',
+          title: '未通过安全审核',
+          content: secRes.result.error || '该心愿内容经微信官方安全检测含有敏感违规信息，请调整文字后再试。',
           showCancel: false,
           confirmColor: '#f59e0b'
         });
         return;
       }
     } catch (err) {
-      // 若云函数未部署或网络异常，已通过第一道本地敏感词过滤兜底，允许继续入库
-      console.warn('云端安全检测调用跳过(使用本地严格过滤):', err.message);
+      console.warn('微信官方内容安全接口调用异常或尚未部署:', err);
     }
 
     // 3. 将玩家许愿写入微信云数据库 infinite_wishes 集合
