@@ -72,6 +72,14 @@
       {
         "type": "file",
         "value": "data/stitch_maps.js"
+      },
+      {
+        "type": "glob",
+        "value": "pages/game-*/**"
+      },
+      {
+        "type": "file",
+        "value": "data/games_data.js"
       }
     ],
     "include": []

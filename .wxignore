@@ -11,3 +11,5 @@ package.json
 package-lock.json
 .eslintrc.js
 .git/
+pages/game-*/
+data/games_data.js

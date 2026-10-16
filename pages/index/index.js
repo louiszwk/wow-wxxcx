@@ -186,12 +186,6 @@ Page({
     });
   },
 
-  navigateToGames() {
-    wx.navigateTo({
-      url: '/pages/game-hub/game-hub'
-    });
-  },
-
   switchMainTab(e) {
     const tab = e.currentTarget.dataset.tab;
     if (tab === this.data.currentTab) return;
@@ -210,23 +204,6 @@ Page({
   goToInfiniteClasses() { wx.navigateTo({ url: '/pages/infinite-classes/infinite-classes' }); },
   goToInfiniteWishes() { wx.navigateTo({ url: '/pages/infinite-wishes/infinite-wishes' }); },
   goToInfiniteTerms() { wx.navigateTo({ url: '/pages/infinite-terms/infinite-terms' }); },
-
-  goToKickGame() { wx.navigateTo({ url: '/pages/game-kick/game-kick' }); },
-  goTo2048Game() { wx.navigateTo({ url: '/pages/game-2048/game-2048' }); },
-  goToMoleGame() { wx.navigateTo({ url: '/pages/game-mole/game-mole' }); },
-  goToFlappyGame() { wx.navigateTo({ url: '/pages/game-flappy/game-flappy' }); },
-  goToSnakeGame() { wx.navigateTo({ url: '/pages/game-snake/game-snake' }); },
-  goToQuizGame() { wx.navigateTo({ url: '/pages/game-quiz/game-quiz' }); },
-  goToMemoryGame() { wx.navigateTo({ url: '/pages/game-memory/game-memory' }); },
-  goToDodgeGame() { wx.navigateTo({ url: '/pages/game-dodge/game-dodge' }); },
-  goToMatch3Game() { wx.navigateTo({ url: '/pages/game-match3/game-match3' }); },
-  goToMinesGame() { wx.navigateTo({ url: '/pages/game-mines/game-mines' }); },
-  goToGomokuGame() { wx.navigateTo({ url: '/pages/game-gomoku/game-gomoku' }); },
-  goToReactionGame() { wx.navigateTo({ url: '/pages/game-reaction/game-reaction' }); },
-  goToBreakoutGame() { wx.navigateTo({ url: '/pages/game-breakout/game-breakout' }); },
-  goToTetrisGame() { wx.navigateTo({ url: '/pages/game-tetris/game-tetris' }); },
-  goToTicTacToeGame() { wx.navigateTo({ url: '/pages/game-tictactoe/game-tictactoe' }); },
-  goToMazeGame() { wx.navigateTo({ url: '/pages/game-maze/game-maze' }); },
 
   onSubtitleTap() {
     const now = Date.now();
@@ -274,14 +251,14 @@ Page({
 ,
   onShareAppMessage() {
     return {
-      title: '艾泽拉斯的微风 - 魔兽世界全能工具箱与游乐场',
+      title: '艾泽拉斯的微风 - 魔兽世界核心向工具箱',
       path: '/pages/index/index'
     };
   },
 
   onShareTimeline() {
     return {
-      title: '艾泽拉斯的微风 - 魔兽世界全能工具箱与游乐场',
+      title: '艾泽拉斯的微风 - 魔兽世界核心向工具箱',
       path: '/pages/index/index'
     };
   }

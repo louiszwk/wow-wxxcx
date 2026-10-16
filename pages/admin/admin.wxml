@@ -91,11 +91,11 @@
       </view>
       <view class="input-item">
         <text class="input-label">大秘境天赋字符串 (Mythic+)</text>
-        <input class="text-input" placeholder="游戏内导出的大秘境天赋字符串" value="{{talentsMythic}}" bindinput="onBuildFieldInput" data-field="talentsMythic" />
+        <input class="text-input" placeholder="魔兽客户端导出的大秘境天赋字符串" value="{{talentsMythic}}" bindinput="onBuildFieldInput" data-field="talentsMythic" />
       </view>
       <view class="input-item">
         <text class="input-label">团本天赋字符串 (Raid)</text>
-        <input class="text-input" placeholder="游戏内导出的团本天赋字符串" value="{{talentsRaid}}" bindinput="onBuildFieldInput" data-field="talentsRaid" />
+        <input class="text-input" placeholder="魔兽客户端导出的团本天赋字符串" value="{{talentsRaid}}" bindinput="onBuildFieldInput" data-field="talentsRaid" />
       </view>
       <view class="input-item">
         <text class="input-label">天赋核心流派点评与手法思路</text>
