@@ -36,16 +36,14 @@
   </view>
 
   <!-- Category Filter Chips -->
-  <scroll-view class="category-scroll" scroll-x="true" enable-flex="true">
+  <scroll-view class="category-scroll" scroll-x="true" enable-flex="true" show-scrollbar="{{false}}" enhanced="{{true}}">
     <view 
       wx:for="{{categoryList}}" 
       wx:key="id" 
       class="cat-chip {{currentCategory === item.id ? 'active' : ''}}" 
       data-id="{{item.id}}" 
       bindtap="selectCategory"
-    >
-      {{item.label}}
-    </view>
+    ><text>{{item.label}}</text></view>
   </scroll-view>
 
   <!-- Count Summary -->

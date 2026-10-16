@@ -92,12 +92,6 @@
         </view>
       </view>
 
-      <view class="nav-card" bindtap="navigateToBis">
-        <view class="card-content">
-          <view class="card-title">BiS 装备和攻略</view>
-          <view class="card-desc">全职业毕业装备、附魔、宝石权威指南 (敬请期待)。</view>
-        </view>
-      </view>
 
       <view class="nav-card" bindtap="goToInfiniteTerms">
         <view class="card-content">
