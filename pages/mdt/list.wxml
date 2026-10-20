@@ -1,0 +1,147 @@
+<view class="page-container theme-{{theme}}">
+  <!-- 自定义导航栏 -->
+  <view class="custom-nav" style="padding-top: {{statusBarHeight}}px;">
+    <view class="nav-content" style="height: {{menuButtonHeight}}px;">
+      <view class="back-btn" bindtap="navigateBack">
+        <text class="back-icon">‹</text>
+        <text class="back-text">返回</text>
+      </view>
+      <text class="nav-title">大秘境路线</text>
+      <view class="nav-placeholder"></view>
+    </view>
+  </view>
+
+  <!-- 主体滚动区域 -->
+  <scroll-view 
+    scroll-y="true" 
+    class="main-scroll" 
+    refresher-enabled="true"
+    refresher-triggered="{{isRefreshing}}"
+    bindrefresherrefresh="onPullDownRefreshList">
+
+    <!-- 1. 顶部八个副本横向选择栏 (默认选择第1个) -->
+    <view class="dungeons-scroll-wrap">
+      <scroll-view 
+        scroll-x="true" 
+        class="dungeons-scroll-bar" 
+        enable-flex="true" 
+        show-scrollbar="false"
+        scroll-into-view="{{'dungeon-item-' + currentDungeonIndex}}">
+        <view 
+          wx:for="{{dungeons}}" 
+          wx:key="id"
+          id="{{'dungeon-item-' + index}}"
+          class="dungeon-chip {{currentDungeonIndex === index ? 'active' : ''}}"
+          bindtap="onSelectDungeon"
+          data-index="{{index}}">
+          <image class="dungeon-bg-img" src="{{item.image}}" mode="aspectFill" />
+          <view class="dungeon-chip-overlay"></view>
+          <text class="dungeon-chip-name">{{item.name}}</text>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 2. 中间筛选栏与操作区 -->
+    <view class="toolbar-section">
+      <!-- 左侧: 难度层级切换药丸 -->
+      <view class="level-tabs">
+        <view 
+          wx:for="{{levelTabs}}" 
+          wx:key="*this"
+          class="level-pill {{currentLevelTab === item ? 'active' : ''}}"
+          bindtap="onSelectLevelTab"
+          data-tab="{{item}}">
+          {{item}}
+        </view>
+      </view>
+
+      <!-- 右侧: 创建路线按钮与《仅显示我的路线》选项 -->
+      <view class="actions-right">
+        <view class="btn-create-route" bindtap="goToCreateRoute">
+          <text class="create-icon">+</text>
+          <text class="create-text">创建路线</text>
+        </view>
+        <view class="filter-my-routes" bindtap="toggleOnlyMyRoutes">
+          <view class="custom-checkbox {{onlyMyRoutes ? 'checked' : ''}}">
+            <text class="check-mark" wx:if="{{onlyMyRoutes}}">✓</text>
+          </view>
+          <text class="checkbox-label">仅显示我的路线</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 3. 路线列表 -->
+    <view class="routes-list">
+      <!-- 加载中提示 -->
+      <view class="loading-state" wx:if="{{isLoading}}">
+        <view class="loading-spinner"></view>
+        <text class="loading-text">正在加载 {{currentDungeon.name}} 路线...</text>
+      </view>
+
+      <!-- 空数据状态 -->
+      <view class="empty-state" wx:elif="{{routes.length === 0}}">
+        <view class="empty-icon">🗺️</view>
+        <text class="empty-title">暂无该分类下的路线</text>
+        <text class="empty-desc">成为第一个为「{{currentDungeon.name}}」规划战术的大神吧！</text>
+        <view class="empty-create-btn" bindtap="goToCreateRoute">
+          <text>立即创建首条路线</text>
+        </view>
+      </view>
+
+      <!-- 路线卡片列表 -->
+      <block wx:else>
+        <view 
+          wx:for="{{routes}}" 
+          wx:key="_id"
+          class="route-card"
+          bindtap="goToViewRoute"
+          data-id="{{item._id}}">
+          
+          <!-- 右侧透视背景插图 (水印融合层，不挤占内容宽度) -->
+          <view class="route-bg-thumb">
+            <image class="thumb-img" src="{{currentDungeon.image}}" mode="aspectFill" />
+            <view class="thumb-gradient-mask"></view>
+          </view>
+
+          <!-- 卡片主内容区 (自适应全宽，层级高于背景图) -->
+          <view class="route-main-content">
+            <view class="route-header-line">
+              <text class="route-title">{{item.name}}</text>
+              <text class="route-level-tag" wx:if="{{item.levelRange && item.levelRange !== '全部'}}">{{item.levelRange}}</text>
+            </view>
+
+            <view class="route-meta-author">
+              <text class="author-name">{{item.authorName || '艾泽拉斯勇士'}}</text>
+              <text class="create-date">{{item.displayTime}}</text>
+            </view>
+
+            <!-- 统计与操作栏 (严格单行排布，绝不折行) -->
+            <view class="route-footer-line">
+              <view class="stats-group">
+                <view class="stat-item">
+                  <text class="stat-icon">👁</text>
+                  <text class="stat-num">{{item.views || 0}}</text>
+                </view>
+                <view class="stat-item like-item" catchtap="onLikeRoute" data-id="{{item._id}}" data-index="{{index}}">
+                  <text class="stat-icon like-icon {{item.hasLiked ? 'liked' : ''}}">👍</text>
+                  <text class="stat-num {{item.hasLiked ? 'liked-num' : ''}}">{{item.likes || 0}}</text>
+                </view>
+                <text class="pull-count-summary">共{{item.pullCount || (item.pulls ? item.pulls.length : 0)}}波</text>
+              </view>
+
+              <!-- 权限操作: 仅创建人可见修改与删除按钮 (紧凑单行排布) -->
+              <view class="owner-actions" wx:if="{{item.isOwner}}">
+                <view class="action-chip edit" catchtap="goToEditRoute" data-id="{{item._id}}">
+                  <text class="chip-text">修改</text>
+                </view>
+                <view class="action-chip delete" catchtap="onDeleteRoute" data-id="{{item._id}}" data-name="{{item.name}}">
+                  <text class="chip-text">删除</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+</view>

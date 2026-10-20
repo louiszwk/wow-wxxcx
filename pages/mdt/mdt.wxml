@@ -8,23 +8,22 @@
       </view>
       <view class="dungeon-selector" bindtap="openDungeonModal">
         <text class="dungeon-title">{{currentDungeonName}}</text>
-        <text class="dungeon-arrow">▾</text>
+        <text class="mode-badge edit" wx:if="{{mode === 'edit'}}">修改中</text>
+        <text class="mode-badge view" wx:elif="{{mode === 'view'}}">预览</text>
+        <text class="dungeon-arrow" wx:if="{{mode === 'create'}}">▾</text>
       </view>
     </view>
   </view>
 
-
-
   <!-- 次级工具栏 -->
   <view class="sub-header">
-    <view class="tool-btn" bindtap="resetAll">重置</view>
+    <view class="tool-btn" bindtap="resetAll" wx:if="{{mode !== 'view'}}">重置</view>
+    <view class="mode-tip-text" wx:else>当前为浏览模式</view>
     <view class="header-tools">
-      <view class="tool-btn" bindtap="openRouteManager">
-        <text>路线库</text>
-        <text class="saved-count-badge" wx:if="{{savedRoutes.length > 0}}">{{savedRoutes.length}}</text>
-      </view>
       <view class="tool-btn highlight" bindtap="openSaveModal">
-        <text>保存</text>
+        <text wx:if="{{mode === 'edit'}}">保存修改</text>
+        <text wx:elif="{{mode === 'view'}}">另存为路线</text>
+        <text wx:else>保存发布</text>
       </view>
       <button class="tool-btn share-header-btn" open-type="share" data-id="current" bindtap="setShareRoute">
         <text>分享</text>
@@ -89,22 +88,6 @@
       <view class="zoom-btn reset-btn" bindtap="resetZoom" hover-class="zoom-btn-active">适应</view>
     </view>
 
-    <!-- 怪物点击信息浮层 HUD -->
-    <view class="enemy-hud" wx:if="{{selectedEnemyInfo}}" catchtap="dismissEnemyTip">
-      <view class="hud-left">
-        <view class="hud-name">
-          <text class="hud-boss-badge" wx:if="{{selectedEnemyInfo.isBoss}}">首领</text>
-          <text>{{selectedEnemyInfo.name}}</text>
-        </view>
-        <view class="hud-desc">
-          同组: {{selectedEnemyInfo.packCount}}只 | 贡献进度: +{{selectedEnemyInfo.forces}} ({{selectedEnemyInfo.percent}}%)
-        </view>
-      </view>
-      <view class="hud-right">
-        <text class="hud-status">{{selectedEnemyInfo.action}}</text>
-        <text class="hud-close">✕</text>
-      </view>
-    </view>
   </view>
 
   <!-- 底部波次控制台 -->
@@ -287,13 +270,40 @@
             maxlength="120" />
         </view>
 
+        <view class="form-item">
+          <text class="form-label">作者署名</text>
+          <input 
+            class="form-input" 
+            placeholder="例如: 头铁迪 或 匿名" 
+            placeholder-class="input-placeholder"
+            value="{{saveAuthorName}}" 
+            bindinput="onSaveAuthorNameInput" 
+            maxlength="15" />
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">适用难度层级</text>
+          <view class="level-tabs-selector">
+            <view 
+              wx:for="{{levelRangeOptions}}" 
+              wx:key="*this"
+              class="level-tab-option {{saveRouteLevelRange === item ? 'active' : ''}}"
+              bindtap="onSelectSaveLevelRange"
+              data-level="{{item}}">
+              {{item}}
+            </view>
+          </view>
+        </view>
+
         <view class="route-preview-summary">
           <text>当前进度: {{currentForces}} / {{totalForces}} ({{percent}}%) · {{pulls.length}} 个波次</text>
         </view>
 
         <view class="save-form-actions">
           <view class="form-btn cancel" bindtap="closeSaveModal">取消</view>
-          <view class="form-btn confirm" bindtap="confirmSaveRoute">确认保存</view>
+          <view class="form-btn confirm" bindtap="confirmSaveRoute">
+            {{mode === 'edit' ? '确认保存修改' : '确认发布路线'}}
+          </view>
         </view>
       </view>
     </view>

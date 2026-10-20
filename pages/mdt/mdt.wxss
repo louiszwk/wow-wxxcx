@@ -1037,3 +1037,51 @@ button.card-action-btn.share::after {
   transform: scale(0.98);
   opacity: 0.85;
 }
+
+/* 模式徽章与提示 */
+.mode-badge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  font-weight: 500;
+}
+.mode-badge.edit {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+.mode-badge.view {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.mode-tip-text {
+  font-size: 11px;
+  color: #94a3b8;
+  padding: 4px 8px;
+}
+
+/* 层级选择器 */
+.level-tabs-selector {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+.level-tab-option {
+  padding: 6px 12px;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 12px;
+}
+.level-tab-option.active {
+  background: #2563eb;
+  border-color: #38bdf8;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.4);
+}

@@ -8,8 +8,56 @@ exports.main = async (event, context) => {
   const { content } = event;
   const wxContext = cloud.getWXContext();
 
+  const db = cloud.database();
+  const _ = db.command;
+
+  // 1. 自动初始化创建 mdt_routes 集合 (解决 DATABASE_COLLECTION_NOT_EXIST 错误)
+  if (event && event.action === 'initMdtCollection') {
+    try {
+      await db.createCollection('mdt_routes');
+      return { success: true, created: true, openid: wxContext.OPENID };
+    } catch (err) {
+      return { success: true, existed: true, openid: wxContext.OPENID };
+    }
+  }
+
+  // 2. 支持直接获取当前调用者的真实 openid，并自动确保集合存在
+  if (event && event.action === 'getOpenId') {
+    try {
+      await db.createCollection('mdt_routes');
+    } catch (_) {}
+    return {
+      openid: wxContext.OPENID,
+      unionid: wxContext.UNIONID,
+      env: wxContext.ENV
+    };
+  }
+
+  // 3. 点赞与浏览量自增 (云端 Admin 权限，天然规避只读权限限制)
+  if (event && event.action === 'likeMdtRoute' && event.routeId) {
+    try {
+      await db.collection('mdt_routes').doc(event.routeId).update({
+        data: { likes: _.inc(1) }
+      });
+      return { success: true };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
+
+  if (event && event.action === 'incMdtView' && event.routeId) {
+    try {
+      await db.collection('mdt_routes').doc(event.routeId).update({
+        data: { views: _.inc(1) }
+      });
+      return { success: true };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
+
   if (!content || typeof content !== 'string') {
-    return { pass: true };
+    return { pass: true, openid: wxContext.OPENID };
   }
 
   const cleanContent = content.trim().slice(0, 500);

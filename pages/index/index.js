@@ -182,7 +182,7 @@ Page({
 
   navigateToMdt() {
     wx.navigateTo({
-      url: '/pages/mdt/mdt'
+      url: '/pages/mdt/list'
     });
   },
 

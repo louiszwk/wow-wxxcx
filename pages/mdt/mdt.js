@@ -1,23 +1,42 @@
 const allDungeonsData = require('./all_dungeons_data.js');
 
 const DUNGEONS_LIST = [
-  '谋杀街 (Murder Row)',
-  '纳洛拉克之巢',
-  '致盲谷',
+  '毒牙祭坛',
   '虚空之痕竞技场',
-  '尖牙祭坛',
-  '红玉新生法地',
+  '夺目谷',
+  '红玉新生法池',
+  '谋杀街',
+  '纳洛拉克之巢',
   '塞塔里斯神庙',
   '诸王之眠'
 ];
 
+const DUNGEON_DATA_KEYS = {
+  '毒牙祭坛': '尖牙祭坛',
+  '尖牙祭坛': '尖牙祭坛',
+  '虚空之痕竞技场': '虚空之痕竞技场',
+  '夺目谷': '致盲谷',
+  '致盲谷': '致盲谷',
+  '红玉新生法池': '红玉新生法地',
+  '红玉新生法地': '红玉新生法地',
+  '谋杀街': '谋杀街 (Murder Row)',
+  '谋杀街 (Murder Row)': '谋杀街 (Murder Row)',
+  '纳洛拉克之巢': '纳洛拉克之巢',
+  '塞塔里斯神庙': '塞塔里斯神庙',
+  '诸王之眠': '诸王之眠'
+};
+
 const DUNGEON_FILES = {
+  '毒牙祭坛': 'AltarOfFangs',
+  '尖牙祭坛': 'AltarOfFangs',
+  '虚空之痕竞技场': 'VoidscarArena',
+  '夺目谷': 'TheBlindingVale',
+  '致盲谷': 'TheBlindingVale',
+  '红玉新生法池': 'RubyLifePools',
+  '红玉新生法地': 'RubyLifePools',
+  '谋杀街': 'MurderRow',
   '谋杀街 (Murder Row)': 'MurderRow',
   '纳洛拉克之巢': 'DenOfNalorakk',
-  '致盲谷': 'TheBlindingVale',
-  '虚空之痕竞技场': 'VoidscarArena',
-  '尖牙祭坛': 'AltarOfFangs',
-  '红玉新生法地': 'RubyLifePools',
   '塞塔里斯神庙': 'TempleOfSethraliss',
   '诸王之眠': 'KingsRest'
 };
@@ -133,9 +152,21 @@ Page({
     mapHeight: 800,
 
     dungeonNames: DUNGEONS_LIST,
-    currentDungeonName: '红玉新生法地',
-    mapImage: '/pages/mdt/images/maps/RubyLifePools.jpg',
+    currentDungeonName: '毒牙祭坛',
+    mapImage: '/pages/mdt/images/maps/AltarOfFangs.jpg',
     showDungeonModal: false,
+
+    // 路线模式与权限
+    mode: 'create', // create: 创建, edit: 修改(仅限创建人), view: 浏览
+    routeId: '',
+    editingRouteId: '',
+    isAuthor: false,
+    currentOpenId: '',
+    userNickname: '',
+
+    // 难度层级选项
+    levelRangeOptions: ['全部', '2-10层', '10-15层', '15层以上'],
+    saveRouteLevelRange: '全部',
 
     // 缩放控制
     scaleValue: 0.35,
@@ -191,21 +222,130 @@ Page({
       scalePercent: Math.round(this.fitScale * 100)
     });
 
-    // 处理分享进入：从URL参数解码路线
-    let targetDungeon = '红玉新生法地';
-    if (options && options.d !== undefined && options.p) {
-      const dIdx = parseInt(options.d);
-      if (dIdx >= 0 && dIdx < DUNGEONS_LIST.length) {
-        targetDungeon = DUNGEONS_LIST[dIdx];
-      }
-      this._pendingShare = {
-        pulls: options.p,
-        name: options.n ? decodeURIComponent(options.n) : '分享的路线',
-        remark: options.r ? decodeURIComponent(options.r) : ''
-      };
+    // 获取当前用户 openid 与昵称
+    this._initUserIdentity();
+
+    const mode = options ? (options.mode || 'create') : 'create';
+    const routeId = options ? (options.id || '') : '';
+    let targetDungeon = '毒牙祭坛';
+    if (options && options.dungeon) {
+      targetDungeon = decodeURIComponent(options.dungeon);
     }
 
-    this.loadDungeon(targetDungeon);
+    this.setData({
+      mode,
+      routeId,
+      currentDungeonName: targetDungeon
+    });
+
+    if (routeId) {
+      // 从云数据库加载指定路线
+      this.loadRouteFromCloud(routeId, mode);
+    } else {
+      // 新建空白路线
+      this.loadDungeon(targetDungeon);
+    }
+  },
+
+  _initUserIdentity() {
+    let openid = wx.getStorageSync('user_openid') || '';
+    let nickname = wx.getStorageSync('user_nickname') || '';
+    if (openid) {
+      this.setData({ currentOpenId: openid, userNickname: nickname });
+      return;
+    }
+
+    try {
+      wx.cloud.callFunction({
+        name: 'checkWishContent',
+        data: { action: 'getOpenId' },
+        success: (res) => {
+          if (res.result && res.result.openid) {
+            openid = res.result.openid;
+            wx.setStorageSync('user_openid', openid);
+            this.setData({ currentOpenId: openid });
+          }
+        }
+      });
+    } catch (e) {
+      console.warn('获取 openid 失败:', e);
+    }
+  },
+
+  // 从云数据库真实加载路线数据
+  loadRouteFromCloud(routeId, requestedMode) {
+    this.setData({ mapLoading: true });
+    wx.showLoading({ title: '加载路线中...' });
+
+    let db;
+    try {
+      db = wx.cloud.database();
+    } catch (e) {
+      wx.hideLoading();
+      wx.showToast({ title: '云开发未初始化', icon: 'none' });
+      return;
+    }
+
+    db.collection('mdt_routes').doc(routeId).get().then(res => {
+      wx.hideLoading();
+      const route = res.data;
+      if (!route) {
+        wx.showToast({ title: '路线不存在或已删除', icon: 'none' });
+        return;
+      }
+
+      const currentOpenId = this.data.currentOpenId || wx.getStorageSync('user_openid') || '';
+      const isAuthor = Boolean(currentOpenId && route._openid && currentOpenId === route._openid);
+
+      let effectiveMode = requestedMode;
+      // 需求3：必须创建人在列表里点击修改才能进行修改；若非创建人强行修改，则降级为浏览模式
+      if (effectiveMode === 'edit' && !isAuthor) {
+        effectiveMode = 'view';
+        wx.showModal({
+          title: '权限提示',
+          content: '只有路线创建人才能修改此路线。当前已为您切换至浏览模式。',
+          showCancel: false,
+          confirmColor: '#2563eb'
+        });
+      }
+
+      const dungeonName = route.dungeon || this.data.currentDungeonName;
+      this.setData({
+        mode: effectiveMode,
+        editingRouteId: (isAuthor && effectiveMode === 'edit') ? route._id : '',
+        isAuthor,
+        saveRouteName: route.name || '',
+        saveRouteRemark: route.remark || '',
+        saveRouteLevelRange: route.levelRange || '全部',
+        currentDungeonName: dungeonName
+      });
+
+      // 加载副本底图与波次数据
+      this.loadDungeon(dungeonName, route.pulls);
+
+      // 累加浏览数 (自增1)
+      try {
+        const _ = db.command;
+        db.collection('mdt_routes').doc(routeId).update({
+          data: { views: _.inc(1) }
+        }).catch(() => {
+          wx.cloud.callFunction({
+            name: 'checkWishContent',
+            data: { action: 'incMdtView', routeId }
+          }).catch(() => {});
+        });
+      } catch (_) {
+        wx.cloud.callFunction({
+          name: 'checkWishContent',
+          data: { action: 'incMdtView', routeId }
+        }).catch(() => {});
+      }
+
+    }).catch(err => {
+      wx.hideLoading();
+      console.error('加载路线详情失败:', err);
+      wx.showToast({ title: '获取路线失败', icon: 'none' });
+    });
   },
 
   onReady() {
@@ -222,6 +362,9 @@ Page({
 
   // ===== 副本切换 =====
   openDungeonModal() {
+    if (this.data.mode === 'edit' || this.data.mode === 'view') {
+      return; // 编辑或查看模式下锁定当前副本
+    }
     this.setData({ showDungeonModal: true });
   },
   closeDungeonModal() {
@@ -238,13 +381,14 @@ Page({
     }
   },
 
-  loadDungeon(name) {
-    const data = allDungeonsData[name];
+  loadDungeon(name, presetPulls = null) {
+    const dataKey = DUNGEON_DATA_KEYS[name] || name;
+    const data = allDungeonsData[dataKey];
     if (!data) {
       wx.showToast({ title: '副本数据缺失', icon: 'none' });
       return;
     }
-    const file = DUNGEON_FILES[name];
+    const file = DUNGEON_FILES[name] || DUNGEON_FILES[dataKey];
     if (!file) {
       wx.showToast({ title: '地图文件缺失', icon: 'none' });
       return;
@@ -259,39 +403,32 @@ Page({
       this._enemyState[e.id] = { selected: false, color: '', pullNumber: null };
     });
 
-    // 2. 加载路线数据（优先级：分享路线 > 本地上次编辑 > 空白）
+    // 2. 波次装载逻辑：浏览与已保存路线直接展示，不读本地草稿缓存；仅新建时才检查未保存草稿
     let initialPulls = [{ color: PULL_COLORS[0], enemyIds: [], forces: 0, percent: '0.0', note: '' }];
 
-    if (this._pendingShare) {
-      // 从分享链接解码路线
+    if (presetPulls && presetPulls.length > 0) {
+      // 浏览或修改已保存路线：严格按已保存数据加载，绝不读取本地草稿！
+      initialPulls = presetPulls.map((p, i) => ({
+        color: p.color || PULL_COLORS[i % PULL_COLORS.length],
+        enemyIds: (p.enemyIds || []).slice(),
+        forces: 0,
+        percent: '0.0',
+        note: p.note || ''
+      }));
+    } else if (this._pendingShare) {
+      // 从分享链接解码
       const decoded = this._decodeSharedRoute(this._pendingShare.pulls);
       if (decoded && decoded.length > 0) {
         initialPulls = decoded;
-        const shareName = this._pendingShare.name || '分享的路线';
-        const shareRemark = this._pendingShare.remark || '';
-        setTimeout(() => {
-          wx.showModal({
-            title: '收到好友分享路线',
-            content: `「${shareName}」已加载到地图上${shareRemark ? ('\n战术备注：' + shareRemark) : ''}，是否保存到我的路线库？`,
-            confirmText: '保存到路线库',
-            cancelText: '仅查看',
-            confirmColor: '#38bdf8',
-            success: (res) => {
-              if (res.confirm) {
-                this._doSaveRoute(shareName, shareRemark);
-              }
-            }
-          });
-        }, 600);
       }
       this._pendingShare = null;
     } else {
-      // 从本地存储恢复上次编辑
+      // 只有新建路线且未保存时，才尝试读取本地未保存的临时草稿
       try {
-        const storageKey = 'mdt_route_' + name;
-        const saved = wx.getStorageSync(storageKey);
-        if (saved && saved.pulls && saved.pulls.length > 0) {
-          initialPulls = saved.pulls.map((sp, i) => ({
+        const draftKey = 'mdt_draft_' + name;
+        const draft = wx.getStorageSync(draftKey);
+        if (draft && draft.pulls && draft.pulls.length > 0) {
+          initialPulls = draft.pulls.map((sp, i) => ({
             color: sp.color || PULL_COLORS[i % PULL_COLORS.length],
             enemyIds: (sp.enemyIds || []).slice(),
             forces: 0,
@@ -300,7 +437,7 @@ Page({
           }));
         }
       } catch (e) {
-        console.warn('读取本地路线失败', e);
+        console.warn('读取本地草稿失败', e);
       }
     }
 
@@ -667,7 +804,6 @@ Page({
             activePullIndex: b.pullIndex,
             activePullScrollId: `pull-item-${b.pullIndex}`
           });
-          try { wx.vibrateShort({ type: 'light' }); } catch (_) {}
           this.scheduleRedraw();
           return;
         }
@@ -717,26 +853,12 @@ Page({
       actionDesc = `已标记为第 ${activeIdx + 1} 波`;
     }
 
-    // 轻微震动触感反馈
-    try { wx.vibrateShort({ type: 'light' }); } catch (_) {}
-
-    // 统计同组贡献
-    const packEnemies = packIds.map(eid => this._enemies[this._enemyMap[eid]]).filter(Boolean);
-    const totalEnemyForces = packEnemies.reduce((sum, en) => sum + en.forces, 0);
-    const percentContributed = ((totalEnemyForces / this.data.totalForces) * 100).toFixed(2);
-
+    // 需求2：彻底去掉震动反馈和每次点击地图弹一下的 HUD 反馈，保持画布平稳丝滑
     this._recalcForces(pulls);
 
     this.setData({
       pulls,
-      selectedEnemyInfo: {
-        name: target.name,
-        isBoss: target.isBoss,
-        forces: totalEnemyForces,
-        percent: percentContributed,
-        packCount: packEnemies.length,
-        action: actionDesc
-      }
+      selectedEnemyInfo: null
     });
 
     this._saveRoute();
@@ -770,13 +892,26 @@ Page({
     this.setData({ currentForces: current, percent });
   },
 
-  // ===== 本地持久化存储：自动保存/加载自定义路线 =====
+  // ===== 本地临时草稿缓存（仅在编辑未保存时缓存；浏览已保存路线绝不缓存） =====
   _saveRoute() {
+    // 1. 用户要求：浏览已经保存的路线是不会缓存的！
+    if (this.data.mode === 'view') {
+      return;
+    }
+
+    // 2. 只有在编辑/新建且尚未保存到数据库时，才记录本地未保存临时草稿
     try {
       const name = this.data.currentDungeonName;
       const pulls = this.data.pulls;
-      const storageKey = 'mdt_route_' + name;
-      const saveData = {
+      const draftKey = 'mdt_draft_' + name;
+      const hasContent = pulls.some(p => p.enemyIds && p.enemyIds.length > 0);
+
+      if (!hasContent) {
+        wx.removeStorageSync(draftKey);
+        return;
+      }
+
+      const draftData = {
         dungeonName: name,
         pulls: pulls.map(p => ({
           color: p.color,
@@ -785,9 +920,9 @@ Page({
         })),
         savedAt: Date.now()
       };
-      wx.setStorageSync(storageKey, saveData);
+      wx.setStorageSync(draftKey, draftData);
     } catch (e) {
-      console.warn('保存路线失败', e);
+      console.warn('缓存草稿失败', e);
     }
   },
 
@@ -875,7 +1010,6 @@ Page({
       activePullScrollId: `pull-item-${newIdx}`
     });
     this._saveRoute();
-    try { wx.vibrateShort({ type: 'light' }); } catch (_) {}
   },
 
   selectPull(e) {
@@ -884,7 +1018,6 @@ Page({
       activePullIndex: idx,
       activePullScrollId: `pull-item-${idx}`
     });
-    try { wx.vibrateShort({ type: 'light' }); } catch (_) {}
     this.scheduleRedraw();
   },
 
@@ -950,7 +1083,10 @@ Page({
           selectedEnemyInfo: null
         });
         this._recalcForces(pulls);
-        this._saveRoute();
+        try {
+          wx.removeStorageSync('mdt_draft_' + this.data.currentDungeonName);
+          wx.removeStorageSync('mdt_route_' + this.data.currentDungeonName);
+        } catch (_) {}
         this.scheduleRedraw();
       }
     });
@@ -982,11 +1118,34 @@ Page({
       wx.showToast({ title: '当前路线为空，请先在地图上选怪', icon: 'none' });
       return;
     }
-    const defaultName = `路线方案 ${this.data.savedRoutes.length + 1}`;
+
+    if (this.data.mode === 'view') {
+      wx.showModal({
+        title: '另存为路线',
+        content: '您正在浏览他人路线，确认将此路线另存为您自己的全新路线吗？',
+        confirmText: '去另存',
+        confirmColor: '#10b981',
+        success: (res) => {
+          if (res.confirm) {
+            this.setData({
+              mode: 'create',
+              editingRouteId: '',
+              showSaveModal: true,
+              saveRouteName: `${this.data.saveRouteName || this.data.currentDungeonName} (副本)`,
+              saveRouteRemark: this.data.saveRouteRemark || ''
+            });
+          }
+        }
+      });
+      return;
+    }
+
+    const defaultName = this.data.saveRouteName || `${this.data.currentDungeonName} 推荐路线`;
+    const defaultAuthor = this.data.saveAuthorName || wx.getStorageSync('user_nickname') || '艾泽拉斯勇士';
     this.setData({
       showSaveModal: true,
       saveRouteName: defaultName,
-      saveRouteRemark: ''
+      saveAuthorName: defaultAuthor
     });
   },
 
@@ -1002,42 +1161,134 @@ Page({
     this.setData({ saveRouteRemark: e.detail.value });
   },
 
-  confirmSaveRoute() {
-    const name = (this.data.saveRouteName || '').trim() || `路线方案 ${this.data.savedRoutes.length + 1}`;
-    const remark = (this.data.saveRouteRemark || '').trim();
-    this._doSaveRoute(name, remark);
-    this.setData({ showSaveModal: false });
+  onSaveAuthorNameInput(e) {
+    this.setData({ saveAuthorName: e.detail.value });
   },
 
-  _doSaveRoute(routeName, routeRemark = '') {
+  onSelectSaveLevelRange(e) {
+    const level = e.currentTarget.dataset.level;
+    this.setData({ saveRouteLevelRange: level });
+  },
+
+  confirmSaveRoute() {
+    const name = (this.data.saveRouteName || '').trim() || `${this.data.currentDungeonName} 路线`;
+    const remark = (this.data.saveRouteRemark || '').trim();
+    const levelRange = this.data.saveRouteLevelRange || '全部';
+    const authorName = (this.data.saveAuthorName || '').trim() || '艾泽拉斯勇士';
+    wx.setStorageSync('user_nickname', authorName);
+    this.setData({ showSaveModal: false });
+    this._saveRouteToCloud(name, remark, levelRange, authorName, false);
+  },
+
+  async _saveRouteToCloud(routeName, routeRemark, levelRange, authorName, isRetry = false) {
     const dungeonName = this.data.currentDungeonName;
     const pulls = this.data.pulls;
-    const storageKey = 'mdt_saved_routes_' + dungeonName;
+    const mode = this.data.mode;
+    const editingRouteId = this.data.editingRouteId;
+
+    wx.showLoading({ title: isRetry ? '正在自动建表后重试...' : '正在同步到云端...' });
+
+    let db;
     try {
-      let savedRoutes = wx.getStorageSync(storageKey) || [];
-      const newRoute = {
-        id: Date.now().toString(36) + '_' + Math.floor(Math.random() * 1000),
-        name: routeName,
-        remark: routeRemark,
-        pulls: pulls.map(p => ({
-          color: p.color,
-          enemyIds: (p.enemyIds || []).slice(),
-          note: p.note || ''
-        })),
-        totalForces: this.data.currentForces,
-        totalRequired: this.data.totalForces,
-        percent: this.data.percent,
-        pullCount: pulls.filter(p => p.enemyIds && p.enemyIds.length > 0).length,
-        createdAt: Date.now(),
-        timeStr: this._formatTime(new Date())
-      };
-      savedRoutes.unshift(newRoute);
-      if (savedRoutes.length > 30) savedRoutes = savedRoutes.slice(0, 30);
-      wx.setStorageSync(storageKey, savedRoutes);
-      this.setData({ savedRoutes });
-      wx.showToast({ title: '路线已保存', icon: 'success' });
+      db = wx.cloud.database();
     } catch (e) {
-      wx.showToast({ title: '保存失败', icon: 'none' });
+      wx.hideLoading();
+      wx.showToast({ title: '云开发未初始化', icon: 'none' });
+      return;
+    }
+
+    const payload = {
+      dungeon: dungeonName,
+      name: routeName,
+      remark: routeRemark,
+      levelRange: levelRange || '全部',
+      pulls: pulls.map(p => ({
+        color: p.color,
+        enemyIds: (p.enemyIds || []).slice(),
+        note: p.note || ''
+      })),
+      totalForces: this.data.currentForces,
+      totalRequired: this.data.totalForces,
+      percent: this.data.percent,
+      pullCount: pulls.filter(p => p.enemyIds && p.enemyIds.length > 0).length,
+      updateTime: Date.now()
+    };
+
+    try {
+      if (mode === 'edit' && editingRouteId) {
+        // 需求3：修改已有路线（由创建人在列表点击修改进入）
+        await db.collection('mdt_routes').doc(editingRouteId).update({
+          data: {
+            ...payload,
+            authorName: authorName
+          }
+        });
+        // 用户要求：已保存的路线不缓存，彻底清除本地临时草稿
+        try {
+          wx.removeStorageSync('mdt_draft_' + dungeonName);
+          wx.removeStorageSync('mdt_route_' + dungeonName);
+        } catch (_) {}
+        wx.hideLoading();
+        wx.showToast({ title: '修改已保存！', icon: 'success' });
+        setTimeout(() => {
+          wx.navigateBack();
+        }, 1200);
+      } else {
+        // 创建全新真实路线
+        await db.collection('mdt_routes').add({
+          data: {
+            ...payload,
+            authorName: authorName || '艾泽拉斯勇士',
+            views: 1,
+            likes: 0,
+            createTime: Date.now()
+          }
+        });
+        // 用户要求：已保存的路线不缓存，彻底清除本地临时草稿
+        try {
+          wx.removeStorageSync('mdt_draft_' + dungeonName);
+          wx.removeStorageSync('mdt_route_' + dungeonName);
+        } catch (_) {}
+        wx.hideLoading();
+        wx.showToast({ title: '路线发布成功！', icon: 'success' });
+        setTimeout(() => {
+          wx.navigateBack();
+        }, 1200);
+      }
+    } catch (err) {
+      const errMsg = (err && (err.errMsg || err.message)) ? (err.errMsg || err.message) : '';
+      console.warn('云端保存初次异常:', errMsg);
+
+      // 自愈机制：若集合未创建，尝试触发云函数自动建表后重试一次
+      if (!isRetry && (errMsg.includes('not exist') || errMsg.includes('ResourceNotFound') || errMsg.includes('DATABASE_COLLECTION_NOT_EXIST'))) {
+        try {
+          const initRes = await wx.cloud.callFunction({
+            name: 'checkWishContent',
+            data: { action: 'initMdtCollection' }
+          });
+          if (initRes && initRes.result && initRes.result.success) {
+            return this._saveRouteToCloud(routeName, routeRemark, levelRange, authorName, true);
+          }
+        } catch (callErr) {
+          console.warn('云函数自动建表尝试失败:', callErr);
+        }
+      }
+
+      wx.hideLoading();
+      if (errMsg.includes('not exist') || errMsg.includes('ResourceNotFound') || errMsg.includes('DATABASE_COLLECTION_NOT_EXIST')) {
+        wx.showModal({
+          title: '数据库集合未创建',
+          content: '云端集合 mdt_routes 尚未创建。\n请在微信开发者工具顶部点击【云开发】->【数据库】->【+添加集合】，输入 mdt_routes 即可！',
+          confirmText: '我知道了',
+          showCancel: false
+        });
+      } else {
+        wx.showModal({
+          title: '云端保存失败',
+          content: errMsg || '保存至云端数据库时发生错误，请检查网络与环境配置',
+          showCancel: false
+        });
+      }
     }
   },
 
@@ -1068,7 +1319,6 @@ Page({
       showRouteManager: false
     });
     this._recalcForces(pulls);
-    this._saveRoute();
     this.scheduleRedraw();
     wx.showToast({ title: `已加载「${route.name}」`, icon: 'none' });
   },
