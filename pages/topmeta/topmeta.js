@@ -34,7 +34,22 @@ Page({
       wx.showShareMenu({ menus: ['shareAppMessage', 'shareTimeline'] });
     }
 
-    this.fetchData();
+    // 1. 优先读取本地持久化缓存（实现秒开，防止白屏与超时等待）
+    const cached = wx.getStorageSync('cache_top_runs_data');
+    if (cached && cached.rankings && Array.isArray(cached.rankings) && cached.rankings.length > 0) {
+      this.setData({
+        allRankings: cached.rankings,
+        loading: false,
+        errorMsg: ''
+      });
+      this.processRuns(cached.rankings);
+      this.processMetaStats(cached.rankings);
+      // 静默拉取最新数据，不干扰用户正常浏览
+      this.fetchData({ silent: true });
+    } else {
+      // 无缓存时走初次完整加载
+      this.fetchData();
+    }
   },
 
   toggleTheme() {
@@ -123,34 +138,103 @@ Page({
     if (this.dotsInterval) clearInterval(this.dotsInterval);
   },
 
-  fetchData(cb) {
-    this.setData({
-      loading: true,
-      errorMsg: '',
-      metaData: null,
-      runsData: null,
-      allRankings: [],
-      isRefreshing: true,
-      allExpanded: false
+  // 统一入口：支持静默刷新与下拉刷新
+  fetchData(options = {}, cb) {
+    if (typeof options === 'function') {
+      cb = options;
+      options = {};
+    }
+    const silent = !!options.silent;
+    const hasExistingData = !!(this.data.runsData && this.data.runsData.length > 0);
+
+    if (!silent && !hasExistingData) {
+      this.setData({
+        loading: true,
+        errorMsg: '',
+        isRefreshing: true
+      });
+      this.showLoadingOverlay();
+    } else {
+      this.setData({ isRefreshing: true });
+    }
+
+    this.fetchRunsUnified((err, rankings) => {
+      this.hideLoadingOverlay();
+      this.setData({ isRefreshing: false });
+
+      if (rankings && rankings.length > 0) {
+        this.setData({
+          allRankings: rankings,
+          loading: false,
+          errorMsg: ''
+        });
+        this.processRuns(rankings);
+        this.processMetaStats(rankings);
+        // 保存本地持久化缓存
+        wx.setStorageSync('cache_top_runs_data', {
+          rankings: rankings,
+          time: Date.now()
+        });
+      } else {
+        // 请求失败降级保护：如果当前已有展示数据，绝不覆盖/清空用户视图！
+        if (hasExistingData || (this.data.runsData && this.data.runsData.length > 0)) {
+          this.setData({ loading: false });
+          if (!silent) {
+            wx.showToast({ title: '网络稍有延迟，已展示当前数据', icon: 'none' });
+          }
+        } else {
+          // 仅在完全没有数据时，才展示全局错误提示
+          this.setData({
+            loading: false,
+            errorMsg: '获取实时数据失败，请下拉重试'
+          });
+          wx.showToast({ title: '数据异常稍后再试', icon: 'none' });
+        }
+      }
+
+      if (typeof cb === 'function') cb();
     });
-    this.fetchRunsRealtime(cb);
   },
 
   onPullDownRefresh() {
-    this.fetchData(() => {
-      this.setData({ isRefreshing: false });
+    this.fetchData({ silent: false }, () => {
       wx.stopPullDownRefresh();
     });
   },
 
-  // 获取 Raider.io 前100名大秘境数据（5页并发请求，无数据库缓存）
-  fetchRunsRealtime(cb) {
-    this.showLoadingOverlay();
+  retryFetch() {
+    this.setData({ errorMsg: '' });
+    this.fetchData();
+  },
 
+  // 统一数据拉取：云端聚合优先，失败则智能客户端分批重试
+  fetchRunsUnified(callback) {
+    // 方案 1：优先尝试云函数一次性聚合拉取（100% 解决丢失第0页、20或40后断层问题）
+    wx.cloud.callFunction({
+      name: 'proxyRequest',
+      data: { action: 'getTopRuns' }
+    }).then(res => {
+      const rankings = res?.result?.data?.rankings;
+      if (res?.result?.success && Array.isArray(rankings) && rankings.length > 0) {
+        // 严格按 rank 排序
+        rankings.sort((a, b) => (a.rank || 0) - (b.rank || 0));
+        callback(null, rankings);
+      } else {
+        // 云函数 action 暂未部署或返回空，平滑降级到客户端分批获取
+        console.warn('云函数 getTopRuns 暂未返回有效数据，降级为客户端分批安全获取');
+        this.fetchRunsClientFallback(callback);
+      }
+    }).catch(err => {
+      console.warn('云函数 getTopRuns 调用异常，降级为客户端分批安全获取:', err);
+      this.fetchRunsClientFallback(callback);
+    });
+  },
+
+  // 客户端分批拉取降级方案（带失败单页重试机制，防止缺失第0页导致前20名丢失）
+  fetchRunsClientFallback(callback) {
     const pageMap = {};
-    let firstBatchShown = false;
 
-    const fetchPage = (page) => {
+    const fetchSinglePage = (page, retryCount = 1) => {
       return wx.cloud.callFunction({
         name: 'proxyRequest',
         data: {
@@ -158,78 +242,65 @@ Page({
           method: 'GET'
         }
       }).then(res => {
-        if (res && res.result && res.result.success && res.result.data && res.result.data.rankings) {
-          pageMap[page] = res.result.data.rankings;
-
-          // 若首屏 page=0 先到达，迅速显示前20条，大幅降低体感白屏时间
-          if (page === 0 && !firstBatchShown && this.data.loading) {
-            firstBatchShown = true;
+        const rankings = res?.result?.data?.rankings;
+        if (res?.result?.success && Array.isArray(rankings) && rankings.length > 0) {
+          pageMap[page] = rankings;
+          // 若首屏 page=0 快速到达且当前屏幕尚未有数据，先展示前20条
+          if (page === 0 && (!this.data.runsData || this.data.runsData.length === 0)) {
             this.hideLoadingOverlay();
-            this.setData({
-              allRankings: pageMap[0],
-              loading: false,
-              isRefreshing: false
-            });
-            this.processRuns(pageMap[0]);
+            this.setData({ allRankings: rankings, loading: false });
+            this.processRuns(rankings);
           }
+          return true;
         }
+        throw new Error(`Page ${page} 返回数据为空`);
       }).catch(err => {
-        console.error(`Page ${page} 请求异常:`, err);
+        if (retryCount > 0) {
+          console.warn(`Page ${page} 请求失败，执行单页补拉重试...`);
+          return new Promise(r => setTimeout(r, 500)).then(() => fetchSinglePage(page, retryCount - 1));
+        }
+        console.error(`Page ${page} 最终请求失败:`, err);
+        return false;
       });
     };
 
-    const requests = [0, 1, 2, 3, 4].map(p => fetchPage(p));
+    const tasks = [0, 1, 2, 3, 4].map(p => fetchSinglePage(p, 1));
 
-    Promise.all(requests).then(() => {
+    Promise.all(tasks).then(() => {
       let combined = [];
       for (let p = 0; p < 5; p++) {
         if (pageMap[p]) {
           combined = combined.concat(pageMap[p]);
         }
       }
-      // 严格截取前100个
+
+      // 按 rank 严格升序排序
+      combined.sort((a, b) => (a.rank || 0) - (b.rank || 0));
       combined = combined.slice(0, 100);
 
+      // 关键容错检查：如果缺失了第0页（第1~20名），绝不能把第21名之后的数据当作前百直接覆盖
+      if (combined.length > 0 && combined[0].rank > 20) {
+        console.warn('检测到前20名数据缺失，尝试复用缓存数据');
+        const cached = wx.getStorageSync('cache_top_runs_data');
+        if (cached && cached.rankings && cached.rankings.length > 0) {
+          callback(null, cached.rankings);
+          return;
+        }
+      }
+
       if (combined.length > 0) {
-        this.setData({
-          allRankings: combined,
-          loading: false,
-          isRefreshing: false,
-          scrollTop: 0
-        });
-        this.processRuns(combined);
-        // 固定计算前100个队伍的职业与专精出场率
-        this.processMetaStats(combined);
-        this.hideLoadingOverlay();
+        callback(null, combined);
       } else {
-        this.hideLoadingOverlay();
-        this.setData({
-          loading: false,
-          isRefreshing: false,
-          errorMsg: '获取实时数据失败，请下拉重试'
-        });
-        wx.showToast({ title: '数据异常稍后再试', icon: 'none' });
+        callback(new Error('未拉取到任何有效数据'), null);
       }
     }).catch(err => {
-      console.error('获取实时数据失败:', err);
-      this.hideLoadingOverlay();
-      this.setData({
-        loading: false,
-        isRefreshing: false,
-        errorMsg: '获取实时数据失败，请下拉重试'
-      });
-      wx.showToast({ title: '数据异常稍后再试', icon: 'none' });
-    }).finally(() => {
-      if (typeof cb === 'function') cb();
+      callback(err, null);
     });
   },
 
-  retryFetch() {
-    this.setData({ errorMsg: '' });
-    this.fetchTopRuns();
-  },
-
   processMetaStats(allRuns) {
+    if (!allRuns || !Array.isArray(allRuns) || allRuns.length === 0) return;
+
     const counts = { tanks: {}, healers: {}, melee: {}, ranged: {} };
     const rangedSpecs = new Set([
       'Balance', 'Beast Mastery', 'Marksmanship', 'Arcane', 'Fire', 'Frost',
@@ -260,18 +331,21 @@ Page({
       'Arms': '武器', 'Fury': '狂怒'
     };
 
-    classData.forEach(c => { classColors[c.name] = c.color; });
+    if (Array.isArray(classData)) {
+      classData.forEach(c => { classColors[c.name] = c.color; });
+    }
 
     allRuns.forEach(r => {
-      if (!r.run || !r.run.roster) return;
+      if (!r || !r.run || !Array.isArray(r.run.roster)) return;
       r.run.roster.forEach(member => {
+        if (!member || !member.character) return;
         const char = member.character;
-        const role = member.role;
-        const specEn = char.spec.name;
-        const clsEn = char.class.name;
+        const role = member.role || 'dps';
+        const specEn = char?.spec?.name || '';
+        const clsEn = char?.class?.name || '';
 
-        const clsName = clsMap[clsEn] || clsEn;
-        const specName = specMap[specEn] || specEn;
+        const clsName = clsMap[clsEn] || clsEn || '未知职业';
+        const specName = specMap[specEn] || specEn || '未知专精';
         const key = `${clsName} - ${specName}`;
         const color = classColors[clsName] || '#ffffff';
 
@@ -280,7 +354,7 @@ Page({
         else if (role === 'healer') category = 'healers';
         else if (role === 'dps') category = rangedSpecs.has(specEn) ? 'ranged' : 'melee';
 
-        if (category) {
+        if (category && counts[category]) {
           if (!counts[category][key]) counts[category][key] = { count: 0, color };
           counts[category][key].count += 1;
         }
@@ -303,6 +377,8 @@ Page({
   },
 
   processRuns(runs) {
+    if (!runs || !Array.isArray(runs)) return;
+
     const { classData } = require('../../utils/wowClasses.js');
     const classColors = {};
     const clsMap = {
@@ -327,7 +403,9 @@ Page({
       'Arms': '武器', 'Fury': '狂怒'
     };
 
-    classData.forEach(c => { classColors[c.name] = c.color; });
+    if (Array.isArray(classData)) {
+      classData.forEach(c => { classColors[c.name] = c.color; });
+    }
 
     const dungeonMap = {
       'Den of Nalorakk': '纳洛拉克的洞穴',
@@ -362,36 +440,39 @@ Page({
     const existingExpanded = {};
     if (this.data.runsData) {
       this.data.runsData.forEach(item => {
-        existingExpanded[item.rank] = item.expanded;
+        if (item && item.rank !== undefined) {
+          existingExpanded[item.rank] = item.expanded;
+        }
       });
     }
 
     const runsData = runs.map(r => {
-      if (!r.run || !r.run.roster) return null;
+      if (!r || !r.run || !Array.isArray(r.run.roster)) return null;
       const roster = r.run.roster.map(m => {
-        const clsEn = m.character.class.name;
-        const specEn = m.character.spec.name;
-        const clsName = clsMap[clsEn] || clsEn;
-        const specName = specMap[specEn] || specEn;
+        if (!m || !m.character) return null;
+        const clsEn = m?.character?.class?.name || '';
+        const specEn = m?.character?.spec?.name || '';
+        const clsName = clsMap[clsEn] || clsEn || '未知职业';
+        const specName = specMap[specEn] || specEn || '未知专精';
         return {
-          name: m.character.name,
-          role: m.role,
+          name: m?.character?.name || '未知',
+          role: m?.role || 'dps',
           rawClass: clsName,
           rawSpec: specName,
           spec: `${clsName} - ${specName}`,
           color: classColors[clsName] || '#ffffff'
         };
-      });
+      }).filter(Boolean);
 
       const roleOrder = { 'tank': 1, 'healer': 2, 'dps': 3 };
-      roster.sort((a, b) => roleOrder[a.role] - roleOrder[b.role]);
+      roster.sort((a, b) => (roleOrder[a.role] || 3) - (roleOrder[b.role] || 3));
 
-      const enDungeon = r.run.dungeon.name;
+      const enDungeon = r.run?.dungeon?.name || '';
       return {
         rank: r.rank,
         score: r.score,
-        level: r.run.mythic_level,
-        dungeon: dungeonMap[enDungeon] || enDungeon,
+        level: r.run?.mythic_level || 0,
+        dungeon: dungeonMap[enDungeon] || enDungeon || '未知地下城',
         roster: roster,
         expanded: existingExpanded[r.rank] !== undefined ? existingExpanded[r.rank] : this.data.allExpanded
       };

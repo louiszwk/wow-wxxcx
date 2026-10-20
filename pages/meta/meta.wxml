@@ -18,11 +18,11 @@
       <view class="tab-item {{activeTab === 'healers' ? 'active' : ''}}" data-tab="healers" bindtap="switchTab">Healers</view>
     </view>
 
-    <view class="status-message" wx:if="{{loading}}">
+    <view class="status-message" wx:if="{{loading && (!dpsData || dpsData.length === 0)}}">
       <text>正在实时获取最新数据...</text>
     </view>
     
-    <view class="error-container" wx:if="{{!loading && errorMsg}}">
+    <view class="error-container" wx:if="{{!loading && errorMsg && (!dpsData || dpsData.length === 0)}}">
       <view class="error-content">
         <text class="error-icon">⚠️</text>
         <text class="error-text">{{errorMsg}}</text>
@@ -34,7 +34,7 @@
     </view>
 
     <!-- DPS 视图 -->
-    <block wx:if="{{!loading && !errorMsg && dpsData && activeTab === 'dps'}}">
+    <block wx:if="{{dpsData && dpsData.length > 0 && activeTab === 'dps'}}">
       <view class="meta-section">
         <view class="section-title">伤害输出排名 (DPS) - 14层及以上</view>
         <view class="meta-list">
@@ -58,7 +58,7 @@
     </block>
 
     <!-- Tanks 视图 -->
-    <block wx:if="{{!loading && !errorMsg && tankData && activeTab === 'tanks'}}">
+    <block wx:if="{{tankData && tankData.length > 0 && activeTab === 'tanks'}}">
       <view class="meta-section">
         <view class="section-title">坦克强度排名 (Tanks) - 14层及以上</view>
         <view class="meta-list">
@@ -82,7 +82,7 @@
     </block>
 
     <!-- Healers 视图 -->
-    <block wx:if="{{!loading && !errorMsg && healerData && activeTab === 'healers'}}">
+    <block wx:if="{{healerData && healerData.length > 0 && activeTab === 'healers'}}">
       <view class="meta-section">
         <view class="section-title">治疗强度排名 (Healers) - 14层及以上</view>
         <view class="meta-list">

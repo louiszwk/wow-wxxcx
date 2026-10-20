@@ -20,7 +20,7 @@
       </view>
     </view>
     
-    <view class="error-container" wx:if="{{errorMsg}}">
+    <view class="error-container" wx:if="{{errorMsg && (!runsData || runsData.length === 0)}}">
       <view class="error-content">
         <text class="error-icon">⚠️</text>
         <text class="error-text">{{errorMsg}}</text>
@@ -31,8 +31,8 @@
       </view>
     </view>
     
-    <block wx:if="{{!loading && !errorMsg && runsData}}">
-      <view class="runs-list" wx:if="{{runsData.length > 0}}">
+    <block wx:if="{{runsData && runsData.length > 0}}">
+      <view class="runs-list">
         <view class="run-card" wx:for="{{runsData}}" wx:key="rank" wx:for-index="index">
           <view class="run-header {{item.expanded ? 'expanded' : ''}}" bindtap="toggleRoster" data-index="{{index}}">
             <view class="run-rank">#{{item.rank}}</view>
@@ -53,7 +53,7 @@
       </view>
     </block>
 
-    <view class="footer" wx:if="{{!loading && !errorMsg}}">
+    <view class="footer" wx:if="{{runsData && runsData.length > 0}}">
       <view>数据基于 Raider.io 实时抓取</view>
       <view>已展示全部前 100 名顶尖车队阵容</view>
     </view>

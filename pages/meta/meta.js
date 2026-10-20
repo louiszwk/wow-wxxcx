@@ -30,7 +30,21 @@ Page({
       wx.showShareMenu({ menus: ['shareAppMessage', 'shareTimeline'] });
     }
 
-    this.fetchData();
+    // 1. 优先读取本地持久化缓存（实现秒开，防止白屏与超时等待）
+    const cached = wx.getStorageSync('cache_mythic_meta');
+    if (cached && cached.dpsData && cached.tankData && cached.healerData) {
+      this.setData({
+        dpsData: cached.dpsData,
+        tankData: cached.tankData,
+        healerData: cached.healerData,
+        loading: false,
+        errorMsg: ''
+      });
+      // 静默拉取最新数据，不干扰用户正常浏览
+      this.fetchData({ silent: true });
+    } else {
+      this.fetchData();
+    }
   },
 
   onShow() {
@@ -60,47 +74,95 @@ Page({
     });
   },
 
-  fetchData(cb) {
-    this.setData({ loading: true, errorMsg: '', isRefreshing: true });
-    
-    // 不再使用数据库缓存，直接实时请求 Mythicstats 最新数据
+  fetchData(options = {}, cb) {
+    if (typeof options === 'function') {
+      cb = options;
+      options = {};
+    }
+    const silent = !!options.silent;
+    const hasExistingData = !!(this.data.dpsData && this.data.dpsData.length > 0);
+
+    if (!silent && !hasExistingData) {
+      this.setData({ loading: true, errorMsg: '', isRefreshing: true });
+    } else {
+      this.setData({ isRefreshing: true });
+    }
+
+    const onDataSuccess = (html) => {
+      const parsed = this.processMythicstats(html);
+      if (parsed) {
+        this.setData({ loading: false, isRefreshing: false, errorMsg: '' });
+        // 保存本地持久化缓存
+        wx.setStorageSync('cache_mythic_meta', {
+          dpsData: this.data.dpsData,
+          tankData: this.data.tankData,
+          healerData: this.data.healerData,
+          time: Date.now()
+        });
+      } else {
+        onDataFail('解析数据失败');
+      }
+      if (typeof cb === 'function') cb();
+    };
+
+    const onDataFail = (errMsg) => {
+      this.setData({ isRefreshing: false });
+      // 请求失败降级保护：如果当前已有展示数据，绝不覆盖/清空用户视图！
+      if (hasExistingData || (this.data.dpsData && this.data.dpsData.length > 0)) {
+        this.setData({ loading: false });
+        if (!silent) {
+          wx.showToast({ title: '网络稍有延迟，已展示当前数据', icon: 'none' });
+        }
+      } else {
+        this.setData({
+          loading: false,
+          errorMsg: '数据异常稍后再试'
+        });
+        wx.showToast({ title: '数据异常稍后再试', icon: 'none' });
+      }
+      if (typeof cb === 'function') cb();
+    };
+
+    // 优先调用云端聚合 getMetaStats
+    wx.cloud.callFunction({
+      name: 'proxyRequest',
+      data: { action: 'getMetaStats' }
+    }).then(res => {
+      if (res?.result?.success && res?.result?.data) {
+        onDataSuccess(res.result.data);
+      } else {
+        // 降级为常规代理请求
+        this.fallbackFetch(onDataSuccess, onDataFail);
+      }
+    }).catch(err => {
+      console.warn('getMetaStats 失败，尝试降级常规代理:', err);
+      this.fallbackFetch(onDataSuccess, onDataFail);
+    });
+  },
+
+  fallbackFetch(onSuccess, onFail) {
     wx.cloud.callFunction({
       name: 'proxyRequest',
       data: {
         url: 'https://mythicstats.com/dps',
         method: 'GET',
         responseType: 'text'
-      },
-      success: (res) => {
-        const result = res.result;
-        if (result && result.success && result.data) {
-          this.processMythicstats(result.data);
-          this.setData({ loading: false, isRefreshing: false });
-        } else {
-          this.setData({
-            loading: false,
-            isRefreshing: false,
-            errorMsg: '数据异常稍后再试'
-          });
-        }
-      },
-      fail: (err) => {
-        console.error('实时请求失败:', err);
-        this.setData({
-          loading: false,
-          isRefreshing: false,
-          errorMsg: '数据异常稍后再试'
-        });
-      },
-      complete: () => {
-        if (typeof cb === 'function') cb();
       }
+    }).then(res => {
+      const result = res.result;
+      if (result && result.success && result.data) {
+        onSuccess(result.data);
+      } else {
+        onFail('数据异常稍后再试');
+      }
+    }).catch(err => {
+      console.error('实时请求失败:', err);
+      onFail(err.message || '数据异常稍后再试');
     });
   },
 
   onPullDownRefresh() {
-    this.fetchData(() => {
-      this.setData({ isRefreshing: false });
+    this.fetchData({ silent: false }, () => {
       wx.stopPullDownRefresh();
     });
   },
@@ -110,10 +172,8 @@ Page({
     this.fetchData();
   },
 
-
-
   processMythicstats(html) {
-    if (!html) return;
+    if (!html || typeof html !== 'string') return false;
 
     const chunkRegex = /<div class="h-6 flex justify-center items-center" style="background-color: [^"]*">([SABCDF])<\/div>\s*<div class="h-6 flex justify-center items-center" style="[^"]*" title="(\d+) average[^"]*">[^<]*<\/div>\s*<div class="h-6 flex justify-center items-center" style="[^"]*" title="(\d+) top[^"]*">[^<]*<\/div>\s*<div class="h-6 flex justify-center items-center" title="[^"]*" style="[^"]*">([\d,K\.]+)<\/div>.*?<span class="pl-1 capitalize whitespace-nowrap">(.*?)<\/span>/gs;
     
@@ -150,13 +210,13 @@ Page({
       const val = parseInt(match[2], 10);
       const topVal = parseInt(match[3], 10);
       const runs = match[4];
-      const enSpec = match[5].trim().toLowerCase();
+      const enSpec = (match[5] || '').trim().toLowerCase();
       const cnName = enToCn[enSpec] || enSpec;
       
       const item = {
         name: cnName,
         tier: tier,
-        tierColor: tierColors[tier],
+        tierColor: tierColors[tier] || '#ffffff',
         value: val > 1000 ? (val / 1000).toFixed(1) + 'K' : val,
         topValue: topVal > 1000 ? (topVal / 1000).toFixed(1) + 'K' : topVal,
         runs: runs,
@@ -168,6 +228,10 @@ Page({
       if (tankSet.has(enSpec)) tanks.push(item);
       else if (healerSet.has(enSpec)) healers.push(item);
       else dps.push(item);
+    }
+
+    if (dps.length === 0 && tanks.length === 0 && healers.length === 0) {
+      return false;
     }
 
     dps.sort((a, b) => b.rawVal - a.rawVal);
@@ -184,6 +248,7 @@ Page({
     healers.forEach(d => { d.avgPercent = (d.rawVal / maxHealer) * 100; d.topPercent = (d.rawTopVal / maxHealer) * 100; });
 
     this.setData({ dpsData: dps, tankData: tanks, healerData: healers });
+    return true;
   },
 
   getColorForClassString(name) {
