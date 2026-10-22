@@ -109,7 +109,7 @@ Page({
     wx.navigateBack({
       delta: 1,
       fail: () => {
-        wx.switchTab({ url: '/pages/index/index' });
+        wx.reLaunch({ url: '/pages/index/index' });
       }
     });
   },

@@ -56,6 +56,20 @@ exports.main = async (event, context) => {
     }
   }
 
+  // 4. 删除路线 (云端 Admin 权限兜底，严格校验仅创建者可删)
+  if (event && event.action === 'deleteMdtRoute' && event.routeId) {
+    try {
+      const doc = await db.collection('mdt_routes').doc(event.routeId).get();
+      if (doc && doc.data && doc.data._openid && doc.data._openid === wxContext.OPENID) {
+        await db.collection('mdt_routes').doc(event.routeId).remove();
+        return { success: true };
+      }
+      return { success: false, error: '无权删除他人路线' };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
+
   if (!content || typeof content !== 'string') {
     return { pass: true, openid: wxContext.OPENID };
   }

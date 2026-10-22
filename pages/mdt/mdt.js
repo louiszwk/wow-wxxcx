@@ -430,11 +430,17 @@ Page({
   },
 
   navigateBack() {
-    wx.navigateBack({
-      fail() {
-        wx.switchTab({ url: '/pages/index/index' });
-      }
-    });
+    const pages = getCurrentPages();
+    if (pages && pages.length > 1) {
+      wx.navigateBack({ delta: 1 });
+    } else {
+      wx.redirectTo({
+        url: `/pages/mdt/list?dungeon=${encodeURIComponent(this.data.currentDungeonName)}`,
+        fail: () => {
+          wx.reLaunch({ url: '/pages/index/index' });
+        }
+      });
+    }
   },
 
   // ===== 副本切换 =====
@@ -1318,6 +1324,27 @@ Page({
 
     wx.showLoading({ title: isRetry ? '正在自动建表后重试...' : '正在同步到云端...' });
 
+    // 文本内容安全审核 (security.msgSecCheck)
+    try {
+      const fullText = `${routeName} ${routeRemark} ${authorName}`;
+      const secRes = await wx.cloud.callFunction({
+        name: 'checkWishContent',
+        data: { content: fullText }
+      });
+      if (secRes && secRes.result && secRes.result.pass === false) {
+        wx.hideLoading();
+        wx.showModal({
+          title: '未通过内容安全审核',
+          content: secRes.result.error || '路线名称、说明或署名包含敏感或违规内容，请修改后再发布。',
+          showCancel: false,
+          confirmColor: '#f59e0b'
+        });
+        return;
+      }
+    } catch (secErr) {
+      console.warn('内容安全接口检测异常:', secErr);
+    }
+
     let db;
     try {
       db = wx.cloud.database();
@@ -1574,6 +1601,20 @@ Page({
     return {
       title: `🗺️ [${this.data.currentDungeonName}] ${routeData.name}${routeData.remark ? (' - ' + routeData.remark) : ''}`,
       path: path
+    };
+  },
+
+  // 微信朋友圈分享
+  onShareTimeline() {
+    const dIdx = DUNGEONS_LIST.indexOf(this.data.currentDungeonName);
+    const routeName = this.data.saveRouteName || `${this.data.currentDungeonName} 路线`;
+    let query = `mode=view&dungeon=${encodeURIComponent(this.data.currentDungeonName)}&d=${dIdx}`;
+    if (this.data.routeId) {
+      query += `&id=${this.data.routeId}`;
+    }
+    return {
+      title: `🗺️ [${this.data.currentDungeonName}] ${routeName}`,
+      query: query
     };
   },
 

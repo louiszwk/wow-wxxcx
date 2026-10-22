@@ -119,11 +119,12 @@ Page({
   },
 
   navigateBack() {
-    wx.navigateBack({
-      fail() {
-        wx.switchTab({ url: '/pages/index/index' });
-      }
-    });
+    const pages = getCurrentPages();
+    if (pages && pages.length > 1) {
+      wx.navigateBack({ delta: 1 });
+    } else {
+      wx.reLaunch({ url: '/pages/index/index' });
+    }
   },
 
   // 获取微信真实 openid
@@ -348,10 +349,24 @@ Page({
             wx.hideLoading();
             wx.showToast({ title: '已删除', icon: 'success' });
             this.fetchRoutesFromCloud(true);
-          }).catch(err => {
-            wx.hideLoading();
-            console.error('删除路线失败:', err);
-            wx.showToast({ title: '删除失败', icon: 'none' });
+          }).catch(() => {
+            // 客户端因数据库权限无法直接删除时，转由云函数 Admin 权限安全校验并删除
+            wx.cloud.callFunction({
+              name: 'checkWishContent',
+              data: { action: 'deleteMdtRoute', routeId }
+            }).then(cfRes => {
+              wx.hideLoading();
+              if (cfRes && cfRes.result && cfRes.result.success) {
+                wx.showToast({ title: '已删除', icon: 'success' });
+                this.fetchRoutesFromCloud(true);
+              } else {
+                wx.showToast({ title: (cfRes && cfRes.result && cfRes.result.error) || '删除失败', icon: 'none' });
+              }
+            }).catch(err => {
+              wx.hideLoading();
+              console.error('删除路线失败:', err);
+              wx.showToast({ title: '删除失败', icon: 'none' });
+            });
           });
         }
       }
@@ -414,6 +429,15 @@ Page({
     return {
       title: `🗺️ [${dungeon.name}] 大秘境路线推荐与规划`,
       path: `/pages/mdt/list?dungeon=${encodeURIComponent(dungeon.name)}&dungeonIndex=${this.data.currentDungeonIndex}`
+    };
+  },
+
+  // 微信朋友圈分享
+  onShareTimeline() {
+    const dungeon = this.data.currentDungeon || DUNGEONS[0];
+    return {
+      title: `🗺️ [${dungeon.name}] 大秘境路线推荐与规划`,
+      query: `dungeon=${encodeURIComponent(dungeon.name)}&dungeonIndex=${this.data.currentDungeonIndex}`
     };
   }
 });
