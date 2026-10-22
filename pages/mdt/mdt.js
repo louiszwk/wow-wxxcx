@@ -1,4 +1,41 @@
 const allDungeonsData = require('./all_dungeons_data.js');
+const mdtEnemiesDb = require('./mdt_enemies_db.js');
+
+const CREATURE_TYPES_CN = {
+  'Beast': '野兽',
+  'Undead': '亡灵',
+  'Aberration': '畸变',
+  'Humanoid': '人型生物',
+  'Elemental': '元素生物',
+  'Mechanical': '机械',
+  'Totem': '图腾',
+  'Not specified': '未知生物',
+  'Dragonkin': '龙类',
+  'Demon': '恶魔'
+};
+
+const CHARACTERISTICS_CN = {
+  'Taunt': '可嘲讽',
+  'Stun': '可昏迷',
+  'Silence': '可沉默/打断',
+  'Incapacitate': '可瘫痪',
+  'Disorient': '可致盲/迷惑',
+  'Root': '可定身',
+  'Slow': '可减速',
+  'Fear': '可恐惧',
+  'Knock': '可击退',
+  'Grip': '可死握',
+  'Mind Control': '可心控',
+  'Sap': '可闷棍',
+  'Polymorph': '可变形',
+  'Imprison': '可禁锢',
+  'Banish': '可放逐',
+  'Hibernate': '可休眠',
+  'Shackle Undead': '可束缚亡灵',
+  'Sleep Walk': '可梦游',
+  'Mind Soothe': '可安抚心灵',
+  'Repentance': '可忏悔'
+};
 
 const DUNGEONS_LIST = [
   '毒牙祭坛',
@@ -158,6 +195,10 @@ Page({
 
     // 路线模式与权限
     mode: 'create', // create: 创建, edit: 修改(仅限创建人), view: 浏览
+    interactiveMode: 'plan', // 'plan': 规划路线, 'preview': 技能预览模式
+    inspectedEnemyId: null,  // 正在查看技能的怪物 ID
+    showEnemyModal: false,   // 是否显示怪物技能图鉴弹窗
+    inspectedEnemy: null,    // 怪物详情与全技能数据
     routeId: '',
     editingRouteId: '',
     isAuthor: false,
@@ -201,6 +242,7 @@ Page({
   _enemyMap: {},         // id → index 快速哈希索引
   _enemyState: {},       // id → { selected, color, pullNumber }
   _pullBadges: [],       // 内存中各波次徽章坐标，用于 Canvas 绘制与快速命中检测
+  _portraitImages: {},   // 怪物头像图片对象缓存
   _drawPending: false,   // Canvas rAF 节流锁
   _touchStartInfo: null, // 触摸开始记录，用于区分轻触与地图拖拽
 
@@ -225,24 +267,53 @@ Page({
     // 获取当前用户 openid 与昵称
     this._initUserIdentity();
 
-    const mode = options ? (options.mode || 'create') : 'create';
-    const routeId = options ? (options.id || '') : '';
-    let targetDungeon = '毒牙祭坛';
+    // 1. 严格解析目标副本名称（全面兼容 options.dungeon、options.d 索引等传参形式）
+    let targetDungeon = '';
     if (options && options.dungeon) {
       targetDungeon = decodeURIComponent(options.dungeon);
+    } else if (options && options.d !== undefined) {
+      const dIdx = parseInt(options.d, 10);
+      if (!isNaN(dIdx) && dIdx >= 0 && dIdx < DUNGEONS_LIST.length) {
+        targetDungeon = DUNGEONS_LIST[dIdx];
+      }
     }
+    if (!targetDungeon) {
+      targetDungeon = '毒牙祭坛';
+    }
+
+    // 2. 解析模式与路线 ID（如果是通过分享链接带路线编码 p 或云端 id 进入，默认进入 view 预览模式）
+    const routeId = options ? (options.id || '') : '';
+    let mode = options ? (options.mode || '') : '';
+    if (!mode) {
+      mode = (routeId || (options && options.p)) ? 'view' : 'create';
+    }
+
+    // 3. 处理分享进入的波次与路线编码
+    if (options && options.p) {
+      this._pendingShare = {
+        pulls: options.p,
+        name: options.n ? decodeURIComponent(options.n) : '',
+        remark: options.r ? decodeURIComponent(options.r) : ''
+      };
+    }
+
+    const saveRouteName = (options && options.n) ? decodeURIComponent(options.n) : '';
+    const saveRouteRemark = (options && options.r) ? decodeURIComponent(options.r) : '';
 
     this.setData({
       mode,
       routeId,
-      currentDungeonName: targetDungeon
+      interactiveMode: mode === 'view' ? 'preview' : 'plan',
+      currentDungeonName: targetDungeon,
+      ...(saveRouteName ? { saveRouteName } : {}),
+      ...(saveRouteRemark ? { saveRouteRemark } : {})
     });
 
     if (routeId) {
       // 从云数据库加载指定路线
       this.loadRouteFromCloud(routeId, mode);
     } else {
-      // 新建空白路线
+      // 加载指定副本（若有 pendingShare 会在此处自动解码载入）
       this.loadDungeon(targetDungeon);
     }
   },
@@ -312,6 +383,7 @@ Page({
       const dungeonName = route.dungeon || this.data.currentDungeonName;
       this.setData({
         mode: effectiveMode,
+        interactiveMode: effectiveMode === 'view' ? 'preview' : 'plan',
         editingRouteId: (isAuthor && effectiveMode === 'edit') ? route._id : '',
         isAuthor,
         saveRouteName: route.name || '',
@@ -344,7 +416,12 @@ Page({
     }).catch(err => {
       wx.hideLoading();
       console.error('加载路线详情失败:', err);
-      wx.showToast({ title: '获取路线失败', icon: 'none' });
+      if (this._pendingShare) {
+        wx.showToast({ title: '已从分享链接恢复路线', icon: 'none' });
+        this.loadDungeon(this.data.currentDungeonName);
+      } else {
+        wx.showToast({ title: '获取路线失败', icon: 'none' });
+      }
     });
   },
 
@@ -405,6 +482,7 @@ Page({
 
     // 2. 波次装载逻辑：浏览与已保存路线直接展示，不读本地草稿缓存；仅新建时才检查未保存草稿
     let initialPulls = [{ color: PULL_COLORS[0], enemyIds: [], forces: 0, percent: '0.0', note: '' }];
+    let shareMeta = null;
 
     if (presetPulls && presetPulls.length > 0) {
       // 浏览或修改已保存路线：严格按已保存数据加载，绝不读取本地草稿！
@@ -421,6 +499,10 @@ Page({
       if (decoded && decoded.length > 0) {
         initialPulls = decoded;
       }
+      shareMeta = {
+        name: this._pendingShare.name,
+        remark: this._pendingShare.remark
+      };
       this._pendingShare = null;
     } else {
       // 只有新建路线且未保存时，才尝试读取本地未保存的临时草稿
@@ -450,7 +532,7 @@ Page({
     const initialScale = this.fitScale || 0.35;
     this.currentScale = initialScale;
 
-    this.setData({
+    const nextState = {
       currentDungeonName: name,
       mapImage: `/pages/mdt/images/maps/${file}.jpg`,
       totalForces: data.totalForces,
@@ -460,14 +542,25 @@ Page({
       currentForces: 0,
       percent: '0.00',
       selectedEnemyInfo: null,
+      inspectedEnemyId: null,
+      showEnemyModal: false,
+      inspectedEnemy: null,
       scaleValue: initialScale,
       scalePercent: Math.round(initialScale * 100),
       savedRoutes,
       showRouteManager: false,
       mapLoading: false
-    });
+    };
+
+    if (shareMeta) {
+      if (shareMeta.name) nextState.saveRouteName = shareMeta.name;
+      if (shareMeta.remark) nextState.saveRouteRemark = shareMeta.remark;
+    }
+
+    this.setData(nextState);
 
     this._recalcForces(initialPulls);
+    this._preloadDungeonPortraits();
     this.scheduleRedraw();
   },
 
@@ -493,6 +586,8 @@ Page({
         ctx.scale(dpr, dpr);
         this.canvasCtx = ctx;
         this.canvasNode = canvas;
+        this._portraitImages = {};
+        this._preloadDungeonPortraits();
         this.scheduleRedraw();
       });
   },
@@ -651,84 +746,109 @@ Page({
       ctx.restore();
     }
 
-    // --- 3. 绘制所有怪物点（Canvas 一次性渲染 200+ 点，0 DOM 开销） ---
+    // --- 3. 绘制所有怪物头像（圆形头像剪裁 + 波次光环 + 首领金框皇冠 + 预览高亮） ---
+    const inspectedId = this.data.inspectedEnemyId;
     for (let i = 0; i < enemies.length; i++) {
       const e = enemies[i];
       const s = state[e.id] || {};
       const px = e.x * W, py = e.y * H;
       const isSelected = s.selected;
       const isCurrentActive = isSelected && (s.pullNumber === activeIdx + 1);
+      const isInspected = (inspectedId === e.id);
       const color = s.color || '#64748b';
 
-      ctx.save();
-      if (e.isBoss) {
-        // Boss 首领：带金色光环菱形
-        const size = isCurrentActive ? 14 : (isSelected ? 12 : 10);
-        ctx.translate(px, py);
-        ctx.rotate(Math.PI / 4);
-        ctx.beginPath();
-        ctx.rect(-size / 2, -size / 2, size, size);
-        ctx.fillStyle = isSelected ? color : '#c084fc';
-        ctx.fill();
-        ctx.strokeStyle = isCurrentActive ? '#fef08a' : (isSelected ? '#ffffff' : '#0f172a');
-        ctx.lineWidth = isCurrentActive ? 2.5 : 1.5;
-        if (isCurrentActive) {
-          ctx.shadowColor = '#facc15';
-          ctx.shadowBlur = 10;
-        } else if (isSelected) {
-          ctx.shadowColor = '#ffffff';
-          ctx.shadowBlur = 6;
-        }
-        ctx.stroke();
+      const isBoss = Boolean(e.isBoss);
+      // 优化头像尺寸：首领 Boss 半径 13.5px，普通怪半径 9.5px（更紧凑精致，避免小怪密集时遮挡与重叠）
+      const baseRadius = isBoss ? 13.5 : 9.5;
+      const radius = isCurrentActive ? (baseRadius + 2) : (isInspected ? (baseRadius + 1.8) : (isSelected ? (baseRadius + 0.8) : baseRadius));
 
-        // 皇冠标记
-        ctx.rotate(-Math.PI / 4);
-        ctx.font = `${isCurrentActive ? 12 : 10}px sans-serif`;
+      ctx.save();
+
+      // A. 当前活跃波次怪物 / 正在预览的怪物：底部外发光光环
+      if (isCurrentActive || isInspected) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(px, py, radius + 2.8, 0, Math.PI * 2);
+        ctx.fillStyle = isInspected ? 'rgba(56, 189, 248, 0.45)' : hexToRgba(color, 0.45);
+        ctx.shadowColor = isInspected ? '#38bdf8' : (color || '#ffffff');
+        ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // B. 圆形遮罩剪裁，绘制怪物头像图片
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(px, py, radius, 0, Math.PI * 2);
+      ctx.clip();
+
+      const img = this._getPortraitImage(e.npcId);
+      if (img && img._loaded) {
+        ctx.drawImage(img, px - radius, py - radius, radius * 2, radius * 2);
+      } else {
+        // 头像未加载完成或缺失时的优雅兜底
+        ctx.fillStyle = isSelected ? color : (isBoss ? '#4c1d95' : '#1e293b');
+        ctx.fill();
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = `bold ${Math.round(radius * 0.9)}px sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('👑', 0, 0);
+        ctx.fillText(isBoss ? '👑' : (e.name ? e.name[0] : '●'), px, py);
+      }
+      ctx.restore();
+
+      // C. 头像边框线与皇冠
+      ctx.beginPath();
+      ctx.arc(px, py, radius, 0, Math.PI * 2);
+      if (isBoss) {
+        // Boss 首领：金色高贵边框
+        ctx.strokeStyle = isInspected ? '#38bdf8' : (isCurrentActive ? '#fef08a' : (isSelected ? color : '#f59e0b'));
+        ctx.lineWidth = (isCurrentActive || isInspected) ? 2.8 : (isSelected ? 2.2 : 1.8);
+        ctx.stroke();
+
+        // Boss 顶部金冠徽章
+        ctx.font = `${Math.round(radius * 0.95)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('👑', px, py - radius + 3.5);
       } else {
-        // 普通小怪：圆点
-        const radius = isCurrentActive ? 9.5 : (isSelected ? 8 : 6.5);
-        ctx.beginPath();
-        ctx.arc(px, py, radius, 0, Math.PI * 2);
-        ctx.fillStyle = isSelected ? color : '#64748b';
-        ctx.fill();
-        ctx.strokeStyle = isCurrentActive ? '#fef08a' : (isSelected ? '#ffffff' : '#0f172a');
-        ctx.lineWidth = isCurrentActive ? 2.5 : (isSelected ? 1.8 : 1);
+        // 普通小怪：已选中按波次颜色高亮，当前活跃波次亮白强化，未选怪为暗黑金属框
+        ctx.strokeStyle = isInspected ? '#38bdf8' : (isCurrentActive ? '#ffffff' : (isSelected ? color : 'rgba(15, 23, 42, 0.95)'));
+        ctx.lineWidth = (isCurrentActive || isInspected) ? 2.2 : (isSelected ? 1.8 : 1.2);
         if (isCurrentActive) {
-          ctx.shadowColor = '#ffffff';
-          ctx.shadowBlur = 8;
-        } else if (isSelected) {
-          ctx.shadowColor = '#ffffff';
-          ctx.shadowBlur = 4;
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 5;
+        } else if (isInspected) {
+          ctx.shadowColor = '#38bdf8';
+          ctx.shadowBlur = 7;
         }
         ctx.stroke();
       }
+
       ctx.restore();
     }
 
     // --- 4. 绘制各波次中心数字徽章（在 Canvas 上直接绘制，零 DOM 延迟） ---
     for (const b of badges) {
       ctx.save();
-      const radius = b.isActive ? 13 : 11;
+      const radius = b.isActive ? 11 : 9;
       ctx.beginPath();
       ctx.arc(b.x, b.y, radius, 0, Math.PI * 2);
       ctx.fillStyle = b.color;
       ctx.fill();
-      ctx.lineWidth = b.isActive ? 2.6 : 1.8;
+      ctx.lineWidth = b.isActive ? 2.2 : 1.6;
       ctx.strokeStyle = '#ffffff';
       if (b.isActive) {
         ctx.shadowColor = b.color;
-        ctx.shadowBlur = 12;
+        ctx.shadowBlur = 10;
       } else {
         ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-        ctx.shadowBlur = 4;
+        ctx.shadowBlur = 3;
       }
       ctx.stroke();
 
       // 数字
-      ctx.font = `bold ${b.isActive ? 11 : 9.5}px sans-serif`;
+      ctx.font = `bold ${b.isActive ? 9.5 : 8}px sans-serif`;
       ctx.fillStyle = '#ffffff';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -739,20 +859,26 @@ Page({
 
   // ===== 区分拖拽与轻触（彻底解决拖动地图误触发选怪问题） =====
   onCanvasTouchStart(e) {
-    const t = e.touches && e.touches[0];
+    this._longPressed = false;
+    const t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]);
     if (t) {
       this._touchStartInfo = {
-        x: t.clientX || t.x,
-        y: t.clientY || t.y,
+        x: t.clientX !== undefined ? t.clientX : (t.x !== undefined ? t.x : 0),
+        y: t.clientY !== undefined ? t.clientY : (t.y !== undefined ? t.y : 0),
         time: Date.now()
       };
     }
   },
 
   onCanvasTap(e) {
-    const detail = e.detail;
-    const clientX = detail.x !== undefined ? detail.x : (detail.clientX !== undefined ? detail.clientX : 0);
-    const clientY = detail.y !== undefined ? detail.y : (detail.clientY !== undefined ? detail.clientY : 0);
+    if (this._longPressed) {
+      this._longPressed = false;
+      return;
+    }
+
+    const t = (e.detail && e.detail.x !== undefined) ? e.detail : ((e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]) || this._touchStartInfo || {});
+    const clientX = t.clientX !== undefined ? t.clientX : (t.x !== undefined ? t.x : 0);
+    const clientY = t.clientY !== undefined ? t.clientY : (t.y !== undefined ? t.y : 0);
 
     // 检查触摸移动距离和耗时，防止拖动地图结束时误判定为点击
     if (this._touchStartInfo) {
@@ -760,8 +886,8 @@ Page({
       const dy = clientY - this._touchStartInfo.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       const elapsed = Date.now() - this._touchStartInfo.time;
-      // 移动超过 10px 或按住超过 400ms，判定为地图平移/缩放操作，不触发选怪
-      if (dist > 10 || elapsed > 400) {
+      // 移动超过 10px 或按住超过 380ms，判定为地图平移/缩放操作，不触发选怪
+      if (dist > 10 || elapsed > 380) {
         return;
       }
     }
@@ -776,8 +902,8 @@ Page({
       const cy = ((clientY - rect.top) / rect.height) * H;
       const renderScale = rect.width / W;
 
-      // 1. 优先怪物命中检测（给予手指 26px 宽容范围，小屏幕点怪丝滑命中）
-      const hitRadius = 26 / renderScale;
+      // 1. 优先怪物命中检测（结合精细头像尺寸，给予手指 22px 宽容范围，小屏幕点怪精准丝滑）
+      const hitRadius = 22 / renderScale;
       let bestDist = Infinity, bestEnemy = null;
 
       for (const en of this._enemies) {
@@ -791,7 +917,11 @@ Page({
       }
 
       if (bestEnemy) {
-        this.handleToggleEnemy(bestEnemy.id);
+        if (this.data.interactiveMode === 'preview') {
+          this.inspectEnemy(bestEnemy.id);
+        } else {
+          this.handleToggleEnemy(bestEnemy.id);
+        }
         return;
       }
 
@@ -799,7 +929,7 @@ Page({
       for (const b of (this._pullBadges || [])) {
         const dx = b.x - cx, dy = b.y - cy;
         const bDist = Math.sqrt(dx * dx + dy * dy);
-        if (bDist <= 24 / renderScale) {
+        if (bDist <= 20 / renderScale) {
           this.setData({
             activePullIndex: b.pullIndex,
             activePullScrollId: `pull-item-${b.pullIndex}`
@@ -1352,9 +1482,10 @@ Page({
     const routeId = (e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.id) || 'current';
     if (routeId === 'current') {
       this._shareRouteData = {
-        name: '自定义大秘境路线',
-        remark: '',
-        pulls: this.data.pulls
+        name: this.data.saveRouteName || `${this.data.currentDungeonName} 路线`,
+        remark: this.data.saveRouteRemark || '',
+        pulls: this.data.pulls,
+        id: this.data.routeId || this.data.editingRouteId || ''
       };
     } else {
       const route = this.data.savedRoutes.find(r => r.id === routeId);
@@ -1362,7 +1493,8 @@ Page({
         this._shareRouteData = {
           name: route.name,
           remark: route.remark || '',
-          pulls: route.pulls
+          pulls: route.pulls,
+          id: route.id || route._id || ''
         };
       }
     }
@@ -1370,7 +1502,7 @@ Page({
 
   // ===== 路线编码/解码（用于分享链接） =====
   _encodeRouteForShare(pulls) {
-    return pulls.map((p, i) => {
+    return (pulls || []).map((p, i) => {
       const cIdx = PULL_COLORS.indexOf(p.color);
       const ids = (p.enemyIds || []).join(',');
       return `${cIdx >= 0 ? cIdx : i}-${ids}`;
@@ -1387,7 +1519,7 @@ Page({
     for (const part of parts) {
       const dashIdx = part.indexOf('-');
       if (dashIdx < 0) continue;
-      const cIdx = parseInt(part.substring(0, dashIdx));
+      const cIdx = parseInt(part.substring(0, dashIdx), 10);
       const idsStr = part.substring(dashIdx + 1);
       pulls.push({
         color: PULL_COLORS[isNaN(cIdx) ? pulls.length : cIdx % PULL_COLORS.length],
@@ -1408,24 +1540,36 @@ Page({
       if (routeId && routeId !== 'current') {
         const route = this.data.savedRoutes.find(r => r.id === routeId);
         if (route) {
-          routeData = { name: route.name, remark: route.remark || '', pulls: route.pulls };
+          routeData = { 
+            name: route.name, 
+            remark: route.remark || '', 
+            pulls: route.pulls,
+            id: route.id || route._id || ''
+          };
         }
       }
     }
     if (!routeData) {
       routeData = {
-        name: '自定义大秘境路线',
-        remark: '',
-        pulls: this.data.pulls
+        name: this.data.saveRouteName || `${this.data.currentDungeonName} 路线`,
+        remark: this.data.saveRouteRemark || '',
+        pulls: this.data.pulls,
+        id: this.data.routeId || this.data.editingRouteId || ''
       };
     }
     this._shareRouteData = null;
 
     const dIdx = DUNGEONS_LIST.indexOf(this.data.currentDungeonName);
     const encoded = this._encodeRouteForShare(routeData.pulls);
-    const routeName = encodeURIComponent(routeData.name || '大秘境路线');
+    const routeName = encodeURIComponent(routeData.name || `${this.data.currentDungeonName} 路线`);
     const remark = encodeURIComponent(routeData.remark || '');
-    const path = `/pages/mdt/mdt?d=${dIdx}&p=${encoded}&n=${routeName}&r=${remark}`;
+    const dungeonNameEnc = encodeURIComponent(this.data.currentDungeonName);
+
+    // 组合高兼容性分享链接：包含副本名、索引 d、波次编码 p、名称 n、说明 r、云端 ID (若有)
+    let path = `/pages/mdt/mdt?mode=view&dungeon=${dungeonNameEnc}&d=${dIdx}&p=${encoded}&n=${routeName}&r=${remark}`;
+    if (routeData.id) {
+      path += `&id=${routeData.id}`;
+    }
 
     return {
       title: `🗺️ [${this.data.currentDungeonName}] ${routeData.name}${routeData.remark ? (' - ' + routeData.remark) : ''}`,
@@ -1433,7 +1577,189 @@ Page({
     };
   },
 
+  // ===== 怪物头像加载与缓存 =====
+  _getPortraitImage(npcId) {
+    if (!this.canvasNode || !npcId) return null;
+    if (!this._portraitImages) this._portraitImages = {};
+    if (this._portraitImages[npcId]) {
+      return this._portraitImages[npcId];
+    }
+    const img = this.canvasNode.createImage();
+    img.onload = () => {
+      img._loaded = true;
+      this.scheduleRedraw();
+    };
+    img.onerror = () => {
+      img._failed = true;
+    };
+    img.src = `https://assets.keystone.guru/images/enemyportraits/${npcId}.png`;
+    this._portraitImages[npcId] = img;
+    return img;
+  },
+
+  _preloadDungeonPortraits() {
+    if (!this.canvasNode || !this._enemies) return;
+    const uniqueNpcIds = new Set();
+    this._enemies.forEach(e => {
+      if (e.npcId) uniqueNpcIds.add(e.npcId);
+    });
+    uniqueNpcIds.forEach(id => {
+      this._getPortraitImage(id);
+    });
+  },
+
+  // ===== 模式切换：规划模式 vs 预览模式 =====
+  switchInteractiveMode(e) {
+    const targetMode = e.currentTarget.dataset.mode;
+    if (!targetMode || targetMode === this.data.interactiveMode) return;
+    this.setData({
+      interactiveMode: targetMode,
+      inspectedEnemyId: null,
+      showEnemyModal: false
+    });
+    if (targetMode === 'preview') {
+      wx.showToast({ title: '已进入预览模式：点击怪物看技能', icon: 'none', duration: 1500 });
+    } else {
+      wx.showToast({ title: '已进入规划模式：点击怪物编入波次', icon: 'none', duration: 1500 });
+    }
+    this.scheduleRedraw();
+  },
+
+  // ===== 长按 Canvas 选怪：即使在规划模式下也能快捷查看技能 =====
+  onCanvasLongPress(e) {
+    this._longPressed = true;
+    const t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || this._touchStartInfo || {};
+    const clientX = t.clientX !== undefined ? t.clientX : (t.x !== undefined ? t.x : (e.detail && (e.detail.x || e.detail.clientX) || 0));
+    const clientY = t.clientY !== undefined ? t.clientY : (t.y !== undefined ? t.y : (e.detail && (e.detail.y || e.detail.clientY) || 0));
+
+    const query = this.createSelectorQuery();
+    query.select('#routeCanvas').boundingClientRect((rect) => {
+      if (!rect) return;
+      const W = this.data.mapWidth, H = this.data.mapHeight;
+      const cx = ((clientX - rect.left) / rect.width) * W;
+      const cy = ((clientY - rect.top) / rect.height) * H;
+      const renderScale = rect.width / W;
+      const hitRadius = 32 / renderScale;
+      let bestDist = Infinity, bestEnemy = null;
+
+      for (const en of this._enemies) {
+        const px = en.x * W, py = en.y * H;
+        const dx = px - cx, dy = py - cy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < hitRadius && dist < bestDist) {
+          bestDist = dist;
+          bestEnemy = en;
+        }
+      }
+
+      if (bestEnemy) {
+        if (wx.vibrateShort) wx.vibrateShort({ type: 'light' });
+        this.inspectEnemy(bestEnemy.id);
+      }
+    }).exec();
+  },
+
+  // ===== 怪物技能与图鉴机制详情 =====
+  inspectEnemy(id) {
+    const idx = this._enemyMap[id];
+    if (idx === undefined) return;
+    const target = this._enemies[idx];
+    const enemyDb = mdtEnemiesDb[target.npcId] || {};
+
+    // 确定该怪物当前属于哪个波次
+    let assignedPull = null;
+    const pulls = this.data.pulls || [];
+    for (let i = 0; i < pulls.length; i++) {
+      if (pulls[i].enemyIds && pulls[i].enemyIds.includes(id)) {
+        assignedPull = {
+          pullIndex: i,
+          pullNum: i + 1,
+          color: pulls[i].color || '#3b82f6',
+          note: pulls[i].note || ''
+        };
+        break;
+      }
+    }
+
+    const healthVal = enemyDb.health || target.health || 0;
+    let healthStr = '未知';
+    if (healthVal > 0) {
+      if (healthVal >= 1000000) {
+        healthStr = `${(healthVal / 1000000).toFixed(2)}M (${Math.round(healthVal / 10000)}万)`;
+      } else if (healthVal >= 10000) {
+        healthStr = `${(healthVal / 10000).toFixed(1)}万`;
+      } else {
+        healthStr = healthVal.toLocaleString();
+      }
+    }
+
+    const totalForces = this.data.totalForces || 1;
+    const forces = target.forces || 0;
+    const forcesPercent = ((forces / totalForces) * 100).toFixed(1);
+
+    const isBoss = Boolean(target.isBoss || enemyDb.isBoss);
+    const creatureType = enemyDb.creatureType || 'Humanoid';
+    const creatureTypeCn = CREATURE_TYPES_CN[creatureType] || creatureType;
+
+    const chars = (enemyDb.characteristics || []).map(c => ({
+      key: c,
+      name: CHARACTERISTICS_CN[c] || c
+    }));
+
+    const spells = (enemyDb.spells || []).map(s => ({
+      id: s.id,
+      name: s.name,
+      icon: s.icon,
+      iconUrl: s.icon ? `https://wow.zamimg.com/images/wow/icons/medium/${s.icon}.jpg` : '',
+      castTime: s.castTime || '瞬发',
+      range: s.range || '',
+      desc: s.desc || '造成普通攻击与伤害效果。',
+      tags: s.tags || []
+    }));
+
+    this.setData({
+      showEnemyModal: true,
+      inspectedEnemyId: target.id,
+      inspectedEnemy: {
+        id: target.id,
+        npcId: target.npcId,
+        name: enemyDb.name || target.name,
+        nameCn: enemyDb.nameCn || target.name,
+        isBoss,
+        creatureTypeCn,
+        healthStr,
+        forces,
+        forcesPercent,
+        characteristics: chars,
+        spells,
+        spellCount: spells.length,
+        assignedPull,
+        portraitUrl: `https://assets.keystone.guru/images/enemyportraits/${target.npcId}.png`
+      }
+    });
+
+    this.scheduleRedraw();
+  },
+
+  closeEnemyModal() {
+    this.setData({
+      showEnemyModal: false,
+      inspectedEnemyId: null,
+      inspectedEnemy: null
+    });
+    this.scheduleRedraw();
+  },
+
+  toggleInspectedEnemyFromModal() {
+    const enemy = this.data.inspectedEnemy;
+    if (!enemy) return;
+    this.handleToggleEnemy(enemy.id);
+    // 重新更新弹窗中的波次归属显示
+    this.inspectEnemy(enemy.id);
+  },
+
   switchDungeon() {
     this.openDungeonModal();
   }
 });
+

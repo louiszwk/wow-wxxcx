@@ -77,7 +77,7 @@ Page({
     isRefreshing: false
   },
 
-  onLoad() {
+  onLoad(options) {
     const app = getApp();
     if (app && app.globalData) {
       this.setData({
@@ -85,6 +85,25 @@ Page({
         menuButtonHeight: app.globalData.menuButtonHeight || 32
       });
     }
+
+    let dIndex = 0;
+    if (options) {
+      if (options.dungeonIndex !== undefined) {
+        dIndex = parseInt(options.dungeonIndex, 10) || 0;
+      } else if (options.d !== undefined) {
+        dIndex = parseInt(options.d, 10) || 0;
+      } else if (options.dungeon) {
+        const dName = decodeURIComponent(options.dungeon);
+        const idx = DUNGEONS.findIndex(d => d.name === dName || (d.aliases && d.aliases.includes(dName)));
+        if (idx >= 0) dIndex = idx;
+      }
+    }
+    if (dIndex < 0 || dIndex >= DUNGEONS.length) dIndex = 0;
+
+    this.setData({
+      currentDungeonIndex: dIndex,
+      currentDungeon: DUNGEONS[dIndex]
+    });
 
     // 初始化用户身份 openid 并拉取数据
     this._initUserIdentity(() => {
@@ -379,5 +398,22 @@ Page({
     }
 
     wx.showToast({ title: '感谢点赞！', icon: 'success' });
+  },
+
+  // 分享大秘境路线列表
+  onShareAppMessage(res) {
+    if (res && res.from === 'button' && res.target && res.target.dataset && res.target.dataset.route) {
+      const r = res.target.dataset.route;
+      const dName = this.data.currentDungeon.name;
+      return {
+        title: `🗺️ [${dName}] ${r.name || '大秘境路线'}`,
+        path: `/pages/mdt/mdt?mode=view&id=${r._id}&dungeon=${encodeURIComponent(dName)}`
+      };
+    }
+    const dungeon = this.data.currentDungeon || DUNGEONS[0];
+    return {
+      title: `🗺️ [${dungeon.name}] 大秘境路线推荐与规划`,
+      path: `/pages/mdt/list?dungeon=${encodeURIComponent(dungeon.name)}&dungeonIndex=${this.data.currentDungeonIndex}`
+    };
   }
 });

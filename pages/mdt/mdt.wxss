@@ -1085,3 +1085,568 @@ button.card-action-btn.share::after {
   font-weight: 600;
   box-shadow: 0 0 8px rgba(37, 99, 235, 0.4);
 }
+
+/* ========== 模式分段切换器 (规划 vs 预览技能) ========== */
+.mode-switch-segmented {
+  display: flex;
+  background: rgba(15, 23, 42, 0.9);
+  padding: 2.5px;
+  border-radius: 20px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.mode-switch-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 13px;
+  border-radius: 16px;
+  font-size: 11.5px;
+  color: #94a3b8;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+}
+
+.mode-switch-item.active {
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.45);
+}
+
+.mode-switch-item .switch-text {
+  font-size: 11.5px;
+  line-height: 1;
+}
+
+/* 预览模式专属横幅 */
+.preview-mode-banner {
+  background: linear-gradient(90deg, rgba(8, 145, 178, 0.3) 0%, rgba(15, 23, 42, 0.95) 100%);
+  border-bottom: 1px solid rgba(56, 189, 248, 0.35);
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: bannerFadeIn 0.3s ease;
+  z-index: 15;
+}
+
+@keyframes bannerFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.preview-banner-badge {
+  font-size: 10px;
+  font-weight: bold;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.18);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.preview-banner-text {
+  font-size: 11.5px;
+  color: #e2e8f0;
+  line-height: 1.3;
+}
+
+.reset-tool-btn {
+  background: rgba(51, 65, 85, 0.7);
+}
+
+/* ========== 怪物全技能与图鉴机制详情弹窗 ========== */
+.enemy-modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(8px);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+  animation: maskFadeIn 0.25s ease-out;
+}
+
+@keyframes maskFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.enemy-modal {
+  width: 100%;
+  max-width: 480px;
+  background: linear-gradient(180deg, #172338 0%, #0d1524 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.8), 0 0 25px rgba(56, 189, 248, 0.15);
+  display: flex;
+  flex-direction: column;
+  max-height: 84vh;
+  overflow: hidden;
+  animation: modalScaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.enemy-modal.boss-modal {
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 30px rgba(245, 158, 11, 0.25);
+}
+
+@keyframes modalScaleUp {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* 弹窗顶栏 */
+.enemy-modal-header {
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.enemy-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.enemy-avatar-wrap {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+  flex-shrink: 0;
+  background: #0f172a;
+}
+
+.enemy-avatar-wrap.boss-avatar-wrap {
+  border-color: #f59e0b;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.4);
+}
+
+.enemy-header-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.enemy-avatar-crown {
+  position: absolute;
+  top: -8px;
+  right: -5px;
+  font-size: 15px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+}
+
+.enemy-title-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.enemy-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.enemy-cn-name {
+  font-size: 16px;
+  font-weight: bold;
+  color: #f8fafc;
+  line-height: 1.2;
+}
+
+.enemy-boss-tag {
+  font-size: 10px;
+  font-weight: bold;
+  color: #fef08a;
+  background: rgba(245, 158, 11, 0.25);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.enemy-type-tag {
+  font-size: 10px;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.enemy-en-name {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 3px;
+  display: block;
+}
+
+.modal-close-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #cbd5e1;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.modal-close-btn:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* 核心数值栏 */
+.enemy-stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  margin: 12px 14px 6px 14px;
+  padding: 9px 12px;
+}
+
+.stat-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-bottom: 2px;
+}
+
+.stat-val {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.stat-val.health {
+  color: #34d399;
+}
+
+.stat-val.forces {
+  color: #fbbf24;
+}
+
+.stat-val.unassigned {
+  font-size: 11.5px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.stat-pull-val {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-pull-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* 受控与免疫特性标签 */
+.enemy-chars-box {
+  margin: 6px 14px 4px 14px;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.chars-box-title {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.chars-tags-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.char-chip {
+  display: flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 12px;
+  padding: 2px 8px;
+}
+
+.char-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #38bdf8;
+  margin-right: 5px;
+}
+
+.char-text {
+  font-size: 10.5px;
+  color: #e2e8f0;
+}
+
+/* 技能列表部分 */
+.spells-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px 6px 16px;
+}
+
+.spells-title {
+  font-size: 12.5px;
+  font-weight: bold;
+  color: #38bdf8;
+}
+
+.spells-badge {
+  font-size: 10px;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+
+.enemy-spells-scroll {
+  flex: 1;
+  max-height: 40vh;
+  padding: 4px 14px 12px 14px;
+  box-sizing: border-box;
+}
+
+.no-spells-tip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 10px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 10px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  margin-top: 4px;
+}
+
+.no-spells-icon {
+  font-size: 26px;
+  margin-bottom: 6px;
+}
+
+.no-spells-text {
+  font-size: 12px;
+  color: #94a3b8;
+  text-align: center;
+}
+
+/* 技能卡片 */
+.spell-card {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.spell-card-header {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.spell-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  border: 1.5px solid #475569;
+  flex-shrink: 0;
+  background: #090d16;
+}
+
+.spell-header-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.spell-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.spell-name {
+  font-size: 13.5px;
+  font-weight: bold;
+  color: #f1f5f9;
+}
+
+.spell-tags-wrap {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.spell-tag {
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.spell-tag.aoe {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.spell-tag.tank {
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.spell-tag.alert {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.spell-meta-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 3px;
+}
+
+.spell-meta-chip {
+  font-size: 10.5px;
+  color: #94a3b8;
+}
+
+.spell-desc-box {
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.spell-desc-text {
+  font-size: 11.5px;
+  color: #cbd5e1;
+  line-height: 1.55;
+  display: block;
+}
+
+/* 弹窗底部操作按钮 */
+.enemy-modal-footer {
+  display: flex;
+  gap: 10px;
+  padding: 10px 14px 14px 14px;
+  background: rgba(15, 23, 42, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-btn {
+  padding: 9px 0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-btn:active {
+  transform: scale(0.98);
+}
+
+.modal-btn.toggle-pull-btn.add {
+  flex: 2;
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.modal-btn.toggle-pull-btn.remove {
+  flex: 2;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+.modal-btn.close-btn {
+  flex: 1;
+  background: #334155;
+  color: #f1f5f9;
+}
+
+.modal-btn.close-btn.full-width {
+  flex: 1;
+  width: 100%;
+}
+
+.spell-tag.interrupt {
+  background: rgba(6, 182, 212, 0.2);
+  color: #22d3ee;
+  border: 1px solid rgba(6, 182, 212, 0.45);
+}
+
+.spell-tag.debuff {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.45);
+}
+
+.panel-mode-tag {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.panel-mode-text {
+  font-size: 11px;
+  color: #38bdf8;
+  font-weight: 500;
+}
+
+
