@@ -210,6 +210,7 @@ Page({
     saveRouteLevelRange: '全部',
 
     // 缩放控制
+    scaleMin: 0.3,
     scaleValue: 0.35,
     scalePercent: 35,
 
@@ -260,6 +261,7 @@ Page({
     this.fitScale = parseFloat(Math.max(0.25, Math.min(1.0, winWidth / 1200)).toFixed(2));
     this.currentScale = this.fitScale;
     this.setData({
+      scaleMin: this.fitScale,
       scaleValue: this.fitScale,
       scalePercent: Math.round(this.fitScale * 100)
     });
@@ -551,6 +553,7 @@ Page({
       inspectedEnemyId: null,
       showEnemyModal: false,
       inspectedEnemy: null,
+      scaleMin: this.fitScale || 0.3,
       scaleValue: initialScale,
       scalePercent: Math.round(initialScale * 100),
       savedRoutes,
@@ -892,8 +895,8 @@ Page({
       const dy = clientY - this._touchStartInfo.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       const elapsed = Date.now() - this._touchStartInfo.time;
-      // 移动超过 10px 或按住超过 380ms，判定为地图平移/缩放操作，不触发选怪
-      if (dist > 10 || elapsed > 380) {
+      // 移动超过 8px 或按住超过 350ms，判定为地图平移/缩放操作，不触发选怪
+      if (dist > 8 || elapsed > 350) {
         return;
       }
     }
@@ -1095,7 +1098,8 @@ Page({
     if (!delta) return;
     let cur = this.currentScale || this.data.scaleValue || 0.35;
     let next = delta < 0 ? cur * 1.15 : cur / 1.15;
-    next = Math.max(0.2, Math.min(4.0, parseFloat(next.toFixed(2))));
+    const minScale = this.data.scaleMin || this.fitScale || 0.3;
+    next = Math.max(minScale, Math.min(4.0, parseFloat(next.toFixed(2))));
     this.currentScale = next;
     this.setData({ scaleValue: next, scalePercent: Math.round(next * 100) });
   },
@@ -1120,8 +1124,10 @@ Page({
 
   zoomOut() {
     let cur = this.currentScale || 0.35;
-    let next = Math.max(0.2, parseFloat((cur / 1.25).toFixed(2)));
+    const minScale = this.data.scaleMin || this.fitScale || 0.3;
+    let next = Math.max(minScale, parseFloat((cur / 1.25).toFixed(2)));
     if (next === this.data.scaleValue) next -= 0.01;
+    if (next < minScale) next = minScale;
     this.currentScale = next;
     this.setData({ scaleValue: next, scalePercent: Math.round(next * 100) });
   },
@@ -1694,7 +1700,6 @@ Page({
       }
 
       if (bestEnemy) {
-        if (wx.vibrateShort) wx.vibrateShort({ type: 'light' });
         this.inspectEnemy(bestEnemy.id);
       }
     }).exec();

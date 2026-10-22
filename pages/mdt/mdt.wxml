@@ -83,11 +83,14 @@
         class="map-view" 
         direction="all" 
         scale="true" 
-        scale-min="0.2" 
+        scale-min="{{scaleMin}}" 
         scale-max="4.0" 
         scale-value="{{scaleValue}}"
         bindscale="onScaleChange"
-        out-of-bounds="true"
+        out-of-bounds="false"
+        damping="40"
+        friction="2"
+        inertia="false"
         bindwheel="onMouseWheel"
         style="width: {{mapWidth}}px; height: {{mapHeight}}px;">
         

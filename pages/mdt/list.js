@@ -422,7 +422,7 @@ Page({
       const dName = this.data.currentDungeon.name;
       return {
         title: `🗺️ [${dName}] ${r.name || '大秘境路线'}`,
-        path: `/pages/mdt/mdt?mode=view&id=${r._id}&dungeon=${encodeURIComponent(dName)}`
+        path: `/pages/mdt/mdt?mode=view&id=${r._id}&dungeon=${encodeURIComponent(dName)}&d=${this.data.currentDungeonIndex}`
       };
     }
     const dungeon = this.data.currentDungeon || DUNGEONS[0];
