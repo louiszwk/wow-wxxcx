@@ -359,65 +359,38 @@ Page({
       return;
     }
 
-    db.collection('mdt_routes').doc(routeId).get().then(res => {
-      wx.hideLoading();
-      const route = res.data;
-      if (!route) {
-        wx.showToast({ title: '路线不存在或已删除', icon: 'none' });
-        return;
-      }
-
-      const currentOpenId = this.data.currentOpenId || wx.getStorageSync('user_openid') || '';
-      const isAuthor = Boolean(currentOpenId && route._openid && currentOpenId === route._openid);
-
-      let effectiveMode = requestedMode;
-      // 需求3：必须创建人在列表里点击修改才能进行修改；若非创建人强行修改，则降级为浏览模式
-      if (effectiveMode === 'edit' && !isAuthor) {
-        effectiveMode = 'view';
-        wx.showModal({
-          title: '权限提示',
-          content: '只有路线创建人才能修改此路线。当前已为您切换至浏览模式。',
-          showCancel: false,
-          confirmColor: '#2563eb'
-        });
-      }
-
-      const dungeonName = route.dungeon || this.data.currentDungeonName;
-      this.setData({
-        mode: effectiveMode,
-        interactiveMode: effectiveMode === 'view' ? 'preview' : 'plan',
-        editingRouteId: (isAuthor && effectiveMode === 'edit') ? route._id : '',
-        isAuthor,
-        saveRouteName: route.name || '',
-        saveRouteRemark: route.remark || '',
-        saveRouteLevelRange: route.levelRange || '全部',
-        currentDungeonName: dungeonName
+    if (db) {
+      db.collection('mdt_routes').doc(routeId).get().then(res => {
+        wx.hideLoading();
+        this._applyLoadedRoute(res.data, requestedMode, routeId);
+      }).catch(err => {
+        console.warn('客户端直查路线失败，尝试云函数 Admin 模式拉取:', err);
+        this._loadRouteFromCloudFunction(routeId, requestedMode);
       });
+    } else {
+      this._loadRouteFromCloudFunction(routeId, requestedMode);
+    }
+  },
 
-      // 加载副本底图与波次数据
-      this.loadDungeon(dungeonName, route.pulls);
-
-      // 累加浏览数 (自增1)
-      try {
-        const _ = db.command;
-        db.collection('mdt_routes').doc(routeId).update({
-          data: { views: _.inc(1) }
-        }).catch(() => {
-          wx.cloud.callFunction({
-            name: 'checkWishContent',
-            data: { action: 'incMdtView', routeId }
-          }).catch(() => {});
-        });
-      } catch (_) {
-        wx.cloud.callFunction({
-          name: 'checkWishContent',
-          data: { action: 'incMdtView', routeId }
-        }).catch(() => {});
-      }
-
-    }).catch(err => {
+  _loadRouteFromCloudFunction(routeId, requestedMode) {
+    wx.cloud.callFunction({
+      name: 'checkWishContent',
+      data: { action: 'getMdtRouteById', routeId }
+    }).then(cfRes => {
       wx.hideLoading();
-      console.error('加载路线详情失败:', err);
+      if (cfRes && cfRes.result && cfRes.result.success && cfRes.result.data) {
+        this._applyLoadedRoute(cfRes.result.data, requestedMode, routeId);
+      } else {
+        if (this._pendingShare) {
+          wx.showToast({ title: '已从分享链接恢复路线', icon: 'none' });
+          this.loadDungeon(this.data.currentDungeonName);
+        } else {
+          wx.showToast({ title: '获取路线失败', icon: 'none' });
+        }
+      }
+    }).catch(cfErr => {
+      wx.hideLoading();
+      console.error('云函数获取路线失败:', cfErr);
       if (this._pendingShare) {
         wx.showToast({ title: '已从分享链接恢复路线', icon: 'none' });
         this.loadDungeon(this.data.currentDungeonName);
@@ -425,6 +398,62 @@ Page({
         wx.showToast({ title: '获取路线失败', icon: 'none' });
       }
     });
+  },
+
+  _applyLoadedRoute(route, requestedMode, routeId) {
+    if (!route) {
+      wx.showToast({ title: '路线不存在或已删除', icon: 'none' });
+      return;
+    }
+
+    const currentOpenId = this.data.currentOpenId || wx.getStorageSync('user_openid') || '';
+    const isAuthor = Boolean(currentOpenId && route._openid && currentOpenId === route._openid);
+
+    let effectiveMode = requestedMode;
+    // 需求3：必须创建人在列表里点击修改才能进行修改；若非创建人强行修改，则降级为浏览模式
+    if (effectiveMode === 'edit' && !isAuthor) {
+      effectiveMode = 'view';
+      wx.showModal({
+        title: '权限提示',
+        content: '只有路线创建人才能修改此路线。当前已为您切换至浏览模式。',
+        showCancel: false,
+        confirmColor: '#2563eb'
+      });
+    }
+
+    const dungeonName = route.dungeon || this.data.currentDungeonName;
+    this.setData({
+      mode: effectiveMode,
+      interactiveMode: effectiveMode === 'view' ? 'preview' : 'plan',
+      editingRouteId: (isAuthor && effectiveMode === 'edit') ? (route._id || routeId) : '',
+      isAuthor,
+      saveRouteName: route.name || '',
+      saveRouteRemark: route.remark || '',
+      saveRouteLevelRange: route.levelRange || '全部',
+      currentDungeonName: dungeonName
+    });
+
+    // 加载副本底图与波次数据
+    this.loadDungeon(dungeonName, route.pulls);
+
+    // 累加浏览数 (自增1)
+    try {
+      const db = wx.cloud.database();
+      const _ = db.command;
+      db.collection('mdt_routes').doc(route._id || routeId).update({
+        data: { views: _.inc(1) }
+      }).catch(() => {
+        wx.cloud.callFunction({
+          name: 'checkWishContent',
+          data: { action: 'incMdtView', routeId: route._id || routeId }
+        }).catch(() => {});
+      });
+    } catch (_) {
+      wx.cloud.callFunction({
+        name: 'checkWishContent',
+        data: { action: 'incMdtView', routeId: route._id || routeId }
+      }).catch(() => {});
+    }
   },
 
   onReady() {
@@ -1420,21 +1449,36 @@ Page({
       }
     } catch (err) {
       const errMsg = (err && (err.errMsg || err.message)) ? (err.errMsg || err.message) : '';
-      console.warn('云端保存初次异常:', errMsg);
+      console.warn('客户端直存异常，尝试云函数 Admin 模式保存:', errMsg);
 
-      // 自愈机制：若集合未创建，尝试触发云函数自动建表后重试一次
-      if (!isRetry && (errMsg.includes('not exist') || errMsg.includes('ResourceNotFound') || errMsg.includes('DATABASE_COLLECTION_NOT_EXIST'))) {
-        try {
-          const initRes = await wx.cloud.callFunction({
-            name: 'checkWishContent',
-            data: { action: 'initMdtCollection' }
-          });
-          if (initRes && initRes.result && initRes.result.success) {
-            return this._saveRouteToCloud(routeName, routeRemark, levelRange, authorName, true);
+      try {
+        const cfSaveRes = await wx.cloud.callFunction({
+          name: 'checkWishContent',
+          data: {
+            action: 'saveMdtRoute',
+            routeId: editingRouteId,
+            isEdit: mode === 'edit',
+            routeData: payload
           }
-        } catch (callErr) {
-          console.warn('云函数自动建表尝试失败:', callErr);
+        });
+
+        if (cfSaveRes && cfSaveRes.result && cfSaveRes.result.success) {
+          try {
+            wx.removeStorageSync('mdt_draft_' + dungeonName);
+            wx.removeStorageSync('mdt_route_' + dungeonName);
+          } catch (_) {}
+          wx.hideLoading();
+          wx.showToast({
+            title: mode === 'edit' ? '修改已保存！' : '路线发布成功！',
+            icon: 'success'
+          });
+          setTimeout(() => {
+            wx.navigateBack();
+          }, 1200);
+          return;
         }
+      } catch (cfErr) {
+        console.warn('云函数 Admin 保存亦失败:', cfErr);
       }
 
       wx.hideLoading();

@@ -257,16 +257,39 @@ Page({
         if (finishCb) finishCb();
       })
       .catch(err => {
-        console.error('拉取大秘境路线失败:', err);
-        // 如果是集合不存在错误，给出引导提示
-        if (err.errMsg && err.errMsg.includes('collection.get:fail')) {
-          console.warn('云数据库 mdt_routes 集合未创建或权限未开通');
-        }
-        this.setData({
-          routes: [],
-          isLoading: false
+        console.warn('客户端直查路线失败，启动云函数 Admin 模式无缝拉取:', err);
+        wx.cloud.callFunction({
+          name: 'checkWishContent',
+          data: {
+            action: 'getMdtRoutes',
+            dungeonAliases: currentDungeon.aliases,
+            levelRange: currentLevelTab,
+            onlyMyRoutes: onlyMyRoutes
+          }
+        }).then(cfRes => {
+          if (cfRes && cfRes.result && cfRes.result.success) {
+            const rawList = cfRes.result.data || [];
+            const formattedRoutes = rawList.map(item => {
+              const isOwner = Boolean(currentOpenId && item._openid && currentOpenId === item._openid);
+              return {
+                ...item,
+                isOwner,
+                displayTime: this._formatDisplayTime(item.createTime),
+                hasLiked: Boolean(this.data.userLikedIds[item._id])
+              };
+            });
+            this.setData({
+              routes: formattedRoutes,
+              isLoading: false
+            });
+          } else {
+            this.setData({ routes: [], isLoading: false });
+          }
+          if (finishCb) finishCb();
+        }).catch(() => {
+          this.setData({ routes: [], isLoading: false });
+          if (finishCb) finishCb();
         });
-        if (finishCb) finishCb();
       });
   },
 

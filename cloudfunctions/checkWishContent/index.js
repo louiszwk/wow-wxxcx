@@ -70,6 +70,84 @@ exports.main = async (event, context) => {
     }
   }
 
+  // 5. 保存或更新路线 (云端 Admin 权限，天然规避集合不存在与客户端写入权限限制)
+  if (event && event.action === 'saveMdtRoute') {
+    try {
+      try {
+        await db.createCollection('mdt_routes');
+      } catch (_) {}
+
+      const { routeId, isEdit, routeData } = event;
+      if (isEdit && routeId) {
+        // 修改路线前先校验是否为本人创建
+        const oldDoc = await db.collection('mdt_routes').doc(routeId).get();
+        if (oldDoc && oldDoc.data && oldDoc.data._openid && oldDoc.data._openid !== wxContext.OPENID) {
+          return { success: false, error: '仅创建人可修改路线' };
+        }
+        await db.collection('mdt_routes').doc(routeId).update({
+          data: {
+            ...routeData,
+            updateTime: Date.now()
+          }
+        });
+        return { success: true, routeId };
+      } else {
+        const res = await db.collection('mdt_routes').add({
+          data: {
+            ...routeData,
+            _openid: wxContext.OPENID,
+            views: 1,
+            likes: 0,
+            createTime: Date.now(),
+            updateTime: Date.now()
+          }
+        });
+        return { success: true, routeId: res._id };
+      }
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
+
+  // 6. 路线列表查询 (云端 Admin 权限，跨用户免鉴权读取公开路线)
+  if (event && event.action === 'getMdtRoutes') {
+    try {
+      try {
+        await db.createCollection('mdt_routes');
+      } catch (_) {}
+
+      const { dungeonAliases, levelRange, onlyMyRoutes } = event;
+      const conditions = {};
+      if (dungeonAliases && Array.isArray(dungeonAliases) && dungeonAliases.length > 0) {
+        conditions.dungeon = _.in(dungeonAliases);
+      }
+      if (levelRange && levelRange !== '全部') {
+        conditions.levelRange = levelRange;
+      }
+      if (onlyMyRoutes) {
+        conditions._openid = wxContext.OPENID;
+      }
+      const res = await db.collection('mdt_routes')
+        .where(conditions)
+        .orderBy('createTime', 'desc')
+        .limit(50)
+        .get();
+      return { success: true, data: res.data || [] };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
+
+  // 7. 单条路线详情 (云端 Admin 权限，跨用户免鉴权读取公开路线)
+  if (event && event.action === 'getMdtRouteById' && event.routeId) {
+    try {
+      const res = await db.collection('mdt_routes').doc(event.routeId).get();
+      return { success: true, data: res.data };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
+
   if (!content || typeof content !== 'string') {
     return { pass: true, openid: wxContext.OPENID };
   }
