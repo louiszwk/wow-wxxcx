@@ -100,9 +100,11 @@ Page({
     }
     if (dIndex < 0 || dIndex >= DUNGEONS.length) dIndex = 0;
 
+    const userLikedIds = wx.getStorageSync('mdt_user_liked_ids') || {};
     this.setData({
       currentDungeonIndex: dIndex,
-      currentDungeon: DUNGEONS[dIndex]
+      currentDungeon: DUNGEONS[dIndex],
+      userLikedIds
     });
 
     // 初始化用户身份 openid 并拉取数据
@@ -113,7 +115,11 @@ Page({
 
   onShow() {
     // 每次从创建或修改页面返回，重新刷新当前真实数据
-    if (this.data.currentOpenId) {
+    const openid = this.data.currentOpenId || wx.getStorageSync('user_openid') || '';
+    if (openid && !this.data.currentOpenId) {
+      this.setData({ currentOpenId: openid });
+    }
+    if (openid) {
       this.fetchRoutesFromCloud(true);
     }
   },
@@ -321,17 +327,16 @@ Page({
     });
   },
 
-  // 跳转查看路线 (点击卡片)
+  // 跳转查看路线 (点击卡片：无论是创建人还是其他人，点进去统一只读查看)
   goToViewRoute(e) {
     const routeId = e.currentTarget.dataset.id;
     if (!routeId) return;
     const targetRoute = this.data.routes.find(r => r._id === routeId);
     const dungeonName = targetRoute ? targetRoute.dungeon : this.data.currentDungeon.name;
     
-    // 如果是创建人自己，直接进入查看/编辑模式均可；否则以只读查看模式进入
-    const mode = (targetRoute && targetRoute.isOwner) ? 'edit' : 'view';
+    // 需求1：列表里点进去只能查看，点编辑才能修改
     wx.navigateTo({
-      url: `/pages/mdt/mdt?mode=${mode}&id=${routeId}&dungeon=${encodeURIComponent(dungeonName)}`
+      url: `/pages/mdt/mdt?mode=view&id=${routeId}&dungeon=${encodeURIComponent(dungeonName)}`
     });
   },
 
@@ -415,6 +420,9 @@ Page({
     }
     const userLikedIds = { ...this.data.userLikedIds, [routeId]: true };
     this.setData({ routes, userLikedIds });
+    try {
+      wx.setStorageSync('mdt_user_liked_ids', userLikedIds);
+    } catch (_) {}
 
     try {
       const db = wx.cloud.database();

@@ -234,6 +234,11 @@ Page({
     saveRouteName: '',
     saveRouteRemark: '',
 
+    // 地图位移控制与居中
+    mapX: 0,
+    mapY: 0,
+    mapAnimation: true,
+
     // 地图加载状态
     mapLoading: true
   },
@@ -246,6 +251,11 @@ Page({
   _portraitImages: {},   // 怪物头像图片对象缓存
   _drawPending: false,   // Canvas rAF 节流锁
   _touchStartInfo: null, // 触摸开始记录，用于区分轻触与地图拖拽
+  _currentMapX: 0,       // 当前地图实时的 X 偏移
+  _currentMapY: 0,       // 当前地图实时的 Y 偏移
+  _containerWidth: 0,    // 地图主视窗容器真实宽度
+  _containerHeight: 0,   // 地图主视窗容器真实高度
+  _rawLoadedRoute: null, // 缓存当前载入的路线原始对象，用于鉴权校验
 
   onLoad(options) {
     const app = getApp();
@@ -320,11 +330,16 @@ Page({
     }
   },
 
-  _initUserIdentity() {
+  _initUserIdentity(callback) {
     let openid = wx.getStorageSync('user_openid') || '';
     let nickname = wx.getStorageSync('user_nickname') || '';
     if (openid) {
       this.setData({ currentOpenId: openid, userNickname: nickname });
+      if (this._rawLoadedRoute) {
+        const isAuthor = Boolean(this._rawLoadedRoute._openid && this._rawLoadedRoute._openid === openid);
+        this.setData({ isAuthor });
+      }
+      if (callback) callback(openid);
       return;
     }
 
@@ -336,7 +351,12 @@ Page({
           if (res.result && res.result.openid) {
             openid = res.result.openid;
             wx.setStorageSync('user_openid', openid);
-            this.setData({ currentOpenId: openid });
+            const isAuthor = Boolean(this._rawLoadedRoute && this._rawLoadedRoute._openid && this._rawLoadedRoute._openid === openid);
+            this.setData({ 
+              currentOpenId: openid,
+              ...(this._rawLoadedRoute ? { isAuthor } : {})
+            });
+            if (callback) callback(openid);
           }
         }
       });
@@ -405,6 +425,7 @@ Page({
       wx.showToast({ title: '路线不存在或已删除', icon: 'none' });
       return;
     }
+    this._rawLoadedRoute = route;
 
     const currentOpenId = this.data.currentOpenId || wx.getStorageSync('user_openid') || '';
     const isAuthor = Boolean(currentOpenId && route._openid && currentOpenId === route._openid);
@@ -427,6 +448,7 @@ Page({
       interactiveMode: effectiveMode === 'view' ? 'preview' : 'plan',
       editingRouteId: (isAuthor && effectiveMode === 'edit') ? (route._id || routeId) : '',
       isAuthor,
+      routeId: route._id || routeId,
       saveRouteName: route.name || '',
       saveRouteRemark: route.remark || '',
       saveRouteLevelRange: route.levelRange || '全部',
@@ -458,6 +480,29 @@ Page({
 
   onReady() {
     this.initCanvas();
+    const query = this.createSelectorQuery();
+    query.select('.map-container').boundingClientRect((rect) => {
+      if (rect) {
+        this._containerWidth = rect.width;
+        this._containerHeight = rect.height;
+      }
+    }).exec();
+  },
+
+  // 需求1：仅创建人有“编辑”按钮，在查看模式下点击即可直接切换进入编辑模式
+  enterEditMode() {
+    if (!this.data.isAuthor) {
+      wx.showToast({ title: '仅创建人可编辑', icon: 'none' });
+      return;
+    }
+    const editId = this.data.routeId || this.data.editingRouteId || '';
+    this.setData({
+      mode: 'edit',
+      interactiveMode: 'plan',
+      editingRouteId: editId
+    });
+    wx.showToast({ title: '已进入编辑模式', icon: 'none' });
+    this.scheduleRedraw();
   },
 
   navigateBack() {
@@ -568,6 +613,8 @@ Page({
 
     const initialScale = this.fitScale || 0.35;
     this.currentScale = initialScale;
+    this._currentMapX = 0;
+    this._currentMapY = 0;
 
     const nextState = {
       currentDungeonName: name,
@@ -585,6 +632,9 @@ Page({
       scaleMin: this.fitScale || 0.3,
       scaleValue: initialScale,
       scalePercent: Math.round(initialScale * 100),
+      mapX: 0,
+      mapY: 0,
+      mapAnimation: false,
       savedRoutes,
       showRouteManager: false,
       mapLoading: false
@@ -955,7 +1005,7 @@ Page({
       }
 
       if (bestEnemy) {
-        if (this.data.interactiveMode === 'preview') {
+        if (this.data.interactiveMode === 'preview' || this.data.mode === 'view') {
           this.inspectEnemy(bestEnemy.id);
         } else {
           this.handleToggleEnemy(bestEnemy.id);
@@ -963,14 +1013,17 @@ Page({
         return;
       }
 
-      // 2. 如果未命中怪物，检测是否点击了波次数字徽章（点击徽章快速切换活跃波次）
+      // 2. 如果未命中怪物，检测是否点击了波次数字徽章（点击徽章快速切换活跃波次，受控保留坐标不弹回左上角）
       for (const b of (this._pullBadges || [])) {
         const dx = b.x - cx, dy = b.y - cy;
         const bDist = Math.sqrt(dx * dx + dy * dy);
         if (bDist <= 20 / renderScale) {
           this.setData({
             activePullIndex: b.pullIndex,
-            activePullScrollId: `pull-item-${b.pullIndex}`
+            activePullScrollId: `pull-item-${b.pullIndex}`,
+            mapX: this._currentMapX,
+            mapY: this._currentMapY,
+            mapAnimation: false
           });
           this.scheduleRedraw();
           return;
@@ -981,6 +1034,10 @@ Page({
 
   // ===== 怪物选择与波次联动逻辑 =====
   handleToggleEnemy(id) {
+    if (this.data.mode === 'view') {
+      this.inspectEnemy(id);
+      return;
+    }
     const idx = this._enemyMap[id];
     if (idx === undefined) return;
     const target = this._enemies[idx];
@@ -1026,7 +1083,10 @@ Page({
 
     this.setData({
       pulls,
-      selectedEnemyInfo: null
+      selectedEnemyInfo: null,
+      mapX: this._currentMapX,
+      mapY: this._currentMapY,
+      mapAnimation: false
     });
 
     this._saveRoute();
@@ -1096,6 +1156,10 @@ Page({
 
   // ===== 波次备注功能（玩家喜爱的战术提醒） =====
   editActivePullNote() {
+    if (this.data.mode === 'view') {
+      wx.showToast({ title: '查看模式下不可修改备注', icon: 'none' });
+      return;
+    }
     const pulls = this.data.pulls;
     const activeIdx = this.data.activePullIndex;
     const curNote = pulls[activeIdx] ? (pulls[activeIdx].note || '') : '';
@@ -1133,12 +1197,26 @@ Page({
     this.setData({ scaleValue: next, scalePercent: Math.round(next * 100) });
   },
 
+  // 追踪用户拖拽地图位置，杜绝 setData 时由于没有受控坐标被基础库弹回左上角 (0, 0)
+  onMapMove(e) {
+    if (e.detail && (e.detail.source === 'touch' || e.detail.source === 'touch-out-of-bounds')) {
+      this._currentMapX = e.detail.x;
+      this._currentMapY = e.detail.y;
+    }
+  },
+
   onScaleChange(e) {
-    if (e.detail && e.detail.scale) {
-      this.currentScale = e.detail.scale;
-      const pct = Math.round(e.detail.scale * 100);
-      if (Math.abs(pct - this.data.scalePercent) >= 5) {
-        this.setData({ scalePercent: pct });
+    if (e.detail) {
+      if (e.detail.scale) {
+        this.currentScale = e.detail.scale;
+        const pct = Math.round(e.detail.scale * 100);
+        if (Math.abs(pct - this.data.scalePercent) >= 5) {
+          this.setData({ scalePercent: pct });
+        }
+      }
+      if (e.detail.x !== undefined && e.detail.y !== undefined) {
+        this._currentMapX = e.detail.x;
+        this._currentMapY = e.detail.y;
       }
     }
   },
@@ -1148,7 +1226,13 @@ Page({
     let next = Math.min(4.0, parseFloat((cur * 1.25).toFixed(2)));
     if (next === this.data.scaleValue) next += 0.01;
     this.currentScale = next;
-    this.setData({ scaleValue: next, scalePercent: Math.round(next * 100) });
+    this.setData({ 
+      scaleValue: next, 
+      scalePercent: Math.round(next * 100),
+      mapX: this._currentMapX,
+      mapY: this._currentMapY,
+      mapAnimation: false
+    });
   },
 
   zoomOut() {
@@ -1158,19 +1242,37 @@ Page({
     if (next === this.data.scaleValue) next -= 0.01;
     if (next < minScale) next = minScale;
     this.currentScale = next;
-    this.setData({ scaleValue: next, scalePercent: Math.round(next * 100) });
+    this.setData({ 
+      scaleValue: next, 
+      scalePercent: Math.round(next * 100),
+      mapX: this._currentMapX,
+      mapY: this._currentMapY,
+      mapAnimation: false
+    });
   },
 
   resetZoom() {
     let s = this.fitScale || 0.35;
     if (this.data.scaleValue === s) s += 0.001;
     this.currentScale = s;
-    this.setData({ scaleValue: s, scalePercent: Math.round(s * 100) });
+    this._currentMapX = 0;
+    this._currentMapY = 0;
+    this.setData({ 
+      scaleValue: s, 
+      scalePercent: Math.round(s * 100),
+      mapX: 0,
+      mapY: 0,
+      mapAnimation: true
+    });
     wx.showToast({ title: '已自适应全图', icon: 'none', duration: 800 });
   },
 
   // ===== 波次管理 =====
   addPull() {
+    if (this.data.mode === 'view') {
+      wx.showToast({ title: '查看模式下不可新增波次', icon: 'none' });
+      return;
+    }
     let pulls = this.data.pulls;
     const nextColor = PULL_COLORS[pulls.length % PULL_COLORS.length];
     pulls.push({ color: nextColor, enemyIds: [], forces: 0, percent: '0.0', note: '' });
@@ -1178,21 +1280,75 @@ Page({
     this.setData({
       pulls,
       activePullIndex: newIdx,
-      activePullScrollId: `pull-item-${newIdx}`
+      activePullScrollId: `pull-item-${newIdx}`,
+      mapX: this._currentMapX,
+      mapY: this._currentMapY,
+      mapAnimation: false
     });
     this._saveRoute();
   },
 
+  // 修复点击波次弹到左上角的关键函数：若有怪物则平滑居中聚焦，若无怪物则保持当前坐标受控，永不弹回 (0, 0)
   selectPull(e) {
     const idx = Number(e.currentTarget.dataset.index);
-    this.setData({
+    if (isNaN(idx)) return;
+    const pulls = this.data.pulls || [];
+    const p = pulls[idx];
+
+    let nextState = {
       activePullIndex: idx,
       activePullScrollId: `pull-item-${idx}`
-    });
+    };
+
+    let centered = false;
+    if (p && p.enemyIds && p.enemyIds.length > 0 && this._enemies && this._enemies.length > 0) {
+      let sumX = 0, sumY = 0, count = 0;
+      const W = this.data.mapWidth, H = this.data.mapHeight;
+      for (const eid of p.enemyIds) {
+        const eIdx = this._enemyMap[eid];
+        if (eIdx !== undefined && this._enemies[eIdx]) {
+          const en = this._enemies[eIdx];
+          sumX += en.x * W;
+          sumY += en.y * H;
+          count++;
+        }
+      }
+      if (count > 0) {
+        const cx = sumX / count;
+        const cy = sumY / count;
+        const curScale = this.currentScale || this.data.scaleValue || 0.35;
+        const viewW = this._containerWidth || (wx.getSystemInfoSync().windowWidth) || 390;
+        const viewH = this._containerHeight || 450;
+        
+        // 计算让怪群几何中心居中的偏移坐标
+        let targetX = (viewW / 2) - (cx * curScale);
+        let targetY = (viewH / 2) - (cy * curScale);
+
+        this._currentMapX = Math.round(targetX);
+        this._currentMapY = Math.round(targetY);
+        nextState.mapX = this._currentMapX;
+        nextState.mapY = this._currentMapY;
+        nextState.mapAnimation = true;
+        centered = true;
+      }
+    }
+
+    if (!centered) {
+      // 保持当前实时的移动坐标受控传递，防止微信基础库 reset 到 (0, 0)
+      nextState.mapX = this._currentMapX || 0;
+      nextState.mapY = this._currentMapY || 0;
+      nextState.mapAnimation = false;
+    }
+
+    this.setData(nextState);
     this.scheduleRedraw();
   },
 
   deletePull(e) {
+    if (this.data.mode === 'view') {
+      wx.showToast({ title: '查看模式下不可删除波次', icon: 'none' });
+      return;
+    }
     const index = Number(e.currentTarget.dataset.index);
     if (this.data.pulls.length <= 1) {
       this.clearActivePull();
@@ -1212,7 +1368,10 @@ Page({
           pulls,
           activePullIndex: newActive,
           activePullScrollId: `pull-item-${newActive}`,
-          selectedEnemyInfo: null
+          selectedEnemyInfo: null,
+          mapX: this._currentMapX,
+          mapY: this._currentMapY,
+          mapAnimation: false
         });
         this._recalcForces(pulls);
         this.setData({ pulls });
@@ -1223,13 +1382,23 @@ Page({
   },
 
   clearActivePull() {
+    if (this.data.mode === 'view') {
+      wx.showToast({ title: '查看模式下不可清空波次', icon: 'none' });
+      return;
+    }
     let pulls = this.data.pulls;
     const p = pulls[this.data.activePullIndex];
     if (!p || p.enemyIds.length === 0) return;
     p.enemyIds = [];
     p.forces = 0;
     p.percent = '0.0';
-    this.setData({ pulls, selectedEnemyInfo: null });
+    this.setData({ 
+      pulls, 
+      selectedEnemyInfo: null,
+      mapX: this._currentMapX,
+      mapY: this._currentMapY,
+      mapAnimation: false
+    });
     this._recalcForces(pulls);
     this.setData({ pulls });
     this._saveRoute();
@@ -1237,6 +1406,10 @@ Page({
   },
 
   resetAll() {
+    if (this.data.mode === 'view') {
+      wx.showToast({ title: '查看模式下不可重置路线', icon: 'none' });
+      return;
+    }
     wx.showModal({
       title: '重置整张路线',
       content: '确定要清空全部波次规划吗？',
@@ -1393,6 +1566,7 @@ Page({
       dungeon: dungeonName,
       name: routeName,
       remark: routeRemark,
+      authorName: authorName || '艾泽拉斯勇士',
       levelRange: levelRange || '全部',
       pulls: pulls.map(p => ({
         color: p.color,
@@ -1411,8 +1585,7 @@ Page({
         // 需求3：修改已有路线（由创建人在列表点击修改进入）
         await db.collection('mdt_routes').doc(editingRouteId).update({
           data: {
-            ...payload,
-            authorName: authorName
+            ...payload
           }
         });
         // 用户要求：已保存的路线不缓存，彻底清除本地临时草稿
@@ -1423,14 +1596,13 @@ Page({
         wx.hideLoading();
         wx.showToast({ title: '修改已保存！', icon: 'success' });
         setTimeout(() => {
-          wx.navigateBack();
+          this.navigateBack();
         }, 1200);
       } else {
         // 创建全新真实路线
         await db.collection('mdt_routes').add({
           data: {
             ...payload,
-            authorName: authorName || '艾泽拉斯勇士',
             views: 1,
             likes: 0,
             createTime: Date.now()
@@ -1444,7 +1616,7 @@ Page({
         wx.hideLoading();
         wx.showToast({ title: '路线发布成功！', icon: 'success' });
         setTimeout(() => {
-          wx.navigateBack();
+          this.navigateBack();
         }, 1200);
       }
     } catch (err) {
@@ -1473,7 +1645,7 @@ Page({
             icon: 'success'
           });
           setTimeout(() => {
-            wx.navigateBack();
+            this.navigateBack();
           }, 1200);
           return;
         }
@@ -1701,6 +1873,24 @@ Page({
 
   // ===== 模式切换：规划模式 vs 预览模式 =====
   switchInteractiveMode(e) {
+    if (this.data.mode === 'view') {
+      if (this.data.isAuthor) {
+        wx.showModal({
+          title: '提示',
+          content: '当前为只读查看模式，是否切换为编辑模式以进行波次规划？',
+          confirmText: '去编辑',
+          confirmColor: '#2563eb',
+          success: (res) => {
+            if (res.confirm) {
+              this.enterEditMode();
+            }
+          }
+        });
+      } else {
+        wx.showToast({ title: '当前为查看模式，轻触怪物查机制', icon: 'none' });
+      }
+      return;
+    }
     const targetMode = e.currentTarget.dataset.mode;
     if (!targetMode || targetMode === this.data.interactiveMode) return;
     this.setData({
@@ -1810,6 +2000,9 @@ Page({
     this.setData({
       showEnemyModal: true,
       inspectedEnemyId: target.id,
+      mapX: this._currentMapX,
+      mapY: this._currentMapY,
+      mapAnimation: false,
       inspectedEnemy: {
         id: target.id,
         npcId: target.npcId,
@@ -1835,12 +2028,19 @@ Page({
     this.setData({
       showEnemyModal: false,
       inspectedEnemyId: null,
-      inspectedEnemy: null
+      inspectedEnemy: null,
+      mapX: this._currentMapX,
+      mapY: this._currentMapY,
+      mapAnimation: false
     });
     this.scheduleRedraw();
   },
 
   toggleInspectedEnemyFromModal() {
+    if (this.data.mode === 'view') {
+      wx.showToast({ title: '查看模式下不可修改', icon: 'none' });
+      return;
+    }
     const enemy = this.data.inspectedEnemy;
     if (!enemy) return;
     this.handleToggleEnemy(enemy.id);

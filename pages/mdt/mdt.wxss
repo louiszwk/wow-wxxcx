@@ -1086,6 +1086,31 @@ button.card-action-btn.share::after {
   box-shadow: 0 0 8px rgba(37, 99, 235, 0.4);
 }
 
+/* ========== 只读查看模式药丸徽章 ========== */
+.view-mode-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.85);
+  padding: 4px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.view-mode-pill .pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #38bdf8;
+  box-shadow: 0 0 6px #38bdf8;
+}
+
+.view-mode-pill .pill-text {
+  font-size: 11.5px;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+}
+
 /* ========== 模式分段切换器 (规划 vs 预览技能) ========== */
 .mode-switch-segmented {
   display: flex;

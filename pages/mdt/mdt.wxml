@@ -17,8 +17,8 @@
 
   <!-- 次级工具栏 -->
   <view class="sub-header">
-    <!-- 模式分段切换器：规划路线 vs 预览技能 -->
-    <view class="mode-switch-segmented">
+    <!-- 模式分段切换器：规划路线 vs 预览技能 (仅在编辑/创建模式下可切换规划；查看模式下保持只读浏览) -->
+    <view class="mode-switch-segmented" wx:if="{{mode !== 'view'}}">
       <view 
         class="mode-switch-item {{interactiveMode === 'plan' ? 'active' : ''}}" 
         bindtap="switchInteractiveMode" 
@@ -32,14 +32,29 @@
         <text class="switch-text">预览</text>
       </view>
     </view>
+    <view class="view-mode-pill" wx:else>
+      <text class="pill-dot"></text>
+      <text class="pill-text">只读查看模式</text>
+    </view>
 
     <view class="header-tools">
       <view class="tool-btn reset-tool-btn" bindtap="resetAll" wx:if="{{interactiveMode === 'plan' && mode !== 'view'}}">重置</view>
-      <view class="tool-btn highlight" bindtap="openSaveModal">
-        <text wx:if="{{mode === 'edit'}}">保存修改</text>
-        <text wx:elif="{{mode === 'view'}}">另存为路线</text>
-        <text wx:else>保存发布</text>
+      
+      <!-- 需求1：仅创建人有编辑按钮，点击可进入修改模式 -->
+      <view class="tool-btn highlight" bindtap="enterEditMode" wx:if="{{mode === 'view' && isAuthor}}">
+        <text>编辑</text>
       </view>
+
+      <view class="tool-btn highlight" bindtap="openSaveModal" wx:elif="{{mode === 'edit'}}">
+        <text>保存修改</text>
+      </view>
+      <view class="tool-btn highlight" bindtap="openSaveModal" wx:elif="{{mode === 'create'}}">
+        <text>保存发布</text>
+      </view>
+      <view class="tool-btn" bindtap="openSaveModal" wx:elif="{{mode === 'view' && !isAuthor}}">
+        <text>另存路线</text>
+      </view>
+
       <button class="tool-btn share-header-btn" open-type="share" data-id="current" bindtap="setShareRoute">
         <text>分享</text>
       </button>
@@ -47,9 +62,9 @@
   </view>
 
   <!-- 路线名称与预览提示横幅 -->
-  <view class="preview-mode-banner" wx:if="{{mode === 'view' && saveRouteName}}">
-    <text class="preview-banner-badge">路线</text>
-    <text class="preview-banner-text">{{saveRouteName}}{{saveRouteRemark ? (' · ' + saveRouteRemark) : ''}}（轻触怪物查机制）</text>
+  <view class="preview-mode-banner" wx:if="{{mode === 'view'}}">
+    <text class="preview-banner-badge">{{isAuthor ? '我的路线' : '路线浏览'}}</text>
+    <text class="preview-banner-text">{{saveRouteName || currentDungeonName}}{{saveRouteRemark ? (' · ' + saveRouteRemark) : ''}}（轻触怪物查机制{{isAuthor ? '，点「编辑」可修改' : ''}}）</text>
   </view>
   <view class="preview-mode-banner" wx:elif="{{interactiveMode === 'preview'}}">
     <text class="preview-banner-badge">技能预览</text>
@@ -86,6 +101,10 @@
         scale-min="{{scaleMin}}" 
         scale-max="4.0" 
         scale-value="{{scaleValue}}"
+        x="{{mapX}}"
+        y="{{mapY}}"
+        animation="{{mapAnimation}}"
+        bindchange="onMapMove"
         bindscale="onScaleChange"
         out-of-bounds="false"
         damping="40"

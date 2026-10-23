@@ -129,10 +129,10 @@
                 <text class="pull-count-summary">共{{item.pullCount || (item.pulls ? item.pulls.length : 0)}}波</text>
               </view>
 
-              <!-- 权限操作: 仅创建人可见修改与删除按钮 (紧凑单行排布) -->
+              <!-- 权限操作: 仅创建人可见编辑与删除按钮 (紧凑单行排布) -->
               <view class="owner-actions" wx:if="{{item.isOwner}}">
                 <view class="action-chip edit" catchtap="goToEditRoute" data-id="{{item._id}}">
-                  <text class="chip-text">修改</text>
+                  <text class="chip-text">编辑</text>
                 </view>
                 <view class="action-chip delete" catchtap="onDeleteRoute" data-id="{{item._id}}" data-name="{{item.name}}">
                   <text class="chip-text">删除</text>
