@@ -46,6 +46,12 @@
   <view wx:else>
     <!-- Section 0: 天赋&物资 -->
     <view class="guide-panel" wx:if="{{activeSection === 0}}">
+      <view class="panel-card" wx:if="{{guideData.statPriority}}">
+        <view class="card-title">属性优先级 & 阈值说明</view>
+        <view class="stat-priority-highlight">{{guideData.statPriority}}</view>
+        <view class="talent-desc" wx:if="{{guideData.statDesc}}">{{guideData.statDesc}}</view>
+      </view>
+
       <view class="panel-card">
         <view class="card-title">大秘境天赋代码</view>
         <view class="talent-box">

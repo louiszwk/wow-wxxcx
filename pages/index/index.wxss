@@ -435,6 +435,7 @@
   color: #475569;
 }
 
+
 .footer {
   text-align: center;
   padding: 60rpx;
@@ -443,3 +444,4 @@
   font-weight: 500;
   opacity: 0.7;
 }
+

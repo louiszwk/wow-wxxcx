@@ -38,10 +38,8 @@ Page({
       theme: savedTheme
     });
 
-    // 模拟数据加载延迟
-    setTimeout(() => {
-      this.loadLootData();
-    }, 1000);
+    // 立即加载真实掉落数据
+    this.loadLootData();
   },
 
   onShow() {

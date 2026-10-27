@@ -35,34 +35,31 @@ Page({
   },
 
   autoSeedDatabase() {
-    const db = wx.cloud.database();
-    db.collection('wow_guides').count().then(res => {
-      // 只有在数据少于30条时才批量注入，防止重复插入
-      if (res.total < 30) {
-        wx.showLoading({ title: '正在初始化全职业39专精真实装备数据...' });
-        
-        const allGuides = require('../../data/wow_guides_data.js');
-
-        // 分批插入数据库，避免云函数单次请求并发过高
-        let count = 0;
-        const insertBatch = () => {
-          if (count >= allGuides.length) {
-            wx.hideLoading();
-            wx.showToast({ title: '全职业39专精数据补齐完成', icon: 'none', duration: 3000 });
-            return;
-          }
-          db.collection('wow_guides').add({ data: allGuides[count] }).then(() => {
-            count++;
-            insertBatch();
-          }).catch(err => {
-            console.error('插入失败', err);
-            count++;
-            insertBatch();
-          });
-        };
-        insertBatch();
-      }
-    });
+    try {
+      if (!wx.cloud || typeof wx.cloud.database !== 'function') return;
+      const db = wx.cloud.database();
+      db.collection('wow_guides').count().then(res => {
+        if (res && res.total < 30) {
+          const allGuides = require('../../data/wow_guides_data.js');
+          let count = 0;
+          const insertBatch = () => {
+            if (count >= allGuides.length) return;
+            db.collection('wow_guides').add({ data: allGuides[count] }).then(() => {
+              count++;
+              insertBatch();
+            }).catch(() => {
+              count++;
+              insertBatch();
+            });
+          };
+          insertBatch();
+        }
+      }).catch(() => {
+        // 静默跳过，本地已有完整 39 专精数据，不影响用户使用
+      });
+    } catch (e) {
+      // 容错处理
+    }
   },
 
   fetchTokenPrice() {
@@ -160,6 +157,12 @@ Page({
     wx.setStorageSync('app_theme', newTheme);
   },
 
+  navigateToMacros() {
+    wx.navigateTo({
+      url: '/pages/macros/macros'
+    });
+  },
+
   navigateToLoot() {
     wx.navigateTo({
       url: '/pages/loot/loot'
@@ -173,10 +176,8 @@ Page({
   },
 
   navigateToBis() {
-    wx.showToast({
-      title: '敬请期待',
-      icon: 'none',
-      duration: 2000
+    wx.navigateTo({
+      url: '/pages/bis/bis'
     });
   },
 

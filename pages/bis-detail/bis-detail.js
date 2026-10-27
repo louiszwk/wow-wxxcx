@@ -37,10 +37,16 @@ Page({
     if (options.class && options.slug && options.specs) {
       try {
         const specsObj = JSON.parse(decodeURIComponent(options.specs));
+        let activeIndex = 0;
+        if (options.spec) {
+          const foundIdx = specsObj.findIndex(s => s.id === options.spec);
+          if (foundIdx !== -1) activeIndex = foundIdx;
+        }
         this.setData({ 
           className: decodeURIComponent(options.class),
           classSlug: options.slug,
-          specs: specsObj
+          specs: specsObj,
+          activeSpec: activeIndex
         });
         this.fetchDynamicBisGear();
       } catch (e) {
@@ -53,26 +59,36 @@ Page({
     this.setData({ isLoading: true });
     
     const currentSpec = this.data.specs[this.data.activeSpec];
-    const db = wx.cloud.database();
-    
-    db.collection('wow_guides').where({
-      classSlug: this.data.classSlug,
-      specId: currentSpec.id
-    }).get({
-      success: (res) => {
-        // 如果数据库中有数据且不是旧的占位代码，优先使用云端数据
-        if (res.data && res.data.length > 0 && res.data[0].gear && res.data[0].gear.left && res.data[0].talents && !res.data[0].talents.mythicPlus.includes('...')) {
-          this.applyGuideData(res.data[0]);
-        } else {
-          // 数据库未配置或仍是旧占位数据，使用本地最新精选攻略
-          this.loadLocalGuide(this.data.classSlug, currentSpec.id);
-        }
-      },
-      fail: (err) => {
-        console.warn('云数据库读取失败，自动使用本地最新攻略:', err);
-        this.loadLocalGuide(this.data.classSlug, currentSpec.id);
+    if (!currentSpec) {
+      this.setData({ isLoading: false });
+      return;
+    }
+
+    try {
+      if (wx.cloud && typeof wx.cloud.database === 'function') {
+        const db = wx.cloud.database();
+        db.collection('wow_guides').where({
+          classSlug: this.data.classSlug,
+          specId: currentSpec.id
+        }).get({
+          success: (res) => {
+            if (res.data && res.data.length > 0 && res.data[0].gear && res.data[0].gear.left && res.data[0].talents && !res.data[0].talents.mythicPlus.includes('...')) {
+              this.applyGuideData(res.data[0]);
+            } else {
+              this.loadLocalGuide(this.data.classSlug, currentSpec.id);
+            }
+          },
+          fail: () => {
+            this.loadLocalGuide(this.data.classSlug, currentSpec.id);
+          }
+        });
+        return;
       }
-    });
+    } catch (err) {
+      console.warn('云函数或数据库暂不可用，使用内置攻略:', err);
+    }
+
+    this.loadLocalGuide(this.data.classSlug, currentSpec.id);
   },
 
   applyGuideData(data) {
@@ -91,6 +107,22 @@ Page({
       const found = allGuides.find(g => g.classSlug === classSlug && g.specId === specId);
       if (found) {
         this.applyGuideData(found);
+        return;
+      }
+      
+      const { getSpecGuide } = require('../../data/spec_guides_data.js');
+      const fallbackGuide = getSpecGuide(classSlug, specId);
+      if (fallbackGuide) {
+        this.applyGuideData({
+          classSlug,
+          specId,
+          statPriority: fallbackGuide.statPriority,
+          statDesc: fallbackGuide.statDesc,
+          talents: fallbackGuide.talents,
+          consumables: fallbackGuide.consumables,
+          rotation: fallbackGuide.rotation,
+          gear: { left: [], right: [], weapons: [] }
+        });
         return;
       }
     } catch (e) {

@@ -14,7 +14,8 @@
     "pages/infinite-classes/infinite-classes",
     "pages/infinite-wishes/infinite-wishes",
     "pages/infinite-terms/infinite-terms",
-    "pages/webview/webview"
+    "pages/webview/webview",
+    "pages/macros/macros"
   ],
   "subpackages": [
     {

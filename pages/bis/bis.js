@@ -122,13 +122,15 @@ Page({
 
   openBisGuide(e) {
     const classId = e.currentTarget.dataset.class;
+    const specId = e.currentTarget.dataset.spec;
     const classObj = WOW_CLASSES.find(c => c.id === classId);
+    if (!classObj) return;
     const className = classObj.name;
     const specsStr = encodeURIComponent(JSON.stringify(classObj.specs));
     
     // 使用提取的高保真 UI 渲染并实时请求动态实战数据
     wx.navigateTo({
-      url: `/pages/bis-detail/bis-detail?class=${encodeURIComponent(className)}&slug=${classId}&specs=${specsStr}`
+      url: `/pages/bis-detail/bis-detail?class=${encodeURIComponent(className)}&slug=${classId}&specs=${specsStr}&spec=${specId || ''}`
     });
   }
 ,

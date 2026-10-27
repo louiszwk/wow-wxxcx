@@ -1,0 +1,91 @@
+<view class="page-container theme-{{theme}}">
+  <!-- 顶部导航栏 -->
+  <view class="nav-bar" style="padding-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px;">
+    <view class="nav-back" bindtap="navigateBack">
+      <text class="back-icon">‹</text>
+      <text class="back-text">返回</text>
+    </view>
+    <view class="nav-title">宏命令大全</view>
+    <view class="theme-toggle" bindtap="toggleTheme">
+      <text class="theme-text">{{theme === 'light' ? '深色' : '浅色'}}</text>
+    </view>
+  </view>
+
+  <!-- Hero Header -->
+  <view class="hero-banner">
+    <view class="hero-tag">开箱即用 · 游戏直接粘贴 · 收录 {{totalMacroCount}} 条常用宏</view>
+    <view class="hero-title">全职业常用宏命令库</view>
+    <view class="hero-desc">全职业鼠标指向、焦点打断、一键爆发、取消保护、极限视距、救命自疗，点击直接复制。</view>
+
+    <!-- 实时搜索框 -->
+    <view class="search-box">
+      <input class="search-input" placeholder="搜索技能名、用途、宏关键词 (如: 打断、爆发、取消、指向)" value="{{searchQuery}}" bindinput="onSearchInput" />
+      <view class="clear-btn" wx:if="{{searchQuery}}" bindtap="clearSearch">x</view>
+    </view>
+
+    <!-- 快捷功能标签 -->
+    <view class="quick-tags-scroll">
+      <block wx:for="{{filterTags}}" wx:key="*this">
+        <view class="tag-pill {{selectedTag === item ? 'active' : ''}}" data-tag="{{item}}" bindtap="selectTag">
+          {{item}}
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 14 大职业/通用分类横向滚动条 (在未搜索时显示) -->
+  <view class="category-scroll-bar" wx:if="{{!searchQuery}}">
+    <block wx:for="{{categories}}" wx:key="category">
+      <view class="category-item {{activeCategoryIndex === index ? 'active' : ''}}" data-index="{{index}}" bindtap="switchCategory">
+        <text class="cat-name">{{item.category}}</text>
+        <text class="cat-count">{{item.macros.length}}</text>
+      </view>
+    </block>
+  </view>
+
+  <!-- 搜索状态提示 -->
+  <view class="search-status-bar" wx:if="{{searchQuery}}">
+    <text>包含 “{{searchQuery}}” 的宏命令 (找到 {{displayedMacros.length}} 条)</text>
+    <text class="clear-search-link" bindtap="clearSearch">清空检索</text>
+  </view>
+
+  <!-- 宏命令卡片列表 -->
+  <view class="macro-list-container">
+    <block wx:for="{{displayedMacros}}" wx:key="title">
+      <view class="macro-card">
+        <view class="macro-top-row">
+          <view class="macro-title-group">
+            <view class="macro-title">{{item.title}}</view>
+            <view class="macro-badge-row">
+              <view class="cat-pill" wx:if="{{item.categoryName}}">{{item.categoryName}}</view>
+              <view class="tag-badge" wx:if="{{item.tag}}">{{item.tag}}</view>
+            </view>
+          </view>
+          <view class="copy-btn" data-code="{{item.code}}" data-title="{{item.title}}" bindtap="copyMacro">
+            <text>复制</text>
+          </view>
+        </view>
+
+        <view class="macro-desc">{{item.desc}}</view>
+
+        <!-- 代码显示区 -->
+        <view class="code-box">
+          <text class="code-text" user-select="true">{{item.code}}</text>
+        </view>
+
+        <!-- 技巧与改键说明 -->
+        <view class="tips-box" wx:if="{{item.tips}}">
+          <text class="tips-label">说明：</text>
+          <text class="tips-content">{{item.tips}}</text>
+        </view>
+      </view>
+    </block>
+
+    <!-- 搜索无结果空状态 -->
+    <view class="empty-results" wx:if="{{displayedMacros.length === 0}}">
+      <view class="empty-title">未找到相关宏命令</view>
+      <view class="empty-desc">换个关键词试试，或点击下方按钮重置筛选</view>
+      <view class="reset-search-btn" bindtap="clearSearch">查看全部宏命令</view>
+    </view>
+  </view>
+</view>
