@@ -5,15 +5,37 @@
     <text class="back-text">返回</text>
   </view>
 
-  <!-- Title -->
+  <!-- Title & Action Bar -->
   <view class="header">
-    <view class="title">60级权威天赋模拟器</view>
-    <view class="subtitle">魔兽世界经典怀旧服 · 7层天赋树与主流配装一键加点</view>
-    <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+    <view class="title-col">
+      <view class="title">60级天赋系统</view>
+      <view class="subtitle">魔兽世界无限服 · 主流权威配装库与51点加点模拟</view>
+    </view>
+    <view class="header-right-actions">
+      <!-- 紧凑小巧的分享按钮 -->
+      <button class="compact-share-btn" open-type="share" hover-class="share-btn-hover">
+        <text class="share-icon">↗</text>
+        <text>分享</text>
+      </button>
+      <!-- 主题切换按钮 -->
+      <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+    </view>
   </view>
 
-  <!-- Class Selector -->
-  <scroll-view class="class-picker-scroll" scroll-x="true" enable-flex="true">
+  <!-- 顶部模式切换栏: 配装列表 (类似正式服大秘境路线列表) vs 天赋树模拟器 -->
+  <view class="mode-segmented-bar">
+    <view class="segment-tab {{viewMode === 'list' ? 'active' : ''}}" data-mode="list" bindtap="switchViewMode">
+      <text class="tab-icon">📋</text>
+      <text>配装方案列表</text>
+    </view>
+    <view class="segment-tab {{viewMode === 'tree' ? 'active' : ''}}" data-mode="tree" bindtap="switchViewMode">
+      <text class="tab-icon">⚡</text>
+      <text>天赋树模拟器</text>
+    </view>
+  </view>
+
+  <!-- 9 大职业水平滑块 (两模式通用) -->
+  <scroll-view class="class-picker-scroll" scroll-x="true" enable-flex="true" show-scrollbar="{{false}}">
     <view 
       wx:for="{{classList}}" 
       wx:key="id" 
@@ -26,92 +48,258 @@
     </view>
   </scroll-view>
 
-  <!-- Points & Level Bar -->
-  <view class="points-bar">
-    <view class="points-top-row">
-      <view class="points-stat">
-        <text class="stat-num">{{pointsRemaining}}</text>
-        <view class="stat-meta">
-          <text class="stat-title">剩余天赋点</text>
-          <text class="stat-sub">已分配 {{pointsSpent}} / 51 点</text>
-        </view>
-      </view>
-      <view class="level-badge">等级 60</view>
-    </view>
-    <view class="reset-actions">
-      <view class="mini-btn" bindtap="resetActiveTree">重置本系</view>
-      <view class="mini-btn reset-all" bindtap="resetAll">全部重置</view>
-      <view class="mini-btn copy-btn" bindtap="copyTalentCode">复制天赋码</view>
-    </view>
-  </view>
-
-  <!-- Presets Scroll -->
-  <view class="presets-section" wx:if="{{presets.length > 0}}">
-    <view class="preset-label">权威主流流派：</view>
-    <scroll-view class="preset-scroll" scroll-x="true" enable-flex="true">
-      <view 
-        wx:for="{{presets}}" 
-        wx:key="name" 
-        class="preset-chip" 
-        data-index="{{index}}" 
-        bindtap="onPresetSelect"
-      >
-        <text class="preset-name">{{item.name}}</text>
-        <view class="preset-desc">{{item.desc}}</view>
-      </view>
-    </scroll-view>
-  </view>
-
-  <!-- 3 Tree Tabs -->
-  <view class="tree-tabs-bar">
-    <view 
-      wx:for="{{trees}}" 
-      wx:key="id" 
-      class="tree-tab-btn {{activeTreeIndex === index ? 'active' : ''}}" 
-      data-index="{{index}}" 
-      bindtap="switchTree"
-    >
-      <text class="tree-name">{{item.name}}</text>
-      <text class="tree-pts">({{treePoints[index]}}点)</text>
-    </view>
-  </view>
-
-  <!-- 7-Row x 4-Col Talent Grid Canvas -->
-  <view class="talent-tree-grid">
-    <view class="grid-row" wx:for="{{currentMatrix}}" wx:key="rowNum">
-      <!-- Left tier required points badge -->
-      <view class="tier-indicator {{item.isTierUnlocked ? 'unlocked' : 'locked'}}">
-        <text class="tier-pts">{{item.requiredPoints}}点</text>
-      </view>
-
-      <!-- 4 columns -->
-      <view class="grid-cols">
+  <!-- ================= 模式 1: 配装方案列表 (参考正式服大秘境路线列表) ================= -->
+  <block wx:if="{{viewMode === 'list'}}">
+    <!-- 筛选工具栏 -->
+    <view class="list-toolbar">
+      <!-- 左侧分类 Chips -->
+      <view class="filter-chips">
         <view 
-          wx:for="{{item.cols}}" 
-          wx:for-item="cell" 
-          wx:key="col" 
-          class="grid-cell {{cell.skill ? (cell.skill.rank === cell.skill.max ? 'maxed' : (cell.skill.rank > 0 ? 'allocated' : (cell.skill.isLocked ? 'locked' : 'available'))) : 'empty'}}"
-          data-skill-id="{{cell.skill ? cell.skill.id : ''}}"
-          bindtap="onCellTap"
-        >
-          <block wx:if="{{cell.skill}}">
-            <view class="node-icon-box">
-              <text class="node-icon">{{cell.skill.icon}}</text>
-              <view class="lock-overlay" wx:if="{{cell.skill.isLocked && cell.skill.rank === 0}}">🔒</view>
-            </view>
-            <view class="rank-badge {{cell.skill.rank === cell.skill.max ? 'rank-max' : ''}}">
-              {{cell.skill.rank}}/{{cell.skill.max}}
-            </view>
-          </block>
-          <block wx:else>
-            <view class="cell-placeholder"></view>
-          </block>
+          class="filter-pill {{buildsFilter === 'all' && !onlyMyBuilds ? 'active' : ''}}" 
+          data-filter="all" 
+          bindtap="onSelectBuildFilter"
+        >全部</view>
+        <view 
+          class="filter-pill {{buildsFilter === 'official' && !onlyMyBuilds ? 'active' : ''}}" 
+          data-filter="official" 
+          bindtap="onSelectBuildFilter"
+        >官方权威</view>
+        <view 
+          class="filter-pill {{buildsFilter === 'my' || onlyMyBuilds ? 'active' : ''}}" 
+          data-filter="my" 
+          bindtap="onSelectBuildFilter"
+        >我的保存</view>
+      </view>
+
+      <!-- 右侧操作: 新建配装按钮与勾选框 -->
+      <view class="list-actions-right">
+        <view class="btn-create-build" bindtap="goToCreateBuild">
+          <text class="create-icon">+</text>
+          <text class="create-text">新建配装</text>
         </view>
+        <view class="checkbox-wrapper" bindtap="toggleOnlyMyBuilds">
+          <view class="custom-checkbox {{onlyMyBuilds ? 'checked' : ''}}">
+            <text class="check-mark" wx:if="{{onlyMyBuilds}}">✓</text>
+          </view>
+          <text class="checkbox-label">仅我的</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 配装卡片列表 -->
+    <view class="builds-list">
+      <!-- 空状态 -->
+      <view class="empty-state" wx:if="{{displayBuilds.length === 0}}">
+        <view class="empty-icon">📜</view>
+        <text class="empty-title">暂无该分类下的天赋配装</text>
+        <text class="empty-desc">点击右上角「+ 新建配装」，自由规划 51 点并保存方案吧！</text>
+        <view class="empty-create-btn" bindtap="goToCreateBuild">
+          <text>立即新建首个配装</text>
+        </view>
+      </view>
+
+      <!-- 配装卡片 -->
+      <view 
+        class="build-card {{item.isOwner ? 'my-build-card' : ''}}" 
+        wx:for="{{displayBuilds}}" 
+        wx:key="id"
+        bindtap="onBuildCardTap"
+        data-id="{{item.id}}"
+      >
+        <view class="card-top-line">
+          <view class="build-title-box">
+            <text class="build-title">{{item.name}}</text>
+            <text class="build-tag {{item.isOfficial ? 'official' : 'custom'}}">
+              {{item.isOfficial ? '官方权威' : '玩家自建'}}
+            </text>
+          </view>
+          <view class="load-btn" catchtap="onBuildCardTap" data-id="{{item.id}}">
+            <text>载入加点 ›</text>
+          </view>
+        </view>
+
+        <view class="build-desc">{{item.desc}}</view>
+
+        <view class="build-meta-line">
+          <text class="author-label">{{item.authorName}}</text>
+          <text class="update-time">{{item.displayTime}}</text>
+        </view>
+
+        <!-- 底部统计与交互栏 -->
+        <view class="card-footer-line">
+          <view class="stats-group">
+            <view class="stat-pill">
+              <text class="stat-icon">👁</text>
+              <text class="stat-num">{{item.views || 1}}</text>
+            </view>
+            <view class="stat-pill like-pill" catchtap="onLikeBuild" data-id="{{item.id}}">
+              <text class="stat-icon like-icon {{likedBuilds[item.id] ? 'liked' : ''}}">👍</text>
+              <text class="stat-num {{likedBuilds[item.id] ? 'liked' : ''}}">{{item.likes || 1}}</text>
+            </view>
+          </view>
+
+          <!-- 操作按钮组 -->
+          <view class="actions-group">
+            <view class="action-chip copy-chip" catchtap="copyTalentCode">
+              <text>复制天赋码</text>
+            </view>
+            <view 
+              class="action-chip delete-chip" 
+              wx:if="{{item.isOwner}}" 
+              catchtap="onDeleteBuild" 
+              data-id="{{item.id}}" 
+              data-name="{{item.name}}"
+            >
+              <text>删除</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- ================= 模式 2: 天赋树加点模拟器 ================= -->
+  <block wx:if="{{viewMode === 'tree'}}">
+    <!-- 当前配装状态栏 -->
+    <view class="active-build-banner">
+      <view class="banner-left">
+        <text class="banner-build-name">当前方案：{{currentBuildName}}</text>
+        <text class="banner-build-sub">{{isCustomBuild ? '玩家自建方案' : '官方权威预设'}} · 剩余 {{pointsRemaining}} 点</text>
+      </view>
+      <view class="banner-right-actions">
+        <view class="banner-btn save-btn" bindtap="openSaveModal">
+          <text class="banner-btn-icon">💾</text>
+          <text>保存配装</text>
+        </view>
+        <view class="banner-btn list-btn" data-mode="list" bindtap="switchViewMode">
+          <text class="banner-btn-icon">📋</text>
+          <text>配装列表</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Points & Level Bar -->
+    <view class="points-bar">
+      <view class="points-top-row">
+        <view class="points-stat">
+          <text class="stat-num">{{pointsRemaining}}</text>
+          <view class="stat-meta">
+            <text class="stat-title">剩余天赋点数</text>
+            <text class="stat-sub">已投入 {{pointsSpent}} / 51 点</text>
+          </view>
+        </view>
+        <view class="level-badge">满级 60 级</view>
+      </view>
+      <view class="reset-actions">
+        <view class="mini-btn" bindtap="resetActiveTree">重置本系</view>
+        <view class="mini-btn reset-all" bindtap="resetAll">全部重置</view>
+        <view class="mini-btn copy-btn" bindtap="copyTalentCode">复制天赋码</view>
+      </view>
+    </view>
+
+    <!-- 3 系天赋标签栏 (实时显示投入点数) -->
+    <view class="tree-tabs-bar">
+      <view 
+        wx:for="{{trees}}" 
+        wx:key="id" 
+        class="tree-tab-btn {{activeTreeIndex === index ? 'active' : ''}}" 
+        data-index="{{index}}" 
+        bindtap="switchTree"
+      >
+        <text class="tree-name">{{item.name}}</text>
+        <text class="tree-pts">({{treePoints[index]}}点)</text>
+      </view>
+    </view>
+
+    <!-- 7-Row x 4-Col Talent Grid (核心优化：每个天赋直观显示天赋名称！) -->
+    <view class="talent-tree-grid">
+      <view class="grid-row" wx:for="{{currentMatrix}}" wx:key="rowNum">
+        <!-- 左侧门槛点数指示牌 -->
+        <view class="tier-indicator {{item.isTierUnlocked ? 'unlocked' : 'locked'}}">
+          <text class="tier-pts">{{item.requiredPoints}}点</text>
+        </view>
+
+        <!-- 4 列天赋节点网格 -->
+        <view class="grid-cols">
+          <view 
+            wx:for="{{item.cols}}" 
+            wx:for-item="cell" 
+            wx:key="col" 
+            class="grid-cell {{cell.skill ? (cell.skill.rank === cell.skill.max ? 'maxed' : (cell.skill.rank > 0 ? 'allocated' : (cell.skill.isLocked ? 'locked' : 'available'))) : 'empty'}}"
+            data-skill-id="{{cell.skill ? cell.skill.id : ''}}"
+            bindtap="onCellTap"
+          >
+            <block wx:if="{{cell.skill}}">
+              <!-- 顶部行: 图标与点数 -->
+              <view class="node-icon-row">
+                <view class="node-icon-box">
+                  <text class="node-icon">{{cell.skill.icon}}</text>
+                  <view class="lock-overlay" wx:if="{{cell.skill.isLocked && cell.skill.rank === 0}}">🔒</view>
+                </view>
+                <view class="rank-badge {{cell.skill.rank === cell.skill.max ? 'rank-max' : (cell.skill.rank > 0 ? 'rank-allocated' : '')}}">
+                  {{cell.skill.rank}}/{{cell.skill.max}}
+                </view>
+              </view>
+
+              <!-- 天赋名字直接显示在节点上！无需点击即可一目了然！ -->
+              <view class="talent-name-wrap">
+                <text class="talent-name-text {{cell.skill.rank === cell.skill.max ? 'name-max' : (cell.skill.rank > 0 ? 'name-allocated' : (cell.skill.isLocked ? 'name-locked' : ''))}}">
+                  {{cell.skill.name}}
+                </text>
+              </view>
+            </block>
+            <block wx:else>
+              <view class="cell-placeholder"></view>
+            </block>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- ================= 保存配装弹窗 ================= -->
+  <view class="save-modal-backdrop" wx:if="{{showSaveModal}}" bindtap="closeSaveModal">
+    <view class="save-modal-dialog" catchtap="preventBubble">
+      <view class="save-modal-header">
+        <text class="save-modal-title">💾 保存当前天赋配装</text>
+        <view class="save-modal-close" bindtap="closeSaveModal">✕</view>
+      </view>
+
+      <view class="save-modal-body">
+        <view class="input-group">
+          <text class="input-label">配装方案名称：</text>
+          <input 
+            class="modal-input" 
+            placeholder="例如：无限服·双持狂暴坦51点" 
+            value="{{saveBuildName}}" 
+            bindinput="onSaveNameInput" 
+          />
+        </view>
+
+        <view class="input-group">
+          <text class="input-label">流派打法备注 (选填)：</text>
+          <textarea 
+            class="modal-textarea" 
+            placeholder="说明该配装的输出循环、怒气控制或团本定位..." 
+            value="{{saveBuildDesc}}" 
+            bindinput="onSaveDescInput" 
+          />
+        </view>
+
+        <view class="save-stats-preview">
+          <text class="stat-preview-title">加点概览：</text>
+          <text class="stat-preview-val">{{trees[0].name}}: {{treePoints[0]}} / {{trees[1].name}}: {{treePoints[1]}} / {{trees[2].name}}: {{treePoints[2]}} (共已分配 {{pointsSpent}} 点)</text>
+        </view>
+      </view>
+
+      <view class="save-modal-footer">
+        <view class="modal-btn cancel" bindtap="closeSaveModal">取消</view>
+        <view class="modal-btn confirm" bindtap="confirmSaveBuild">保存并同步</view>
       </view>
     </view>
   </view>
 
-  <!-- Classic WoW Talent Tooltip Modal -->
+  <!-- ================= 技能悬浮详情弹窗 (Tooltip Modal) ================= -->
   <view class="tooltip-mask" wx:if="{{showTooltip && selectedSkill}}" bindtap="closeTooltip">
     <view class="tooltip-card" catchtap="preventBubble">
       <view class="tooltip-header">
@@ -125,7 +313,7 @@
         <view class="tooltip-close" bindtap="closeTooltip">✕</view>
       </view>
 
-      <!-- Requirements warning if unmet -->
+      <!-- 前置未满足警告 -->
       <view class="tooltip-warning" wx:if="{{selectedSkill.isLocked}}">
         <text wx:if="{{treePoints[activeTreeIndex] < (selectedSkill.row - 1) * 5}}">
           ⚠️ 需要在当前天赋树投入 {{ (selectedSkill.row - 1) * 5 }} 点才能学习
@@ -135,7 +323,7 @@
         </text>
       </view>
 
-      <!-- Current Rank Description -->
+      <!-- 当前等级效果描述 -->
       <view class="tooltip-body">
         <view class="rank-desc-label">当前效果：</view>
         <view class="rank-desc-text">
@@ -143,7 +331,7 @@
         </view>
       </view>
 
-      <!-- Next Rank Description (if not maxed) -->
+      <!-- 下一等级预览描述 -->
       <view class="tooltip-body next-rank" wx:if="{{selectedSkill.rank > 0 && selectedSkill.rank < selectedSkill.max}}">
         <view class="rank-desc-label">下一等级效果：</view>
         <view class="rank-desc-text green-text">
@@ -151,7 +339,7 @@
         </view>
       </view>
 
-      <!-- Stepper Actions in Tooltip -->
+      <!-- 调整加点减点按钮 -->
       <view class="tooltip-actions">
         <button 
           class="tooltip-btn minus-btn {{selectedSkill.rank === 0 ? 'disabled' : ''}}" 

@@ -45,14 +45,23 @@ Page({
     const savedTheme = wx.getStorageSync('app_theme') || 'dark';
     const zoneList = FLIGHT_PATHS.map(p => p.zone);
 
+    const initialTab = (options && options.tab) ? options.tab : 'list';
+    const initialFilter = (options && options.filter) ? options.filter : 'all';
+
     this.setData({
       theme: savedTheme,
+      activeTab: initialTab,
+      currentFilter: initialFilter,
       allFlightPaths: FLIGHT_PATHS,
       filteredList: FLIGHT_PATHS,
       startZones: zoneList,
       destZones: zoneList,
       startIndex: 0,
       destIndex: 1 < zoneList.length ? 1 : 0
+    }, () => {
+      if (initialFilter !== 'all') {
+        this.applyFilters();
+      }
     });
   },
 
@@ -245,14 +254,14 @@ Page({
   onShareAppMessage() {
     return {
       title: '魔兽世界无限服 - 世界地图与飞行路线NPC速查',
-      path: '/pages/infinite-map/infinite-map'
+      path: `/pages/infinite-map/infinite-map?tab=${this.data.activeTab}&filter=${this.data.currentFilter}`
     };
   },
 
   onShareTimeline() {
     return {
       title: '魔兽世界无限服 - 世界地图与飞行路线NPC速查',
-      path: '/pages/infinite-map/infinite-map'
+      path: `/pages/infinite-map/infinite-map?tab=${this.data.activeTab}&filter=${this.data.currentFilter}`
     };
   }
 });

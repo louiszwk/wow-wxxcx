@@ -5,14 +5,24 @@
     <text class="back-text">返回</text>
   </view>
 
-  <!-- Title & Theme Toggle -->
+  <!-- Title & Action Bar (Compact share button included) -->
   <view class="header">
-    <view class="title">首发地下城与团本</view>
-    <view class="subtitle">暴雪无限服首发9大新地下城 · MDT地图与怪物技能速查</view>
-    <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+    <view class="title-col">
+      <view class="title">首发地下城与团本</view>
+      <view class="subtitle">暴雪无限服首发9大新地下城 · 地下城全景与怪物机制图鉴</view>
+    </view>
+    <view class="header-right-actions">
+      <!-- 紧凑小巧的分享按钮 -->
+      <button class="compact-share-btn" open-type="share" hover-class="share-btn-hover">
+        <text class="share-icon">↗</text>
+        <text>分享</text>
+      </button>
+      <!-- 主题切换按钮 -->
+      <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+    </view>
   </view>
 
-  <!-- Mode Switcher: 列表总览 vs MDT地图怪物图鉴 -->
+  <!-- Mode Switcher: 副本机制总览 vs 地下城与怪物速览 -->
   <view class="view-mode-bar">
     <view class="view-mode-item {{viewMode === 'list' ? 'active' : ''}}" data-mode="list" bindtap="switchViewMode">
       <text class="view-mode-icon">📋</text>
@@ -20,7 +30,7 @@
     </view>
     <view class="view-mode-item {{viewMode === 'mdt' ? 'active' : ''}}" data-mode="mdt" bindtap="switchViewMode">
       <text class="view-mode-icon">🗺️</text>
-      <text>MDT地图与怪物速览</text>
+      <text>地下城与怪物速览</text>
     </view>
   </view>
 
@@ -92,10 +102,10 @@
             <text class="drops-desc">{{item.dropsHighlight}}</text>
           </view>
 
-          <!-- 一键查看 MDT 地图与怪群按钮 -->
+          <!-- 一键查看地下城全景与怪物分布按钮 -->
           <view class="mdt-jump-btn" catchtap="openDungeonMdt" data-id="{{item.id}}">
             <text class="jump-icon">🗺️</text>
-            <text>查看副本地图与怪物分布 (MDT图鉴)</text>
+            <text>查看地下城地图与怪物速览</text>
             <text class="jump-arrow">›</text>
           </view>
         </view>
@@ -148,7 +158,7 @@
     </block>
   </block>
 
-  <!-- ================= 模式 2: MDT 地图与怪物速览 (免规划路线) ================= -->
+  <!-- ================= 模式 2: 地下城与怪物速览 ================= -->
   <block wx:if="{{viewMode === 'mdt'}}">
     <!-- 副本水平选择滑块 -->
     <scroll-view class="dungeon-tabs-scroll" scroll-x="true" enable-flex="true" show-scrollbar="{{false}}" enhanced="{{true}}">
@@ -163,7 +173,7 @@
       </view>
     </scroll-view>
 
-    <!-- MDT 提示条 -->
+    <!-- 地下城提示条 -->
     <view class="mdt-info-banner" style="border-left-color: {{currentMdtDungeon.accentColor}};">
       <view class="mdt-banner-header">
         <text class="mdt-banner-title">{{currentMdtDungeon.fullName}}</text>
@@ -171,35 +181,37 @@
       </view>
       <view class="mdt-banner-hint">
         <text class="hint-dot"></text>
-        <text>轻触地图上任意首领 👑 或怪物 🛡️，查看 MDT 核心机制与读条技能</text>
+        <text>轻触地图上任意首领 👑 或怪物 🛡️，查看核心机制与读条技能</text>
       </view>
     </view>
 
-    <!-- MDT 地图视窗 (支持缩放平移) -->
+    <!-- 地下城真实地图视窗 (双指缩放/平移，边框完整显现) -->
     <view class="mdt-map-wrapper">
       <movable-area class="mdt-movable-area" scale-area="true">
         <movable-view 
           class="mdt-movable-view" 
           direction="all" 
           scale="true" 
-          scale-min="0.8" 
-          scale-max="3.0" 
+          scale-min="0.38" 
+          scale-max="2.5" 
           scale-value="{{scaleValue}}" 
           x="{{mapX}}" 
           y="{{mapY}}" 
           bindscale="onScaleChange"
           style="width: {{currentMdtDungeon.mapWidth}}px; height: {{currentMdtDungeon.mapHeight}}px; background-color: {{currentMdtDungeon.mapTheme}};"
         >
-          <!-- 建筑底图背景区域与房间轮廓 -->
+          <!-- 建筑与石砖底图背景区域 -->
           <view class="map-grid-bg"></view>
-          
-          <!-- 房间/大厅区域线框 -->
+          <view class="map-border-outer"></view>
+
+          <!-- 房间/大厅区域线框 (带真实石砖走廊与大殿质感) -->
           <view 
-            class="dungeon-room-box" 
+            class="dungeon-room-box room-type-{{item.type || 'wing'}}" 
             wx:for="{{currentMdtDungeon.rooms}}" 
             wx:key="name" 
             style="left: {{item.x}}px; top: {{item.y}}px; width: {{item.w}}px; height: {{item.h}}px;"
           >
+            <view class="room-inner-accent"></view>
             <text class="room-title">{{item.name}}</text>
           </view>
 
@@ -212,11 +224,11 @@
             catchtap="inspectEnemy" 
             data-enemy="{{item}}"
           >
-            <view class="marker-avatar">
+            <view class="marker-avatar {{item.isBoss ? 'boss-avatar-glow' : ''}}">
               <text class="marker-icon">{{item.icon}}</text>
             </view>
             <view class="marker-tag {{item.isBoss ? 'boss-tag' : 'trash-tag'}}">
-              <text wx:if="{{item.isBoss}}">B{{item.bossNum}} {{item.name}}</text>
+              <text wx:if="{{item.isBoss}}">👑 {{item.name}}</text>
               <text wx:else>{{item.name}}</text>
             </view>
           </view>
@@ -228,12 +240,12 @@
         <view class="zoom-tool-btn" bindtap="zoomIn">+</view>
         <view class="zoom-tool-btn indicator">{{scalePercent}}%</view>
         <view class="zoom-tool-btn" bindtap="zoomOut">−</view>
-        <view class="zoom-tool-btn reset" bindtap="resetZoom">重置</view>
+        <view class="zoom-tool-btn reset" bindtap="resetZoom">适应全屏</view>
       </view>
     </view>
   </block>
 
-  <!-- ================= MDT 怪物与首领机制详情弹窗 ================= -->
+  <!-- ================= 怪物与首领技能机制详情弹窗 ================= -->
   <view class="enemy-modal-backdrop" wx:if="{{showEnemyModal}}" bindtap="closeEnemyModal">
     <view class="enemy-modal-dialog" catchtap="stopPropagation">
       <!-- 弹窗顶栏 -->
@@ -245,7 +257,7 @@
           <view class="modal-name-row">
             <text class="modal-enemy-name">{{inspectedEnemy.name}}</text>
             <text class="modal-rank-badge {{inspectedEnemy.isBoss ? 'boss' : 'trash'}}">
-              {{inspectedEnemy.isBoss ? '首领' : '强力小怪'}}
+              {{inspectedEnemy.isBoss ? '首领 Boss' : '强力小怪'}}
             </text>
           </view>
           <view class="modal-meta-row">
@@ -282,7 +294,7 @@
                   wx:for="{{item.tags}}" 
                   wx:for-item="t" 
                   wx:key="*this" 
-                  class="spell-pill {{t === '全队AOE' ? 'aoe' : (t === '坦克死刑' || t === '灭团高危' ? 'danger' : (t === '必打断' || t === '可打断' ? 'interrupt' : 'info'))}}"
+                  class="spell-pill {{t === '全队AOE' || t === '全场秒杀' ? 'aoe' : (t === '坦克死刑' || t === '灭团高危' || t === '瞬间秒坦' ? 'danger' : (t === '必打断' || t === '可打断' ? 'interrupt' : 'info'))}}"
                 >{{t}}</text>
               </view>
             </view>

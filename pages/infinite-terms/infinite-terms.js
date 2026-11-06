@@ -56,12 +56,18 @@ Page({
     const localUserTerms = wx.getStorageSync('infinite_user_terms') || [];
 
     const combinedTerms = [...localUserTerms, ...WOW_TERMS];
+    const initialCategory = (options && options.category) ? options.category : 'all';
 
     this.setData({
       theme: savedTheme,
+      currentCategory: initialCategory,
       terms: combinedTerms,
       displayTerms: combinedTerms,
       favTerms
+    }, () => {
+      if (initialCategory !== 'all') {
+        this.applyFilter();
+      }
     });
   },
 
@@ -216,14 +222,14 @@ Page({
   onShareAppMessage() {
     return {
       title: '魔兽术语与黑话字典 - 萌新不懵圈，老鸟开荒暗号速查',
-      path: '/pages/infinite-terms/infinite-terms'
+      path: `/pages/infinite-terms/infinite-terms?category=${this.data.currentCategory}`
     };
   },
 
   onShareTimeline() {
     return {
       title: '魔兽术语与黑话字典 - 萌新不懵圈，老鸟开荒暗号速查',
-      path: '/pages/infinite-terms/infinite-terms'
+      path: `/pages/infinite-terms/infinite-terms?category=${this.data.currentCategory}`
     };
   }
 });

@@ -8,6 +8,7 @@ Page({
     menuButtonTop: 0,
     menuButtonHeight: 0,
     theme: 'dark',
+    viewMode: 'list', // 'list' (配装列表) | 'tree' (天赋树模拟器)
     classList: [
       { id: 'warrior', name: '战士', icon: '⚔️' },
       { id: 'mage', name: '法师', icon: '🧙‍♂️' },
@@ -20,6 +21,21 @@ Page({
       { id: 'druid', name: '德鲁伊', icon: '🌱' }
     ],
     selectedClass: 'warrior',
+    
+    // 列表模式数据 (与正式服大秘境路线管理一致)
+    buildsFilter: 'all', // 'all' | 'official' | 'my'
+    onlyMyBuilds: false,
+    allBuilds: [],
+    displayBuilds: [],
+    likedBuilds: {},
+
+    // 当前编辑的配装信息
+    currentBuildId: null,
+    currentBuildName: '默认配装',
+    currentBuildDesc: '',
+    isCustomBuild: false,
+
+    // 天赋树模拟器数据
     activeTreeIndex: 0,
     trees: [],
     treePoints: [0, 0, 0],
@@ -27,12 +43,18 @@ Page({
     pointsSpent: 0,
     currentMatrix: [],
     presets: [],
+    
+    // 保存弹窗表单
+    showSaveModal: false,
+    saveBuildName: '',
+    saveBuildDesc: '',
+
     // Tooltip / 悬浮详情弹窗
     selectedSkill: null,
     showTooltip: false
   },
 
-  onLoad() {
+  onLoad(options) {
     if (wx.showShareMenu) {
       wx.showShareMenu({ menus: ['shareAppMessage', 'shareTimeline'] });
     }
@@ -47,9 +69,28 @@ Page({
     }
 
     const savedTheme = wx.getStorageSync('app_theme') || 'dark';
-    this.setData({ theme: savedTheme });
+    const likedBuilds = wx.getStorageSync('infinite_liked_talent_builds') || {};
 
-    this.initClassTalents('warrior');
+    let targetClass = (options && options.class) ? options.class : 'warrior';
+    let targetMode = (options && options.mode) ? options.mode : 'list';
+
+    this.setData({
+      theme: savedTheme,
+      likedBuilds,
+      viewMode: targetMode
+    });
+
+    this.initClassTalents(targetClass, () => {
+      // 若分享链接指定了配装名称，自动定位加载该配装
+      if (options && options.buildName) {
+        const decodedName = decodeURIComponent(options.buildName);
+        const found = this.data.allBuilds.find(b => b.name === decodedName);
+        if (found) {
+          this.loadBuild(found);
+          this.setData({ viewMode: 'tree' });
+        }
+      }
+    });
   },
 
   onShow() {
@@ -74,13 +115,18 @@ Page({
     wx.setStorageSync('app_theme', newTheme);
   },
 
+  switchViewMode(e) {
+    const mode = e.currentTarget.dataset.mode;
+    this.setData({ viewMode: mode });
+  },
+
   selectClass(e) {
     const classId = e.currentTarget.dataset.id;
     if (classId === this.data.selectedClass) return;
     this.initClassTalents(classId);
   },
 
-  initClassTalents(classId) {
+  initClassTalents(classId, callback) {
     const classData = TALENT_DATA_60[classId];
     if (!classData) return;
 
@@ -95,21 +141,246 @@ Page({
 
     const presets = classData.presets || [];
 
+    // 从本地存储加载玩家保存的该职业配装
+    const userBuilds = wx.getStorageSync('infinite_user_talent_builds') || [];
+    const myClassBuilds = userBuilds.filter(b => b.classId === classId);
+
+    // 格式化官方预设列表
+    const officialBuilds = presets.map((p, idx) => ({
+      id: `official_${classId}_${idx}`,
+      name: p.name,
+      desc: p.desc || '暴雪无限服权威主流加点方案。',
+      points: p.points || {},
+      classId: classId,
+      authorName: '暴雪官方推荐',
+      displayTime: '2026.11.05 上线权威',
+      isOfficial: true,
+      isOwner: false,
+      likes: 128 + idx * 37,
+      views: 450 + idx * 82
+    }));
+
+    // 合并全部配装列表 (我的自定义配装置顶)
+    const allBuilds = [...myClassBuilds, ...officialBuilds];
+
+    // 默认首选配装
+    const defaultBuild = allBuilds[0] || null;
+
     this.setData({
       selectedClass: classId,
       trees,
       presets,
+      allBuilds,
       activeTreeIndex: 0,
       selectedSkill: null,
       showTooltip: false
     }, () => {
-      // 默认加载第一个权威配装
-      if (presets.length > 0) {
-        this.applyPreset(presets[0]);
+      this.filterBuilds();
+      if (defaultBuild) {
+        this.applyPreset(defaultBuild);
       } else {
         this.recalculateMatrix();
       }
+      if (typeof callback === 'function') callback();
     });
+  },
+
+  // 筛选配装列表 (全部 / 官方权威 / 我的保存)
+  filterBuilds() {
+    const { allBuilds, buildsFilter, onlyMyBuilds } = this.data;
+    let list = allBuilds;
+
+    if (onlyMyBuilds || buildsFilter === 'my') {
+      list = list.filter(b => b.isOwner);
+    } else if (buildsFilter === 'official') {
+      list = list.filter(b => b.isOfficial);
+    }
+
+    this.setData({ displayBuilds: list });
+  },
+
+  onSelectBuildFilter(e) {
+    const filter = e.currentTarget.dataset.filter;
+    this.setData({ buildsFilter: filter }, () => {
+      this.filterBuilds();
+    });
+  },
+
+  toggleOnlyMyBuilds() {
+    this.setData({
+      onlyMyBuilds: !this.data.onlyMyBuilds
+    }, () => {
+      this.filterBuilds();
+    });
+  },
+
+  // 载入选中的配装并切换至天赋树加点视图
+  loadBuild(build) {
+    this.applyPreset(build);
+    this.setData({
+      viewMode: 'tree',
+      currentBuildId: build.id,
+      currentBuildName: build.name,
+      currentBuildDesc: build.desc || '',
+      isCustomBuild: !!build.isOwner
+    });
+  },
+
+  onBuildCardTap(e) {
+    const buildId = e.currentTarget.dataset.id;
+    const build = this.data.allBuilds.find(b => b.id === buildId);
+    if (build) {
+      this.loadBuild(build);
+    }
+  },
+
+  // 点赞配装
+  onLikeBuild(e) {
+    const buildId = e.currentTarget.dataset.id;
+    const { likedBuilds, allBuilds } = this.data;
+    const newLiked = { ...likedBuilds };
+
+    const target = allBuilds.find(b => b.id === buildId);
+    if (!target) return;
+
+    if (newLiked[buildId]) {
+      delete newLiked[buildId];
+      target.likes = Math.max(0, (target.likes || 1) - 1);
+      wx.showToast({ title: '已取消点赞', icon: 'none' });
+    } else {
+      newLiked[buildId] = true;
+      target.likes = (target.likes || 0) + 1;
+      if (wx.vibrateShort) wx.vibrateShort({ type: 'light' });
+      wx.showToast({ title: '点赞成功！', icon: 'success' });
+    }
+
+    wx.setStorageSync('infinite_liked_talent_builds', newLiked);
+    this.setData({
+      likedBuilds: newLiked,
+      allBuilds
+    }, () => {
+      this.filterBuilds();
+    });
+  },
+
+  // 新建全新配装 (清空51点，进入自由加点)
+  goToCreateBuild() {
+    const { trees } = this.data;
+    trees.forEach(t => t.skills.forEach(s => { s.rank = 0; }));
+    
+    this.setData({
+      trees,
+      viewMode: 'tree',
+      currentBuildId: null,
+      currentBuildName: '新建自定义配装',
+      currentBuildDesc: '自由分配 51 点天赋规划',
+      isCustomBuild: true
+    }, () => {
+      this.recalculateMatrix();
+      wx.showToast({ title: '已清空点数，请自由加点', icon: 'none' });
+    });
+  },
+
+  // 打开保存配装弹窗
+  openSaveModal() {
+    const defaultName = this.data.currentBuildId ? this.data.currentBuildName : `我的${this.getClassName()}配装`;
+    this.setData({
+      showSaveModal: true,
+      saveBuildName: defaultName,
+      saveBuildDesc: this.data.currentBuildDesc || ''
+    });
+  },
+
+  closeSaveModal() {
+    this.setData({ showSaveModal: false });
+  },
+
+  onSaveNameInput(e) { this.setData({ saveBuildName: e.detail.value }); },
+  onSaveDescInput(e) { this.setData({ saveBuildDesc: e.detail.value }); },
+
+  // 确认保存配装 (写入本地存储，像正式服大秘境路线一样随时管理)
+  confirmSaveBuild() {
+    const { saveBuildName, saveBuildDesc, selectedClass, trees, currentBuildId } = this.data;
+    const name = saveBuildName.trim();
+    if (!name) {
+      wx.showToast({ title: '请输入配装方案名称', icon: 'none' });
+      return;
+    }
+
+    // 收集点数映射
+    const pointMap = {};
+    trees.forEach(t => {
+      t.skills.forEach(s => {
+        if (s.rank > 0) pointMap[s.id] = s.rank;
+      });
+    });
+
+    const userBuilds = wx.getStorageSync('infinite_user_talent_builds') || [];
+    const buildId = currentBuildId && currentBuildId.startsWith('user_') ? currentBuildId : `user_${Date.now()}`;
+
+    const newBuild = {
+      id: buildId,
+      name: name,
+      desc: saveBuildDesc.trim() || '玩家自建无限服 51 点满级加点方案。',
+      points: pointMap,
+      classId: selectedClass,
+      authorName: '我的自建配装',
+      displayTime: '刚刚更新',
+      isOfficial: false,
+      isOwner: true,
+      likes: 1,
+      views: 1
+    };
+
+    // 如果是更新已有，替换之；否则置顶插入
+    const existIndex = userBuilds.findIndex(b => b.id === buildId);
+    if (existIndex !== -1) {
+      userBuilds[existIndex] = newBuild;
+    } else {
+      userBuilds.unshift(newBuild);
+    }
+
+    wx.setStorageSync('infinite_user_talent_builds', userBuilds);
+
+    this.setData({
+      showSaveModal: false,
+      currentBuildId: buildId,
+      currentBuildName: name,
+      currentBuildDesc: newBuild.desc,
+      isCustomBuild: true
+    });
+
+    // 刷新该职业全部配装列表
+    this.initClassTalents(selectedClass);
+
+    wx.showToast({ title: '配装已保存成功！', icon: 'success' });
+  },
+
+  // 删除自定义配装
+  onDeleteBuild(e) {
+    const buildId = e.currentTarget.dataset.id;
+    const buildName = e.currentTarget.dataset.name;
+
+    wx.showModal({
+      title: '删除配装确认',
+      content: `确定要删除「${buildName}」吗？删除后无法恢复。`,
+      confirmColor: '#ef4444',
+      success: (res) => {
+        if (res.confirm) {
+          let userBuilds = wx.getStorageSync('infinite_user_talent_builds') || [];
+          userBuilds = userBuilds.filter(b => b.id !== buildId);
+          wx.setStorageSync('infinite_user_talent_builds', userBuilds);
+
+          wx.showToast({ title: '已删除配装', icon: 'success' });
+          this.initClassTalents(this.data.selectedClass);
+        }
+      }
+    });
+  },
+
+  getClassName() {
+    const cls = this.data.classList.find(c => c.id === this.data.selectedClass);
+    return cls ? cls.name : '职业';
   },
 
   switchTree(e) {
@@ -302,8 +573,7 @@ Page({
     const skill = activeTree.skills.find(s => s.id === skillId);
     if (!skill || skill.rank <= 0) return;
 
-    // 校验点数层级依赖：扣减该点后，更高层级的技能是否会因点数不足而非法
-    // 假设扣减 1 点，检查每一层 R (从 row+1 到 7)
+    // 校验点数层级依赖
     let tempSkills = JSON.parse(JSON.stringify(activeTree.skills));
     let target = tempSkills.find(s => s.id === skill.id);
     target.rank -= 1;
@@ -311,7 +581,6 @@ Page({
     for (let r = skill.row + 1; r <= 7; r++) {
       const hasSkillsInOrAboveRow = tempSkills.some(s => s.row >= r && s.rank > 0);
       if (hasSkillsInOrAboveRow) {
-        // 计算前 (r-1) 层的总点数
         const pointsBeforeRow = tempSkills
           .filter(s => s.row < r)
           .reduce((sum, s) => sum + s.rank, 0);
@@ -347,15 +616,6 @@ Page({
     });
 
     this.recalculateMatrix();
-    wx.showToast({ title: `已加载：${preset.name}`, icon: 'success' });
-  },
-
-  onPresetSelect(e) {
-    const idx = parseInt(e.currentTarget.dataset.index, 10);
-    const preset = this.data.presets[idx];
-    if (preset) {
-      this.applyPreset(preset);
-    }
   },
 
   resetActiveTree() {
@@ -375,12 +635,12 @@ Page({
   },
 
   copyTalentCode() {
-    const { selectedClass, classList, treePoints, trees } = this.data;
+    const { selectedClass, classList, treePoints, trees, currentBuildName } = this.data;
     const cls = classList.find(c => c.id === selectedClass);
     const className = cls ? cls.name : '职业';
     const pointStr = treePoints.map((p, idx) => `${trees[idx].name}:${p}`).join(' / ');
 
-    const code = `[魔兽世界60级 ${className} 天赋] ${pointStr} (总计已分配: ${this.data.pointsSpent}/51 点)`;
+    const code = `[魔兽世界无限服 ${className} · ${currentBuildName}] ${pointStr} (已分配: ${this.data.pointsSpent}/51 点)`;
 
     wx.setClipboardData({
       data: code,
@@ -388,19 +648,21 @@ Page({
         wx.showToast({ title: '天赋码已复制', icon: 'success' });
       }
     });
-  }
-,
+  },
+
   onShareAppMessage() {
+    const className = this.getClassName();
     return {
-      title: '魔兽世界无限服 - 60级全职业天赋模拟器',
-      path: '/pages/infinite-talents/infinite-talents'
+      title: `魔兽世界无限服 - 60级${className}【${this.data.currentBuildName}】天赋配装方案`,
+      path: `/pages/infinite-talents/infinite-talents?class=${this.data.selectedClass}&buildName=${encodeURIComponent(this.data.currentBuildName)}&mode=${this.data.viewMode}`
     };
   },
 
   onShareTimeline() {
+    const className = this.getClassName();
     return {
-      title: '魔兽世界无限服 - 60级全职业天赋模拟器',
-      path: '/pages/infinite-talents/infinite-talents'
+      title: `魔兽世界无限服 - 60级${className}【${this.data.currentBuildName}】天赋配装方案`,
+      path: `/pages/infinite-talents/infinite-talents?class=${this.data.selectedClass}&buildName=${encodeURIComponent(this.data.currentBuildName)}&mode=${this.data.viewMode}`
     };
   }
 });

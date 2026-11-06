@@ -28,11 +28,61 @@
 
 .header {
   position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 14px;
 }
 
+.title-col {
+  flex: 1;
+  padding-right: 10px;
+}
+
+.header-right-actions {
+  display: flex;
+  align-items: center;
+  padding-top: 4px;
+}
+
+.compact-share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 10px;
+  margin: 0 6px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 14px;
+  line-height: normal;
+}
+
+.compact-share-btn::after {
+  border: none;
+}
+
+.theme-light .compact-share-btn {
+  color: #0284c7;
+  background: rgba(2, 132, 199, 0.1);
+  border-color: rgba(2, 132, 199, 0.3);
+}
+
+.share-btn-hover {
+  opacity: 0.8;
+  transform: scale(0.96);
+}
+
+.share-icon {
+  margin-right: 3px;
+  font-size: 11px;
+}
+
 .title {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
   background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
   -webkit-background-clip: text;
@@ -56,11 +106,11 @@
 }
 
 .theme-toggle {
-  position: absolute;
-  top: 0;
-  right: 0;
   font-size: 20px;
-  padding: 8px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Mode Switcher: 列表 vs MDT模式 */
@@ -577,20 +627,22 @@
   box-shadow: 0 0 6px #10b981;
 }
 
-/* MDT 地图视窗 */
+/* 地下城地图全景视窗 */
 .mdt-map-wrapper {
   position: relative;
   width: 100%;
   height: 480px;
   background: #090d16;
   border-radius: 16px;
-  border: 1px solid #334155;
+  border: 2px solid #3b82f6;
   overflow: hidden;
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), inset 0 0 25px rgba(0, 0, 0, 0.8);
+  box-sizing: border-box;
 }
 
 .theme-light .mdt-map-wrapper {
   background: #0f172a;
+  border-color: #60a5fa;
 }
 
 .mdt-movable-area {
@@ -600,7 +652,18 @@
 
 .mdt-movable-view {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+}
+
+.map-border-outer {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  pointer-events: none;
 }
 
 .map-grid-bg {
@@ -610,26 +673,62 @@
   right: 0;
   bottom: 0;
   background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 24px 24px;
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
   pointer-events: none;
 }
 
 .dungeon-room-box {
   position: absolute;
-  border: 2px dashed rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  background: rgba(15, 23, 42, 0.7);
+  border-radius: 10px;
   padding: 8px;
   pointer-events: none;
   box-sizing: border-box;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.room-inner-accent {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.room-type-entrance {
+  border-color: #38bdf8;
+  background: rgba(14, 165, 233, 0.15);
+}
+
+.room-type-corridor {
+  border-color: #64748b;
+  background: rgba(100, 116, 139, 0.12);
+}
+
+.room-type-wing {
+  border-color: #a855f7;
+  background: rgba(168, 85, 247, 0.12);
+}
+
+.room-type-boss_hall {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.18);
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.25);
 }
 
 .room-title {
+  position: relative;
+  z-index: 2;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
-  font-weight: 600;
+  color: #f1f5f9;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
 /* 地图上的标记点 (Pins) */
@@ -658,6 +757,16 @@
   background: linear-gradient(135deg, #ef4444, #f97316);
   border: 2px solid #fef08a;
   box-shadow: 0 0 12px rgba(239, 68, 68, 0.7);
+}
+
+.boss-avatar-glow {
+  animation: bossPulse 2s infinite ease-in-out;
+}
+
+@keyframes bossPulse {
+  0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.7); }
+  50% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.9); }
+  100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.7); }
 }
 
 .trash-marker .marker-avatar {

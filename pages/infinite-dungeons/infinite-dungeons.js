@@ -8,7 +8,7 @@ Page({
     menuButtonHeight: 0,
     theme: 'dark',
     activeTab: 'dungeons', // 'dungeons' | 'raids'
-    viewMode: 'list', // 'list' | 'mdt'
+    viewMode: 'list', // 'list' | 'mdt' (地下城与怪物速览)
     searchKeyword: '',
     
     // 列表模式数据
@@ -17,18 +17,19 @@ Page({
     allRaids: [],
     displayRaids: [],
 
-    // MDT 地图与怪物浏览模式数据 (无需规划路线)
+    // 地下城与怪物浏览模式数据 (无需规划路线)
     mdtDungeons: [],
     currentMdtIndex: 0,
     currentMdtDungeon: null,
     
-    // 地图缩放与平移
-    scaleValue: 1.0,
-    scalePercent: 100,
+    // 地图缩放与平移 (自动适配屏幕宽度)
+    fitScale: 0.52,
+    scaleValue: 0.52,
+    scalePercent: 52,
     mapX: 0,
     mapY: 0,
 
-    // MDT 怪物详情机制弹窗
+    // 怪物详情机制弹窗
     showEnemyModal: false,
     inspectedEnemy: null
   },
@@ -48,7 +49,31 @@ Page({
     }
 
     const savedTheme = wx.getStorageSync('app_theme') || 'dark';
-    const firstMdt = INFINITE_MDT_DUNGEONS[0] || null;
+    
+    // 动态计算适合手机屏幕的初始缩放比，确保整张副本地图完整显示不被裁剪
+    let fitScale = 0.52;
+    try {
+      const sys = wx.getSystemInfoSync();
+      if (sys && sys.windowWidth) {
+        // 地图基准宽度为 680px，留出 32px 两侧边距
+        fitScale = Math.min(1.0, Math.max(0.46, Math.round(((sys.windowWidth - 32) / 680) * 100) / 100));
+      }
+    } catch (e) {
+      fitScale = 0.52;
+    }
+
+    let initialIndex = 0;
+    let initialMode = (options && options.mode) ? options.mode : 'list';
+
+    if (options && options.dungeonId) {
+      const foundIdx = INFINITE_MDT_DUNGEONS.findIndex(d => d.id === options.dungeonId);
+      if (foundIdx !== -1) {
+        initialIndex = foundIdx;
+        if (!options.mode) initialMode = 'mdt';
+      }
+    }
+
+    const firstMdt = INFINITE_MDT_DUNGEONS[initialIndex] || INFINITE_MDT_DUNGEONS[0] || null;
 
     this.setData({
       theme: savedTheme,
@@ -57,13 +82,13 @@ Page({
       allRaids: INFINITE_RAIDS,
       displayRaids: INFINITE_RAIDS,
       mdtDungeons: INFINITE_MDT_DUNGEONS,
-      currentMdtIndex: 0,
-      currentMdtDungeon: firstMdt
+      currentMdtIndex: initialIndex,
+      currentMdtDungeon: firstMdt,
+      viewMode: initialMode,
+      fitScale,
+      scaleValue: fitScale,
+      scalePercent: Math.round(fitScale * 100)
     });
-
-    if (options && options.mode === 'mdt') {
-      this.setData({ viewMode: 'mdt' });
-    }
   },
 
   onShow() {
@@ -95,10 +120,16 @@ Page({
 
   switchViewMode(e) {
     const mode = e.currentTarget.dataset.mode;
-    this.setData({ viewMode: mode });
+    this.setData({ 
+      viewMode: mode,
+      scaleValue: this.data.fitScale,
+      scalePercent: Math.round(this.data.fitScale * 100),
+      mapX: 0,
+      mapY: 0
+    });
   },
 
-  // 从列表卡片直接一键打开该副本的 MDT 地图
+  // 从列表卡片直接一键打开该地下城的全景地图
   openDungeonMdt(e) {
     const dungeonId = e.currentTarget.dataset.id;
     const foundIndex = this.data.mdtDungeons.findIndex(d => d.id === dungeonId);
@@ -107,8 +138,8 @@ Page({
       viewMode: 'mdt',
       currentMdtIndex: targetIndex,
       currentMdtDungeon: this.data.mdtDungeons[targetIndex],
-      scaleValue: 1.0,
-      scalePercent: 100,
+      scaleValue: this.data.fitScale,
+      scalePercent: Math.round(this.data.fitScale * 100),
       mapX: 0,
       mapY: 0
     });
@@ -119,8 +150,8 @@ Page({
     this.setData({
       currentMdtIndex: index,
       currentMdtDungeon: this.data.mdtDungeons[index],
-      scaleValue: 1.0,
-      scalePercent: 100,
+      scaleValue: this.data.fitScale,
+      scalePercent: Math.round(this.data.fitScale * 100),
       mapX: 0,
       mapY: 0
     });
@@ -128,7 +159,7 @@ Page({
 
   // 缩放控制
   zoomIn() {
-    let next = Math.min(3.0, (this.data.scaleValue + 0.3));
+    let next = Math.min(2.5, (this.data.scaleValue + 0.2));
     next = Math.round(next * 10) / 10;
     this.setData({
       scaleValue: next,
@@ -137,7 +168,7 @@ Page({
   },
 
   zoomOut() {
-    let next = Math.max(0.7, (this.data.scaleValue - 0.3));
+    let next = Math.max(0.38, (this.data.scaleValue - 0.2));
     next = Math.round(next * 10) / 10;
     this.setData({
       scaleValue: next,
@@ -147,8 +178,8 @@ Page({
 
   resetZoom() {
     this.setData({
-      scaleValue: 1.0,
-      scalePercent: 100,
+      scaleValue: this.data.fitScale,
+      scalePercent: Math.round(this.data.fitScale * 100),
       mapX: 0,
       mapY: 0
     });
@@ -162,7 +193,7 @@ Page({
     }
   },
 
-  // 轻触地图上任意怪物或首领，弹出 MDT 技能机制详情弹窗
+  // 轻触地图上任意怪物或首领，弹出技能机制详情弹窗
   inspectEnemy(e) {
     const enemy = e.currentTarget.dataset.enemy;
     if (!enemy) return;
@@ -224,16 +255,20 @@ Page({
   },
 
   onShareAppMessage() {
+    const dungeon = this.data.currentMdtDungeon || this.data.allDungeons[0];
+    const dungeonName = dungeon ? dungeon.name : '9大地下城';
     return {
-      title: '魔兽世界无限服 - 首发9大全新地下城MDT地图与怪物机制',
-      path: '/pages/infinite-dungeons/infinite-dungeons'
+      title: `魔兽世界无限服 - ${dungeonName}地图与怪物技能速查`,
+      path: `/pages/infinite-dungeons/infinite-dungeons?dungeonId=${dungeon ? dungeon.id : ''}&mode=${this.data.viewMode}`
     };
   },
 
   onShareTimeline() {
+    const dungeon = this.data.currentMdtDungeon || this.data.allDungeons[0];
+    const dungeonName = dungeon ? dungeon.name : '9大地下城';
     return {
-      title: '魔兽世界无限服 - 首发9大全新地下城MDT地图与怪物机制',
-      path: '/pages/infinite-dungeons/infinite-dungeons'
+      title: `魔兽世界无限服 - ${dungeonName}地图与怪物技能速查`,
+      path: `/pages/infinite-dungeons/infinite-dungeons?dungeonId=${dungeon ? dungeon.id : ''}&mode=${this.data.viewMode}`
     };
   }
 });

@@ -28,11 +28,61 @@
 
 .header {
   position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 20px;
 }
 
+.title-col {
+  flex: 1;
+  padding-right: 10px;
+}
+
+.header-right-actions {
+  display: flex;
+  align-items: center;
+  padding-top: 4px;
+}
+
+.compact-share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 10px;
+  margin: 0 6px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #a855f7;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  border-radius: 14px;
+  line-height: normal;
+}
+
+.compact-share-btn::after {
+  border: none;
+}
+
+.theme-light .compact-share-btn {
+  color: #7e22ce;
+  background: rgba(126, 34, 206, 0.1);
+  border-color: rgba(126, 34, 206, 0.3);
+}
+
+.share-btn-hover {
+  opacity: 0.8;
+  transform: scale(0.96);
+}
+
+.share-icon {
+  margin-right: 3px;
+  font-size: 11px;
+}
+
 .title {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
   background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
   -webkit-background-clip: text;

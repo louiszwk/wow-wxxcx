@@ -7,9 +7,17 @@
 
   <!-- Title -->
   <view class="header">
-    <view class="title">无限服祈愿池</view>
-    <view class="subtitle">投掷金币 · 愿圣光保佑你开服出风剑与提布</view>
-    <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+    <view class="title-col">
+      <view class="title">无限服祈愿池</view>
+      <view class="subtitle">投掷金币 · 愿圣光保佑你开服出风剑与提布</view>
+    </view>
+    <view class="header-right-actions">
+      <button class="compact-share-btn" open-type="share" hover-class="share-btn-hover">
+        <text class="share-icon">↗</text>
+        <text>分享</text>
+      </button>
+      <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+    </view>
   </view>
 
   <!-- Fountain Hero Card -->

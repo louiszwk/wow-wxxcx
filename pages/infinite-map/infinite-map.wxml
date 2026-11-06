@@ -7,9 +7,17 @@
 
   <!-- Header Title -->
   <view class="header">
-    <view class="title">世界地图与航线查询</view>
-    <view class="subtitle">暴雪无限服 · 飞行点与NPC航线速查</view>
-    <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+    <view class="title-col">
+      <view class="title">世界地图与航线查询</view>
+      <view class="subtitle">暴雪无限服 · 飞行点与NPC航线速查</view>
+    </view>
+    <view class="header-right-actions">
+      <button class="compact-share-btn" open-type="share" hover-class="share-btn-hover">
+        <text class="share-icon">↗</text>
+        <text>分享</text>
+      </button>
+      <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+    </view>
   </view>
 
   <!-- Segmented Tab Switcher -->

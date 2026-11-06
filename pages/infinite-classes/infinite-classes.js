@@ -19,7 +19,7 @@ Page({
     allClasses: []
   },
 
-  onLoad() {
+  onLoad(options) {
     if (wx.showShareMenu) {
       wx.showShareMenu({ menus: ['shareAppMessage', 'shareTimeline'] });
     }
@@ -34,8 +34,11 @@ Page({
     }
 
     const savedTheme = wx.getStorageSync('app_theme') || 'dark';
+    const targetTab = (options && options.tab) ? options.tab : 'races';
+
     this.setData({
       theme: savedTheme,
+      activeTab: targetTab,
       allRaces: WOW_RACES,
       displayRaces: WOW_RACES,
       allClasses: WOW_CLASSES
@@ -90,14 +93,14 @@ Page({
   onShareAppMessage() {
     return {
       title: '魔兽世界无限服 - 新种族天裔与全职业机制解析',
-      path: '/pages/infinite-classes/infinite-classes'
+      path: `/pages/infinite-classes/infinite-classes?tab=${this.data.activeTab}`
     };
   },
 
   onShareTimeline() {
     return {
       title: '魔兽世界无限服 - 新种族天裔与全职业机制解析',
-      path: '/pages/infinite-classes/infinite-classes'
+      path: `/pages/infinite-classes/infinite-classes?tab=${this.data.activeTab}`
     };
   }
 });
