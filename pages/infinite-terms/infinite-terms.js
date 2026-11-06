@@ -10,6 +10,7 @@ Page({
     currentCategory: 'all',
     categoryList: [
       { id: 'all', label: '全部术语' },
+      { id: 'forever', label: '🌌 无限服新系统' },
       { id: 'mechanics', label: '核心机制' },
       { id: 'tactics', label: '战斗走位' },
       { id: 'raid', label: '团本大米' },
@@ -25,6 +26,7 @@ Page({
     formAlias: '',
     formCategoryIndex: 0,
     formCategories: [
+      { id: 'forever', name: '无限服新系统' },
       { id: 'mechanics', name: '核心机制' },
       { id: 'tactics', name: '战斗走位' },
       { id: 'raid', name: '团本大米' },

@@ -195,14 +195,9 @@ Page({
   },
 
   goToInfiniteMap() { wx.navigateTo({ url: '/pages/infinite-map/infinite-map' }); },
-  goToInfiniteTalents() {
-    wx.showToast({
-      title: '敬请期待',
-      icon: 'none',
-      duration: 2000
-    });
-  },
+  goToInfiniteTalents() { wx.navigateTo({ url: '/pages/infinite-talents/infinite-talents' }); },
   goToInfiniteClasses() { wx.navigateTo({ url: '/pages/infinite-classes/infinite-classes' }); },
+  goToInfiniteDungeons() { wx.navigateTo({ url: '/pages/infinite-dungeons/infinite-dungeons' }); },
   goToInfiniteWishes() { wx.navigateTo({ url: '/pages/infinite-wishes/infinite-wishes' }); },
   goToInfiniteTerms() { wx.navigateTo({ url: '/pages/infinite-terms/infinite-terms' }); },
 

@@ -11,12 +11,12 @@ Page({
     currentFilter: 'all', // 'all' | '联盟' | '部落' | '中立' | '东部王国' | '卡利姆多' | '无限探索区'
     filterOptions: [
       { id: 'all', label: '全部' },
-      { id: '联盟', label: '🛡️ 联盟' },
-      { id: '部落', label: '⚔️ 部落' },
-      { id: '中立', label: '⚖️ 中立' },
-      { id: '东部王国', label: '🏰 东部王国' },
-      { id: '卡利姆多', label: '🌲 卡利姆多' },
-      { id: '无限探索区', label: '🌌 无限探索区' }
+      { id: '联盟', label: '联盟' },
+      { id: '部落', label: '部落' },
+      { id: '中立', label: '中立' },
+      { id: '东部王国', label: '东部王国' },
+      { id: '卡利姆多', label: '卡利姆多' },
+      { id: '无限探索区', label: '无限探索区' }
     ],
     allFlightPaths: [],
     filteredList: [],

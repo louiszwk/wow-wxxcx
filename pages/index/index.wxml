@@ -77,7 +77,23 @@
         </view>
       </view>
 
-      <!-- 3. 第二赛季掉落 -->
+      <!-- 3. 专精攻略与BiS -->
+      <view class="nav-card" bindtap="navigateToBis">
+        <view class="card-content">
+          <view class="card-title" style="color: #38bdf8;">专精攻略与BiS</view>
+          <view class="card-desc">全职业39专精真实攻略、单体/AOE手法与毕业推荐。</view>
+        </view>
+      </view>
+
+      <!-- 4. 配装模拟器 -->
+      <view class="nav-card" bindtap="navigateToBuild">
+        <view class="card-content">
+          <view class="card-title" style="color: #10b981;">配装模拟器</view>
+          <view class="card-desc">自由搭配装备部位、实时主副属性收益计算与方案导出。</view>
+        </view>
+      </view>
+
+      <!-- 5. 第二赛季掉落 -->
       <view class="nav-card" bindtap="navigateToLoot">
         <view class="card-content">
           <view class="card-title">第二赛季掉落</view>
@@ -85,7 +101,7 @@
         </view>
       </view>
 
-      <!-- 4. 大秘境路线 -->
+      <!-- 6. 大秘境路线 -->
       <view class="nav-card" bindtap="navigateToMdt">
         <view class="card-content">
           <view class="card-title" style="color: #a855f7;">大秘境路线 (Alpha)</view>
@@ -93,19 +109,19 @@
         </view>
       </view>
 
-      <!-- 5. 魔兽术语与黑话 -->
+      <!-- 7. 魔兽术语与黑话 -->
       <view class="nav-card" bindtap="goToInfiniteTerms">
         <view class="card-content">
           <view class="card-title" style="color: #ec4899;">魔兽术语与黑话</view>
-          <view class="card-desc">全网最全魔兽术语与黑话速查！GCD、仇恨OT、顺劈、断条机制全收录。</view>
+          <view class="card-desc">全网最全魔兽术语与黑话速查！GCD、仇恨OT、顺劈机制全收录。</view>
         </view>
       </view>
 
-      <!-- 6. 宏命令大全 -->
+      <!-- 8. 宏命令大全 -->
       <view class="nav-card" bindtap="navigateToMacros">
         <view class="card-content">
           <view class="card-title">宏命令大全</view>
-          <view class="card-desc">全职业鼠标指向打断、一键爆发、取消保护、极限视距等常用实战宏命令速查。</view>
+          <view class="card-desc">全职业鼠标指向打断、一键爆发、取消保护等常用宏速查。</view>
         </view>
       </view>
     </view>
@@ -116,25 +132,25 @@
     <!-- 无限服 Hero Banner -->
     <view class="remix-hero-banner infinite-hero-banner">
       <view class="remix-glow infinite-glow"></view>
-      <view class="remix-badge">BLIZZARD · 暴雪官方无限服</view>
-      <view class="remix-title">🌌 魔兽世界「无限服」</view>
-      <view class="remix-desc">全新60级探索框架 · 天裔精灵新种族 · 专属天赋树 · 航线与社区工具</view>
+      <view class="remix-badge">BLIZZARD · 暴雪官方无限服 (2026.11.05 上线)</view>
+      <view class="remix-title">魔兽世界「无限服」</view>
+      <view class="remix-desc">全新60级探索框架 · 天裔中立新种族 · 27系重构天赋 · 9大新地下城与团本</view>
     </view>
 
-    <!-- 无限服 5 大功能卡片 -->
+    <!-- 无限服 6 大核心功能卡片 -->
     <view class="nav-grid">
       <!-- 1: 世界地图npc航线查询 -->
       <view class="nav-card" bindtap="goToInfiniteMap">
         <view class="card-content">
-          <view class="card-title" style="color: #38bdf8;">🗺️ 世界地图与航线查询</view>
-          <view class="card-desc">东部王国、卡利姆多与无限探索区飞行NPC坐标速查，支持一键路线规划与坐标宏复制。</view>
+          <view class="card-title" style="color: #38bdf8;">世界地图与航线查询</view>
+          <view class="card-desc">泽风岛新手区、海加尔山区与经典航线NPC速查，支持路线规划与坐标宏复制。</view>
         </view>
       </view>
 
       <!-- 2: 天赋模拟器 -->
       <view class="nav-card" bindtap="goToInfiniteTalents">
         <view class="card-content">
-          <view class="card-title" style="color: #f59e0b;">⚡ 60级天赋模拟器</view>
+          <view class="card-title" style="color: #f59e0b;">60级天赋模拟器</view>
           <view class="card-desc">全职业三系经典与无限分支天赋树加点模拟，支持51点加点规划与方案导出。</view>
         </view>
       </view>
@@ -142,24 +158,32 @@
       <!-- 3: 种族、职业介绍 -->
       <view class="nav-card" bindtap="goToInfiniteClasses">
         <view class="card-content">
-          <view class="card-title" style="color: #a855f7;">🛡️ 种族与职业介绍</view>
-          <view class="card-desc">独占全新种族【天裔精灵】星界特长全解析，全职业专精与无限服专属魔改机制速览。</view>
+          <view class="card-title" style="color: #a855f7;">种族与职业介绍</view>
+          <view class="card-desc">官方中立全新种族【天裔】双阵营特长、风暴德鲁伊形态与职业机制速览。</view>
         </view>
       </view>
 
-      <!-- 4: 许愿 -->
+      <!-- 4: 首发地下城与团本 -->
+      <view class="nav-card" bindtap="goToInfiniteDungeons">
+        <view class="card-content">
+          <view class="card-title" style="color: #ef4444;">首发地下城与团本速查</view>
+          <view class="card-desc">9大全新5人地下城机制与12月10日首发三大团本（深穴、海加尔峰、黑龙MM）全览。</view>
+        </view>
+      </view>
+
+      <!-- 5: 许愿 -->
       <view class="nav-card" bindtap="goToInfiniteWishes">
         <view class="card-content">
-          <view class="card-title" style="color: #fbbf24;">✨ 艾泽拉斯祈愿池</view>
+          <view class="card-title" style="color: #fbbf24;">艾泽拉斯祈愿池</view>
           <view class="card-desc">向圣泉投掷金币许下毕业心愿！风剑、提布、凤凰坐骑欧气祈福与全服祝福互动墙。</view>
         </view>
       </view>
 
-      <!-- 5: 魔兽术语板块 -->
+      <!-- 6: 魔兽术语板块 -->
       <view class="nav-card" bindtap="goToInfiniteTerms">
         <view class="card-content">
           <view class="card-title" style="color: #ec4899;">魔兽术语与黑话</view>
-          <view class="card-desc">全网最全魔兽术语与黑话速查！GCD、仇恨OT、顺劈、钢条断条、减伤链与神装全收录。</view>
+          <view class="card-desc">全网最全魔兽术语与黑话速查！GCD、仇恨OT、顺劈、钢条断条、减伤链全收录。</view>
         </view>
       </view>
     </view>

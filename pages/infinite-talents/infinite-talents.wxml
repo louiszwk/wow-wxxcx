@@ -28,11 +28,16 @@
 
   <!-- Points & Level Bar -->
   <view class="points-bar">
-    <view class="points-stat">
-      <text class="stat-num">{{pointsRemaining}}</text>
-      <text class="stat-label">剩余点数 (已用 {{pointsSpent}}/51)</text>
+    <view class="points-top-row">
+      <view class="points-stat">
+        <text class="stat-num">{{pointsRemaining}}</text>
+        <view class="stat-meta">
+          <text class="stat-title">剩余天赋点</text>
+          <text class="stat-sub">已分配 {{pointsSpent}} / 51 点</text>
+        </view>
+      </view>
+      <view class="level-badge">等级 60</view>
     </view>
-    <view class="level-badge">等级 60</view>
     <view class="reset-actions">
       <view class="mini-btn" bindtap="resetActiveTree">重置本系</view>
       <view class="mini-btn reset-all" bindtap="resetAll">全部重置</view>
@@ -42,7 +47,7 @@
 
   <!-- Presets Scroll -->
   <view class="presets-section" wx:if="{{presets.length > 0}}">
-    <view class="preset-label">🔥 权威主流流派：</view>
+    <view class="preset-label">权威主流流派：</view>
     <scroll-view class="preset-scroll" scroll-x="true" enable-flex="true">
       <view 
         wx:for="{{presets}}" 
@@ -52,7 +57,7 @@
         bindtap="onPresetSelect"
       >
         <text class="preset-name">{{item.name}}</text>
-        <text class="preset-desc">{{item.desc}}</text>
+        <view class="preset-desc">{{item.desc}}</view>
       </view>
     </scroll-view>
   </view>

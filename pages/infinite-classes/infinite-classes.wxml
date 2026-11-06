@@ -67,6 +67,12 @@
           </view>
         </view>
 
+        <!-- Exclusive Feature (e.g. 天裔风暴德鲁伊形态) -->
+        <view class="traits-box" wx:if="{{item.exclusiveFeature}}" style="margin-top: 14rpx; border-top: 1rpx dashed rgba(255,255,255,0.12); padding-top: 14rpx;">
+          <view class="traits-title" style="color: #38bdf8;">🦅 独占机制与变形形态：</view>
+          <view class="trait-desc" style="color: #e2e8f0;">{{item.exclusiveFeature}}</view>
+        </view>
+
         <!-- Available Classes -->
         <view class="classes-row">
           <text class="classes-lbl">可选职业：</text>

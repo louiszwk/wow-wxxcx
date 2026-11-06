@@ -75,19 +75,18 @@ Page({
     let filtered = allRaces;
 
     if (filter === 'new') {
-      filtered = allRaces.filter(r => r.id === 'race_celestial');
+      filtered = allRaces.filter(r => r.id === 'race_celestial' || (r.badge && r.badge.includes('无限服')));
     } else if (filter === 'alliance') {
-      filtered = allRaces.filter(r => r.factionType === 'alliance');
+      filtered = allRaces.filter(r => r.factionType === 'alliance' || r.factionType === 'neutral');
     } else if (filter === 'horde') {
-      filtered = allRaces.filter(r => r.factionType === 'horde');
+      filtered = allRaces.filter(r => r.factionType === 'horde' || r.factionType === 'neutral');
     }
 
     this.setData({
       raceFilter: filter,
       displayRaces: filtered
     });
-  }
-,
+  },
   onShareAppMessage() {
     return {
       title: '魔兽世界无限服 - 新种族天裔精灵与全职业解析',

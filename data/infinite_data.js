@@ -141,43 +141,72 @@ const FLIGHT_PATHS = [
     connections: ['塞拉摩', '十字路口', '塞纳里奥要塞', '乱风岗']
   },
 
-  // 无限服全新探索区
+  // 无限服全新探索区 (2026.11.05 暴雪官方实装最新数据)
   {
     id: 'f15',
-    zone: '天裔圣林 (无限服新地图)',
+    zone: '泽风岛 (申达尔村·天裔新手起始区)',
     continent: '无限探索区',
     faction: '中立',
-    npc: '艾露恩之使·塞蕾丝',
-    coord: '星界神殿裂隙处 (42.0, 31.5)',
-    connections: ['暴风城', '奥格瑞玛', '藏宝海湾', '海加尔山根']
+    npc: '逐风信使·萨兰尼斯',
+    coord: '申达尔广场微风栖木 (48.2, 54.6)',
+    connections: ['暴风城', '奥格瑞玛', '藏宝海湾', '塑风神殿', '海加尔山脉']
   },
   {
     id: 'f16',
-    zone: '海加尔山根·秩序遗迹',
+    zone: '泽风岛 (塑风神殿高阶平台)',
+    continent: '无限探索区',
+    faction: '中立',
+    npc: '风暴编织者·艾拉',
+    coord: '神殿顶部传送台 (31.5, 27.8)',
+    connections: ['申达尔村', '海加尔山脉', '棘齿城']
+  },
+  {
+    id: 'f17',
+    zone: '海加尔山脉·秩序前哨 (60级全新高阶区)',
     continent: '无限探索区',
     faction: '中立',
     npc: '诺达希尔古树之灵',
     coord: '创世石碑 (58.3, 22.4)',
-    connections: ['天裔圣林', '阿斯特兰纳', '碎木岗哨']
+    connections: ['泽风岛', '阿斯特兰纳', '碎木岗哨', '冬泉谷']
+  },
+  {
+    id: 'f18',
+    zone: '河林营地 (东部王国边陲新据点)',
+    continent: '东部王国',
+    faction: '中立',
+    npc: '边境护林人·加文',
+    coord: '河林避难所营火旁 (62.1, 41.3)',
+    connections: ['南海镇', '塔伦米尔', '幽暗城', '铁炉堡']
+  },
+  {
+    id: 'f19',
+    zone: '辛德拉古城遗迹 (卡利姆多秘境)',
+    continent: '卡利姆多',
+    faction: '中立',
+    npc: '托塞德林侍从',
+    coord: '古城外围拱门处 (39.4, 76.2)',
+    connections: ['羽月要塞', '莫沙彻营地', '加基森']
   }
 ];
 
-// 2. 种族与职业介绍数据库
+// 2. 种族与职业介绍数据库 (包含2026.11.05最新官方天裔中立机制与变形形态)
 const WOW_RACES = [
-  // 联盟
+  // 联盟 / 部落 中立新种族
   {
     id: 'race_celestial',
-    name: '天裔精灵 (Celestial Elf)',
-    faction: '联盟/无限服独占',
-    factionType: 'alliance',
-    badge: '无限服全新种族',
-    desc: '拥有吸收星界能量与虚空折射的古老高等血统，暴雪在无限服首次开放的可选新种族。',
+    name: '天裔 (Skyborne)',
+    faction: '中立 (联盟高天盟 / 部落塑风者)',
+    factionType: 'neutral',
+    badge: '无限服官方首发新种族',
+    desc: '暴雪2026年11月5日正式上线的新产品线《魔兽世界：无限》（WoW: Forever）核心新种族！诞生于泽风岛的高等精灵流亡者，与风元素缔结神圣盟约。可在完成泽风岛新手任务后自由选择效忠联盟（高天盟）或部落（塑风者）。独占全新风暴德鲁伊变形形态。',
     traits: [
-      { name: '星界折射 (主动)', desc: '瞬发，使自身进入 2 秒相位微隐，规避下一次受到的范围法术伤害，冷却 90 秒。' },
-      { name: '奥能亲和 (被动)', desc: '法术伤害和暴击伤害提高 1.5%，法力值消耗降低 3%。' },
-      { name: '虚空抗性 (被动)', desc: '受到的暗影与奥术伤害降低 10 点。' }
+      { name: '踏空而行 / 空中行走 (主动)', desc: '瞬发，在空中向下滑翔（可持续10秒），极大降低坠落伤害并跨越复杂地形断崖，冷却 60 秒。' },
+      { name: '风之祝福 (被动)', desc: '风暴之灵加护，近战、远程攻击与法术施法急速提高 1.0%。' },
+      { name: '元素洞察 (被动)', desc: '对元素生物造成的伤害提高 5%。' },
+      { name: '阵营分支专属特长', desc: '【部落塑风者】天空之视（常驻移速提高2%）；【联盟高天盟】天界冥想（战斗外法力与生命回复加速）。' }
     ],
-    availableClasses: ['法师', '牧师', '潜行者', '圣骑士', '战士', '术士']
+    availableClasses: ['战士', '猎人', '潜行者', '德鲁伊', '萨满祭司(仅部落)', '法师(仅联盟)'],
+    exclusiveFeature: '独占风暴风格德鲁伊专属变形形态（熊、豹、枭兽全新高清与复古标清建模），原生支持高清与标清SD自由切换。'
   },
   {
     id: 'race_human',
@@ -365,6 +394,7 @@ const TALENT_DATA_60 = {
     name: '战士',
     icon: '⚔️',
     presets: [
+      { name: '无限服·双持狂暴坦 (19/32/0)', desc: '无限服兼顾超高仇恨与狂怒暴击回怒的极限开荒坦克方案', points: { w_deflect: 5, w_tactical: 5, f_cruelty: 5, f_unbridled: 5, f_flurry: 5, f_dualwield: 5, f_bloodbath: 1 } },
       { name: '狂暴战 (17/34/0)', desc: '团本极限近战物理DPS输出天花板', points: { w_deflect: 5, w_rend: 0, w_tactical: 5, w_deepwounds: 3, w_impale: 2, f_cruelty: 5, f_unbridled: 5, f_battleshout: 5, f_enrage: 5, f_flurry: 5, f_bloodbath: 1, f_dualwield: 5, f_berserker: 3 } },
       { name: '武器致死战 (31/20/0)', desc: 'PVP与战场压制/致死打击减疗核心', points: { w_deflect: 5, w_rend: 3, w_tactical: 5, w_overpower: 2, w_deepwounds: 3, w_impale: 2, w_axespec: 5, w_sweeping: 1, w_mortal: 1, w_twohand: 4, f_cruelty: 5, f_unbridled: 5, f_battleshout: 5, f_enrage: 5 } },
       { name: '团本防战 (11/5/35)', desc: '团队副本主T核心扛怪与盾牌格挡仇恨流', points: { w_deflect: 5, w_tactical: 5, w_anger: 1, f_cruelty: 5, p_shieldspec: 5, p_anticipation: 5, p_toughness: 5, p_laststand: 1, p_defiance: 5, p_sunder: 3, p_taunt: 2, p_concussion: 1, p_onehand: 5, p_shieldslam: 1 } }
@@ -372,7 +402,7 @@ const TALENT_DATA_60 = {
     trees: [
       {
         id: 'arms',
-        name: '武器 (Arms)',
+        name: '武器',
         skills: [
           { id: 'w_deflect', name: '偏斜', icon: '🛡️', row: 1, col: 2, max: 5, prereq: null, ranks: ['招架几率提高 1%', '招架几率提高 2%', '招架几率提高 3%', '招架几率提高 4%', '招架几率提高 5%'] },
           { id: 'w_rend', name: '强化撕裂', icon: '🩸', row: 1, col: 3, max: 3, prereq: null, ranks: ['撕裂伤害提高 15%', '撕裂伤害提高 25%', '撕裂伤害提高 35%'] },
@@ -389,7 +419,7 @@ const TALENT_DATA_60 = {
       },
       {
         id: 'fury',
-        name: '狂怒 (Fury)',
+        name: '狂怒',
         skills: [
           { id: 'f_cruelty', name: '残忍', icon: '🔥', row: 1, col: 3, max: 5, prereq: null, ranks: ['近战暴击几率提高 1%', '近战暴击几率提高 2%', '近战暴击几率提高 3%', '近战暴击几率提高 4%', '近战暴击几率提高 5%'] },
           { id: 'f_unbridled', name: '怒不可遏', icon: '⚡', row: 2, col: 2, max: 5, prereq: null, ranks: ['击中敌人有几率获得 1 点额外怒气', '击中敌人有较高几率获得 1 点额外怒气', '击中敌人有更大几率获得 1 点额外怒气', '击中敌人有极高几率获得 1 点额外怒气', '每次近战命中几乎必定获得 1 点额外怒气'] },
@@ -403,7 +433,7 @@ const TALENT_DATA_60 = {
       },
       {
         id: 'protection',
-        name: '防护 (Protection)',
+        name: '防护',
         skills: [
           { id: 'p_shieldspec', name: '盾牌专精', icon: '🛡️', row: 1, col: 2, max: 5, prereq: null, ranks: ['格挡几率提高 1%，成功格挡获得怒气', '格挡几率提高 2%，成功格挡获得怒气', '格挡几率提高 3%，成功格挡获得怒气', '格挡几率提高 4%，成功格挡获得怒气', '格挡几率提高 5%，成功格挡获得怒气'] },
           { id: 'p_anticipation', name: '预知', icon: '👁️', row: 1, col: 3, max: 5, prereq: null, ranks: ['防御技能提高 2 点', '防御技能提高 4 点', '防御技能提高 6 点', '防御技能提高 8 点', '防御技能提高 10 点'] },
@@ -429,7 +459,7 @@ const TALENT_DATA_60 = {
     trees: [
       {
         id: 'arcane',
-        name: '奥术 (Arcane)',
+        name: '奥术',
         skills: [
           { id: 'm_subtle', name: '奥术精妙', icon: '🔮', row: 1, col: 1, max: 2, prereq: null, ranks: ['奥术法术造成的仇恨降低 20%，目标法术抗性降低 5 点', '奥术法术造成的仇恨降低 40%，目标法术抗性降低 10 点'] },
           { id: 'm_focus', name: '奥术专注', icon: '✨', row: 1, col: 2, max: 5, prereq: null, ranks: ['有 2% 几率进入节能施法状态', '有 4% 几率进入节能施法状态', '有 6% 几率进入节能施法状态', '有 8% 几率进入节能施法状态', '有 10% 几率进入节能施法状态'] },
@@ -440,7 +470,7 @@ const TALENT_DATA_60 = {
       },
       {
         id: 'fire',
-        name: '火焰 (Fire)',
+        name: '火焰',
         skills: [
           { id: 'm_impact', name: '冲击', icon: '💥', row: 1, col: 2, max: 5, prereq: null, ranks: ['火焰法术有 2% 几率昏迷目标 2 秒', '火焰法术有 4% 几率昏迷目标 2 秒', '火焰法术有 6% 几率昏迷目标 2 秒', '火焰法术有 8% 几率昏迷目标 2 秒', '火焰法术有 10% 几率昏迷目标 2 秒'] },
           { id: 'm_ignite', name: '点燃', icon: '🔥', row: 1, col: 3, max: 5, prereq: null, ranks: ['火系法术暴击后，在4秒内造成额外 8% 伤害', '火系法术暴击后，在4秒内造成额外 16% 伤害', '火系法术暴击后，在4秒内造成额外 24% 伤害', '火系法术暴击后，在4秒内造成额外 32% 伤害', '火系法术暴击后，在4秒内造成额外 40% 伤害'] },
@@ -453,7 +483,7 @@ const TALENT_DATA_60 = {
       },
       {
         id: 'frost',
-        name: '冰霜 (Frost)',
+        name: '冰霜',
         skills: [
           { id: 'm_frostbolt', name: '强化寒冰箭', icon: '❄️', row: 1, col: 2, max: 5, prereq: null, ranks: ['寒冰箭施法时间减少 0.1 秒', '寒冰箭施法时间减少 0.2 秒', '寒冰箭施法时间减少 0.3 秒', '寒冰箭施法时间减少 0.4 秒', '寒冰箭施法时间减少 0.5 秒'] },
           { id: 'm_icebite', name: '极寒冰霜', icon: '🧊', row: 1, col: 3, max: 3, prereq: null, ranks: ['减速效果持续时间延长 1 秒', '减速效果持续时间延长 2 秒', '减速效果持续时间延长 3 秒'] },
@@ -476,7 +506,7 @@ const TALENT_DATA_60 = {
     trees: [
       {
         id: 'assassination',
-        name: '刺杀 (Assassination)',
+        name: '刺杀',
         skills: [
           { id: 'r_malice', name: '恶意', icon: '🩸', row: 1, col: 2, max: 5, prereq: null, ranks: ['暴击几率提高 1%', '暴击几率提高 2%', '暴击几率提高 3%', '暴击几率提高 4%', '暴击几率提高 5%'] },
           { id: 'r_eviscerate', name: '强化剔骨', icon: '🗡️', row: 1, col: 3, max: 3, prereq: null, ranks: ['剔骨伤害提高 5%', '剔骨伤害提高 10%', '剔骨伤害提高 15%'] },
@@ -487,7 +517,7 @@ const TALENT_DATA_60 = {
       },
       {
         id: 'combat',
-        name: '战斗 (Combat)',
+        name: '战斗',
         skills: [
           { id: 'r_imp_sinister', name: '强化邪恶攻击', icon: '⚔️', row: 1, col: 2, max: 2, prereq: null, ranks: ['邪恶攻击能量消耗降低 3 点', '邪恶攻击能量消耗降低 5 点'] },
           { id: 'r_deflection', name: '偏斜', icon: '🛡️', row: 1, col: 3, max: 5, prereq: null, ranks: ['招架几率提高 1%', '招架几率提高 2%', '招架几率提高 3%', '招架几率提高 4%', '招架几率提高 5%'] },
@@ -499,7 +529,7 @@ const TALENT_DATA_60 = {
       },
       {
         id: 'subtlety',
-        name: '敏锐 (Subtlety)',
+        name: '敏锐',
         skills: [
           { id: 'r_opportunity', name: '伺机而动', icon: '👁️', row: 1, col: 2, max: 5, prereq: null, ranks: ['背刺、绞喉和伏击伤害提高 4%', '背刺、绞喉和伏击伤害提高 8%', '背刺、绞喉和伏击伤害提高 12%', '背刺、绞喉和伏击伤害提高 16%', '背刺、绞喉和伏击伤害提高 20%'] },
           { id: 'r_initiative', name: '先发制人', icon: '🏃', row: 2, col: 3, max: 3, prereq: null, ranks: ['伏击、绞喉有 25% 几率额外获得 1 个连击点', '伏击、绞喉有 50% 几率额外获得 1 个连击点', '伏击、绞喉有 75% 几率额外获得 1 个连击点'] },
@@ -513,13 +543,14 @@ const TALENT_DATA_60 = {
     name: '牧师',
     icon: '✨',
     presets: [
+      { name: '无限服·暗影电池 (13/0/38)', desc: '精神鞭笞续航与吸血鬼拥抱强化，团本核心法系回蓝回血电池', points: { p_unbreakable: 5, p_meditation: 3, p_innerfocus: 1, s_spiritapoc: 5, s_shadowweav: 5, s_silence: 1, s_vampiric: 1, s_shadowform: 1 } },
       { name: '神圣戒律团补 (26/25/0)', desc: '团队副本主力治疗、能量灌注与快速抬血', points: { p_unbreakable: 5, p_meditation: 3, p_innerfocus: 1, p_infusion: 1, p_healingfocus: 2, p_renew: 3, p_holycare: 5, p_divinespirit: 1 } },
       { name: '暗影暗牧输出 (14/0/37)', desc: '暗影交织易伤辅助与持续心爆输出', points: { p_unbreakable: 5, p_innerfocus: 1, s_spiritapoc: 5, s_shadowweav: 5, s_silence: 1, s_vampiric: 1, s_shadowform: 1 } }
     ],
     trees: [
       {
         id: 'discipline',
-        name: '戒律 (Discipline)',
+        name: '戒律',
         skills: [
           { id: 'p_unbreakable', name: '坚定意志', icon: '🛡️', row: 1, col: 2, max: 5, prereq: null, ranks: ['抵抗昏迷、恐惧和沉默几率提高 3%', '抵抗昏迷、恐惧和沉默几率提高 6%', '抵抗昏迷、恐惧和沉默几率提高 9%', '抵抗昏迷、恐惧和沉默几率提高 12%', '抵抗昏迷、恐惧和沉默几率提高 15%'] },
           { id: 'p_meditation', name: '冥想', icon: '🧘', row: 3, col: 2, max: 3, prereq: null, ranks: ['施法时保持 5% 的法力回复速度', '施法时保持 10% 的法力回复速度', '施法时保持 15% 的法力回复速度'] },
@@ -529,7 +560,7 @@ const TALENT_DATA_60 = {
       },
       {
         id: 'holy',
-        name: '神圣 (Holy)',
+        name: '神圣',
         skills: [
           { id: 'p_healingfocus', name: '治疗专注', icon: '🌱', row: 1, col: 2, max: 2, prereq: null, ranks: ['施法受打退几率降低 35%', '施法受打退几率降低 70%'] },
           { id: 'p_renew', name: '强化恢复', icon: '💧', row: 1, col: 3, max: 3, prereq: null, ranks: ['恢复治疗效果提高 5%', '恢复治疗效果提高 10%', '恢复治疗效果提高 15%'] },
@@ -540,7 +571,7 @@ const TALENT_DATA_60 = {
       },
       {
         id: 'shadow',
-        name: '暗影 (Shadow)',
+        name: '暗影',
         skills: [
           { id: 's_spiritapoc', name: '精神分流', icon: '💀', row: 1, col: 2, max: 5, prereq: null, ranks: ['击杀目标后精神提高 20%，法力恢复速度提高 20%', '击杀目标后精神提高 40%，法力恢复速度提高 40%', '击杀目标后精神提高 60%，法力恢复速度提高 60%', '击杀目标后精神提高 80%，法力恢复速度提高 80%', '击杀目标后精神提高 100%，法力恢复速度提高 100%'] },
           { id: 's_shadowweav', name: '暗影交织', icon: '🌑', row: 3, col: 2, max: 5, prereq: null, ranks: ['暗影法术击中有 20% 几率使目标承受暗影易伤', '暗影法术击中有 40% 几率使目标承受暗影易伤', '暗影法术击中有 60% 几率使目标承受暗影易伤', '暗影法术击中有 80% 几率使目标承受暗影易伤', '暗影法术必定使目标承受暗影伤害提高 15%'] },
@@ -555,13 +586,14 @@ const TALENT_DATA_60 = {
     name: '圣骑士',
     icon: '🛡️',
     presets: [
+      { name: '无限服·正义防骑 (11/31/9)', desc: '无限服官方强化防骑群嘲与格挡回蓝，稳拉群怪与团本副坦核心', points: { pl_int: 5, pl_redoubt: 5, pl_tough: 5, pl_blessprot: 1, pl_shield: 1, pl_bene: 5, pl_conviction: 4 } },
       { name: '神圣奶骑 (31/20/0)', desc: '团本常驻主坦刷血单加之王神圣震击流', points: { pl_int: 5, pl_focus: 5, pl_illum: 5, pl_shock: 1, pl_redoubt: 5, pl_tough: 5, pl_blessprot: 1 } },
       { name: '惩戒暴击 (11/8/32)', desc: '近战圣印裁决爆发与命令圣印致死流', points: { pl_int: 5, pl_bene: 5, pl_conviction: 5, pl_sealofcmd: 1, pl_vengeance: 5, pl_rep: 1 } }
     ],
     trees: [
       {
         id: 'holy',
-        name: '神圣 (Holy)',
+        name: '神圣',
         skills: [
           { id: 'pl_int', name: '神圣智慧', icon: '🧠', row: 1, col: 3, max: 5, prereq: null, ranks: ['智力上限提高 2%', '智力上限提高 4%', '智力上限提高 6%', '智力上限提高 8%', '智力上限提高 10%'] },
           { id: 'pl_focus', name: '精神集中', icon: '✨', row: 2, col: 2, max: 5, prereq: null, ranks: ['施法受打退几率降低 14%', '施法受打退几率降低 28%', '施法受打退几率降低 42%', '施法受打退几率降低 56%', '施法受打退几率降低 70%'] },
@@ -571,7 +603,7 @@ const TALENT_DATA_60 = {
       },
       {
         id: 'protection',
-        name: '防护 (Protection)',
+        name: '防护',
         skills: [
           { id: 'pl_redoubt', name: '盾牌壁垒', icon: '🛡️', row: 1, col: 2, max: 5, prereq: null, ranks: ['遭受暴击后格挡几率提高 6%', '遭受暴击后格挡几率提高 12%', '遭受暴击后格挡几率提高 18%', '遭受暴击后格挡几率提高 24%', '遭受暴击后格挡几率提高 30%'] },
           { id: 'pl_tough', name: '坚韧', icon: '🧱', row: 2, col: 3, max: 5, prereq: null, ranks: ['护甲值提高 2%', '护甲值提高 4%', '护甲值提高 6%', '护甲值提高 8%', '护甲值提高 10%'] },
@@ -581,7 +613,7 @@ const TALENT_DATA_60 = {
       },
       {
         id: 'retribution',
-        name: '惩戒 (Retribution)',
+        name: '惩戒',
         skills: [
           { id: 'pl_bene', name: '祈福', icon: '🙏', row: 1, col: 2, max: 5, prereq: null, ranks: ['审判和圣印法力消耗降低 3%', '审判和圣印法力消耗降低 6%', '审判和圣印法力消耗降低 9%', '审判和圣印法力消耗降低 12%', '审判和圣印法力消耗降低 15%'] },
           { id: 'pl_sealofcmd', name: '命令圣印', icon: '👑', row: 3, col: 2, max: 1, prereq: null, ranks: ['普攻有几率打出基于武器伤害 70% 的神圣伤害宣判'] },
@@ -596,13 +628,14 @@ const TALENT_DATA_60 = {
     name: '猎人',
     icon: '🏹',
     presets: [
+      { name: '无限服·近战生存猎 (2/18/31)', desc: '无限服近战猎人质变魔改，双持猛禽一击与猫鼬撕裂爆发斩杀', points: { h_lethal: 5, h_aimed: 1, h_thickhide: 3, h_ferocity: 5, h_frenzy: 5 } },
       { name: '射击团本输出 (20/31/0)', desc: '远程物理持续输出、瞄准射击多重循环天花板', points: { h_lethal: 5, h_aimed: 1, h_ranged_spec: 5, h_trueshot: 1, h_thickhide: 3, h_frenzy: 5 } },
       { name: '野兽狂暴练级 (31/20/0)', desc: '宠物扛怪单刷狂暴无敌、野外练级最安逸流派', points: { h_thickhide: 3, h_beastswift: 2, h_ferocity: 5, h_intimidate: 1, h_frenzy: 5, h_wrath: 1, h_aimed: 1 } }
     ],
     trees: [
       {
         id: 'beastmastery',
-        name: '野兽控制 (Beast)',
+        name: '野兽控制',
         skills: [
           { id: 'h_thickhide', name: '厚皮', icon: '🐾', row: 2, col: 2, max: 3, prereq: null, ranks: ['宠物护甲提高 10%', '宠物护甲提高 20%', '宠物护甲提高 30%'] },
           { id: 'h_ferocity', name: '凶暴', icon: '🦁', row: 3, col: 2, max: 5, prereq: null, ranks: ['宠物暴击几率提高 2%', '宠物暴击几率提高 4%', '宠物暴击几率提高 6%', '宠物暴击几率提高 8%', '宠物暴击几率提高 10%'] },
@@ -613,7 +646,7 @@ const TALENT_DATA_60 = {
       },
       {
         id: 'marksmanship',
-        name: '射击 (Marksman)',
+        name: '射击',
         skills: [
           { id: 'h_lethal', name: '致死射击', icon: '🎯', row: 2, col: 3, max: 5, prereq: null, ranks: ['远程武器暴击几率提高 1%', '远程武器暴击几率提高 2%', '远程武器暴击几率提高 3%', '远程武器暴击几率提高 4%', '远程武器暴击几率提高 5%'] },
           { id: 'h_aimed', name: '瞄准射击', icon: '🏹', row: 3, col: 2, max: 1, prereq: null, ranks: ['瞄准蓄力射击，造成武器伤害 + 600 点额外物理伤害'] },
@@ -623,7 +656,7 @@ const TALENT_DATA_60 = {
       },
       {
         id: 'survival',
-        name: '生存 (Survival)',
+        name: '生存',
         skills: [
           { id: 'h_deflect', name: '偏斜', icon: '🛡️', row: 1, col: 2, max: 5, prereq: null, ranks: ['招架几率提高 1%', '招架几率提高 2%', '招架几率提高 3%', '招架几率提高 4%', '招架几率提高 5%'] },
           { id: 'h_entrap', name: '诱捕', icon: '🕸️', row: 2, col: 1, max: 3, prereq: null, ranks: ['陷阱触发时使目标定身 2 秒', '陷阱触发时使目标定身 3 秒', '陷阱触发时使目标定身 5 秒'] },
@@ -642,7 +675,7 @@ const TALENT_DATA_60 = {
     trees: [
       {
         id: 'affliction',
-        name: '痛苦 (Affliction)',
+        name: '痛苦',
         skills: [
           { id: 'wl_suppress', name: '镇压', icon: '🌑', row: 1, col: 2, max: 5, prereq: null, ranks: ['痛苦系法术命中率提高 2%', '痛苦系法术命中率提高 4%', '痛苦系法术命中率提高 6%', '痛苦系法术命中率提高 8%', '痛苦系法术命中率提高 10%'] },
           { id: 'wl_imp_corrupt', name: '强化腐蚀术', icon: '🧪', row: 1, col: 3, max: 5, prereq: null, ranks: ['腐蚀术施法时间减少 0.4 秒', '腐蚀术施法时间减少 0.8 秒', '腐蚀术施法时间减少 1.2 秒', '腐蚀术施法时间减少 1.6 秒', '腐蚀术施法时间减少 2.0 秒 (变为瞬发)'] },
@@ -653,7 +686,7 @@ const TALENT_DATA_60 = {
       },
       {
         id: 'demonology',
-        name: '恶魔学识 (Demonology)',
+        name: '恶魔学识',
         skills: [
           { id: 'wl_demonicembrace', name: '恶魔之拥', icon: '😈', row: 1, col: 3, max: 5, prereq: null, ranks: ['耐力上限提高 3%', '耐力上限提高 6%', '耐力上限提高 9%', '耐力上限提高 12%', '耐力上限提高 15%'] },
           { id: 'wl_sacrifice', name: '恶魔牺牲', icon: '🩸', row: 5, col: 2, max: 1, prereq: null, ranks: ['牺牲当前宠物获得强力BUFF，牺牲魅魔提升 15% 暗影伤害持续30分钟'] },
@@ -662,7 +695,7 @@ const TALENT_DATA_60 = {
       },
       {
         id: 'destruction',
-        name: '毁灭 (Destruction)',
+        name: '毁灭',
         skills: [
           { id: 'wl_shadowvulnerability', name: '暗影灼烧', icon: '💥', row: 3, col: 3, max: 1, prereq: null, ranks: ['瞬发造成大量暗影伤害，击杀目标后返还灵魂碎片'] },
           { id: 'wl_ruin', name: '毁灭', icon: '🌋', row: 5, col: 2, max: 1, prereq: null, ranks: ['毁灭系法术暴击伤害加成提高 100%'] }
@@ -674,13 +707,14 @@ const TALENT_DATA_60 = {
     name: '萨满祭司',
     icon: '⚡',
     presets: [
+      { name: '无限服·双持风怒增强 (19/32/0)', desc: '风暴打击机制优化与双持风怒瞬发，近战爆发输出天花板', points: { sh_convection: 5, sh_ancestral: 5, sh_flurry: 5, sh_spiritweapons: 1, sh_stormstrike: 1 } },
       { name: '恢复治疗链 (0/5/46)', desc: '团本群加天花板、法潮图腾与无限拉链子核心', points: { sh_tidal: 5, sh_manaspring: 1, sh_naturefocus: 5, sh_healingway: 3, sh_manatide: 1 } },
       { name: '风怒增强暴力近战 (20/31/0)', desc: '双手大斧风怒秒杀、黑曜石斩杀近战流', points: { sh_ancestral: 5, sh_flurry: 5, sh_spiritweapons: 1, sh_stormstrike: 1 } }
     ],
     trees: [
       {
         id: 'elemental',
-        name: '元素 (Elemental)',
+        name: '元素',
         skills: [
           { id: 'sh_convection', name: '传导', icon: '⚡', row: 1, col: 2, max: 5, prereq: null, ranks: ['闪电震击法力消耗降低 2%', '闪电震击法力消耗降低 4%', '闪电震击法力消耗降低 6%', '闪电震击法力消耗降低 8%', '闪电震击法力消耗降低 10%'] },
           { id: 'sh_elementalmastery', name: '元素掌握', icon: '🌪️', row: 7, col: 2, max: 1, prereq: null, ranks: ['激活后使下一个火焰、冰霜或自然法术变为瞬发且必定暴击'] }
@@ -688,7 +722,7 @@ const TALENT_DATA_60 = {
       },
       {
         id: 'enhancement',
-        name: '增强 (Enhancement)',
+        name: '增强',
         skills: [
           { id: 'sh_ancestral', name: '先祖知识', icon: '🧠', row: 1, col: 3, max: 5, prereq: null, ranks: ['法力值上限提高 1%', '法力值上限提高 2%', '法力值上限提高 3%', '法力值上限提高 4%', '法力值上限提高 5%'] },
           { id: 'sh_flurry', name: '乱击', icon: '⚔️', row: 4, col: 2, max: 5, prereq: null, ranks: ['打出近战暴击后，下3次攻击速度提高 10%', '打出近战暴击后，下3次攻击速度提高 15%', '打出近战暴击后，下3次攻击速度提高 20%', '打出近战暴击后，下3次攻击速度提高 25%', '打出近战暴击后，下3次攻击速度提高 30%'] },
@@ -698,7 +732,7 @@ const TALENT_DATA_60 = {
       },
       {
         id: 'restoration',
-        name: '恢复 (Restoration)',
+        name: '恢复',
         skills: [
           { id: 'sh_tidal', name: '潮汐集中', icon: '🌊', row: 1, col: 2, max: 5, prereq: null, ranks: ['治疗法术法力消耗减少 1%', '治疗法术法力消耗减少 2%', '治疗法术法力消耗减少 3%', '治疗法术法力消耗减少 4%', '治疗法术法力消耗减少 5%'] },
           { id: 'sh_naturefocus', name: '自然专注', icon: '🌱', row: 2, col: 2, max: 5, prereq: null, ranks: ['施放治疗法术受打退几率降低 14%', '施放治疗法术受打退几率降低 28%', '施放治疗法术受打退几率降低 42%', '施放治疗法术受打退几率降低 56%', '施放治疗法术受打退几率降低 70%'] },
@@ -712,13 +746,14 @@ const TALENT_DATA_60 = {
     name: '德鲁伊',
     icon: '🌱',
     presets: [
+      { name: '无限服·平衡鸟德 (31/0/20)', desc: '无限服重构月火星火能耗，枭兽形态团队法爆光环与稳定续航输出', points: { dr_naturegrasp: 1, dr_moonkin: 1, dr_naturefocus: 5, dr_subtlety: 5, dr_innervate: 1 } },
       { name: '野性巨熊坦克 (0/30/21)', desc: '高护甲血牛抗怪熊坦与猫德物理输出', points: { dr_ferocity: 5, dr_thickhide: 5, dr_feralcharge: 1, dr_predatory: 5, dr_leaderofthepack: 1, dr_naturefocus: 5, dr_intensity: 3, dr_innervate: 1 } },
       { name: '恢复激活奶德 (14/0/37)', desc: '持续HOT回春愈合与团队战略激活发动机', points: { dr_naturefocus: 5, dr_subtlety: 5, dr_tranquil: 2, dr_innervate: 1, dr_swiftmend: 1 } }
     ],
     trees: [
       {
         id: 'balance',
-        name: '平衡 (Balance)',
+        name: '平衡',
         skills: [
           { id: 'dr_naturegrasp', name: '自然之握', icon: '🌿', row: 1, col: 2, max: 1, prereq: null, ranks: ['激活后受近战攻击有 35% 几率纠缠定身敌人'] },
           { id: 'dr_moonkin', name: '枭兽形态', icon: '🦉', row: 7, col: 2, max: 1, prereq: null, ranks: ['变身枭兽，护甲提高 360%，全队法术暴击几率提高 3%'] }
@@ -726,7 +761,7 @@ const TALENT_DATA_60 = {
       },
       {
         id: 'feral',
-        name: '野性 (Feral)',
+        name: '野性',
         skills: [
           { id: 'dr_ferocity', name: '凶暴', icon: '🐾', row: 1, col: 2, max: 5, prereq: null, ranks: ['重击和爪击消耗的怒气和能量降低 1 点', '重击和爪击消耗的怒气和能量降低 2 点', '重击和爪击消耗的怒气和能量降低 3 点', '重击和爪击消耗的怒气和能量降低 4 点', '重击和爪击消耗的怒气和能量降低 5 点'] },
           { id: 'dr_thickhide', name: '厚皮', icon: '🐻', row: 2, col: 2, max: 5, prereq: null, ranks: ['装备护甲加成提高 2%', '装备护甲加成提高 4%', '装备护甲加成提高 6%', '装备护甲加成提高 8%', '装备护甲加成提高 10%'] },
@@ -736,7 +771,7 @@ const TALENT_DATA_60 = {
       },
       {
         id: 'restoration',
-        name: '恢复 (Restoration)',
+        name: '恢复',
         skills: [
           { id: 'dr_naturefocus', name: '自然集中', icon: '💧', row: 1, col: 2, max: 5, prereq: null, ranks: ['施法受打退几率降低 14%', '施法受打退几率降低 28%', '施法受打退几率降低 42%', '施法受打退几率降低 56%', '施法受打退几率降低 70%'] },
           { id: 'dr_subtlety', name: '微妙', icon: '🌿', row: 3, col: 1, max: 5, prereq: null, ranks: ['治疗法术造成的仇恨降低 4%', '治疗法术造成的仇恨降低 8%', '治疗法术造成的仇恨降低 12%', '治疗法术造成的仇恨降低 16%', '治疗法术造成的仇恨降低 20%'] },
@@ -790,6 +825,38 @@ const INITIAL_WISHES = [
 
 // 6. 魔兽核心术语与黑话全书 (魔兽术语板块核心数据)
 const WOW_TERMS = [
+  // 无限服全新系统独占
+  {
+    id: 't_campsite',
+    term: '野外露营 (Campsite)',
+    alias: '共享营地 / 野外搭帐篷',
+    category: 'forever',
+    tag: '无限服独占机制',
+    definition: '暴雪官方在《魔兽世界：无限》（WoW: Forever）中首创的野外共享露营系统。玩家可在野外安全区域搭建营地帐篷和点燃营火。营地不仅为周围队友和路过玩家提供“充分休息（双倍经验加速）”Buff，还能将随身炉石绑定至临时营地，极大缩减跑图时间。',
+    example: '“十字路口练级太慢，来个工匠在野外建个露营地，全队蹭双倍经验刷怪效率翻倍！”',
+    tip: '营火持续时间内可提升精神与耐力属性，且任何路过的玩家均可共享营地休息加成。'
+  },
+  {
+    id: 't_skywalk',
+    term: '踏空而行 / 滑翔 (Skywalk)',
+    alias: '天裔滑翔 / 空中行走',
+    category: 'forever',
+    tag: '无限服新种族特长',
+    definition: '天裔（Skyborne）种族核心主动特长技能。可在空中向下滑翔持续 10 秒。在 60 级无飞行坐骑的无限服世界中，是跨越悬崖峡谷、高空无伤坠落与开荒探索的神技。',
+    example: '“从千针石林升降梯顶直接踏空滑翔过去，省了十分钟跑尸时间！”',
+    tip: '战斗中同样可以开启，副本中可用来规避部分地板强吹飞与坠崖击退机制。'
+  },
+  {
+    id: 't_enhanced_preset',
+    term: '强化体验预设 (Enhanced Preset)',
+    alias: '高清 vs 标清双预设',
+    category: 'forever',
+    tag: '无限服新系统',
+    definition: '无限服首次登录时提供的画面与操作体验模式。“经典模式”保留 2004 年纯正复古 UI 与标清模型；“强化模式”启用高清材质、现代团队框体、技能冷却数字以及手柄原生支持。',
+    example: '“老魔兽玩家选经典预设怀旧，掌机和手柄玩家建议直接开强化预设体验极佳。”',
+    tip: '在游戏系统设置中可以随时一键无缝切换经典与强化预设。'
+  },
+
   // 核心机制
   {
     id: 't_gcd',
@@ -981,12 +1048,167 @@ const WOW_TERMS = [
   }
 ];
 
+// 7. 暴雪官方「无限服」(WoW Forever 2026.11.05) 首发 9 大全新地下城
+const INFINITE_DUNGEONS = [
+  {
+    id: 'd_hall_of_lords',
+    name: '领主大厅 (Hall of the Lords)',
+    level: '58 - 60 级',
+    type: '5人满级高阶地下城',
+    location: '洛丹伦废墟深处',
+    bossCount: 3,
+    bosses: ['大审判官维拉尔', '被遗忘的典狱官', '复仇幽魂卡尔森'],
+    overview: '60级满级门槛五人本，掉落极品板甲抗性装与暗影伤害法杖，是通往深穴首发团本钥匙任务的必经之地。',
+    keyMechanic: '小怪群拥有恐惧光环，队伍需配置萨满战栗图腾或亡灵意志解控；尾王转阶段会释放全场灵魂碎裂AOE，需迅速击破护盾。',
+    dropsHighlight: '【维拉尔的忏悔法杖】(法伤+32, 暴击+1%)、【白银领主重盔】'
+  },
+  {
+    id: 'd_ruins_lordaeron',
+    name: '洛丹伦废墟 (Ruins of Lordaeron)',
+    level: '56 - 60 级',
+    type: '5人进阶地下城',
+    location: '提瑞斯法林地',
+    bossCount: 3,
+    bosses: ['堕落十字军领袖加文', '缝合憎恶烂肉', '奥术构造体IX号'],
+    overview: '深入天灾沦陷后的洛丹伦王城地下皇家墓穴与秘密酒窖，产出高阶治疗布甲与近战物理皮甲。',
+    keyMechanic: '憎恶绿水剧毒圈扩散极快，坦克需沿外圈持续拉扯风筝；小怪死后会自爆，近战需留心后撤。',
+    dropsHighlight: '【王室防腐披肩】、【皇家禁卫短剑】(急速+1.5%)'
+  },
+  {
+    id: 'd_zephyrian_sanctum',
+    name: '泽风秘境 (Zephyrian Sanctum)',
+    level: '15 - 20 / 60 级(精英)',
+    type: '5人全新探索地下城',
+    location: '泽风岛 (微风岛)',
+    bossCount: 3,
+    bosses: ['唤风学徒瑟琳', '暴怒狂风元素', '高阶风暴领主艾尔索斯'],
+    overview: '天裔新手主线必经地下城，60级解锁英雄挑战模式。盛产全套天裔特色风暴皮甲与风系法杖。',
+    keyMechanic: '需要利用天裔种族技能【踏空而行】飞跃悬崖断裂带；尾王点名吹飞，需全员躲入场地静风法阵。',
+    dropsHighlight: '【天裔风暴法杖】、【高空气流之靴】(附带5秒滑翔特效)'
+  },
+  {
+    id: 'd_shendralar_archives',
+    name: '辛德拉档案馆 (Shen\'dralar Archives)',
+    level: '58 - 60 级',
+    type: '5人满级高阶地下城',
+    location: '菲拉斯·辛德拉古城',
+    bossCount: 3,
+    bosses: ['藏书馆长玛尔杜克', '禁忌魔典之灵', '奥术宗师瓦罗森'],
+    overview: '托塞德林王子密室深处的古代上层精灵藏书阁，产出各职业稀有技能书与奥术抗性圣物。',
+    keyMechanic: '场地浮空奥术符文需队员轮流踩圈消除过载能量，禁忌书本刷新需第一时间集火并断条打断心控。',
+    dropsHighlight: '【辛德拉秘法典籍】(全职业通用极品饰品)、【瓦罗森长袍】'
+  },
+  {
+    id: 'd_mire_abyss',
+    name: '泥沼深渊 (Mire Abyss)',
+    level: '45 - 52 级',
+    type: '5人升级地下城',
+    location: '尘泥沼泽南部',
+    bossCount: 3,
+    bosses: ['泥沼潜伏者', '黑龙斥候斯卡尔', '深渊巨口多拉克'],
+    overview: '连接奥妮克希亚巢穴外围的隐秘水下溶洞，掉落中期优质耐力散件与黑龙抗性防具。',
+    keyMechanic: '水下减速与剧毒DOT叠加，治疗需优先解毒；巨口撕咬会使坦克护甲骤降50%，副T需及时嘲讽换抗。',
+    dropsHighlight: '【多拉克的巨颚】(双手重锤)、【泥沼潜行者护腕】'
+  },
+  {
+    id: 'd_windfury_spire',
+    name: '风怒尖塔 (Windfury Spire)',
+    level: '38 - 44 级',
+    type: '5人高空险境地下城',
+    location: '千针石林 / 天空之境',
+    bossCount: 3,
+    bosses: ['尖啸鹰身女王', '雷霆蜥蜴狂暴之首', '空贼首领巴兹尔'],
+    overview: '高耸入云的风暴哨塔，充斥着鹰身人与盗匪，产出敏捷物理弓弩与萨满专属锁甲。',
+    keyMechanic: '狭窄悬崖边缘极易被强风击退跌落坠亡，全员需背靠内侧石壁战斗，避免站在风口。',
+    dropsHighlight: '【疾风之刺短弓】、【风暴呼唤者链甲】'
+  },
+  {
+    id: 'd_temple_of_sorrow',
+    name: '悲伤沼泽神殿 (Temple of Sorrow)',
+    level: '50 - 55 级',
+    type: '5人经典扩展地下城',
+    location: '悲伤沼泽沉没神殿侧翼',
+    bossCount: 3,
+    bosses: ['腐化绿龙幼体', '梦魇编织者', '阿塔莱高阶祭司'],
+    overview: '探索绿龙军团受翡翠梦魇腐化的源头，掉落全职业优质自然抗性装备与团本前置装。',
+    keyMechanic: '沉睡诅咒与梦魇缠绕，驱散职业需时刻保持清醒，被点名玩家需提前跑离人群。',
+    dropsHighlight: '【梦魇编织披风】、【阿塔莱仪式匕首】'
+  },
+  {
+    id: 'd_gnomeregan_deep',
+    name: '诺莫瑞根深层机械区 (Gnomeregan Deep Core)',
+    level: '30 - 36 级',
+    type: '5人机械工厂地下城',
+    location: '丹莫罗诺莫瑞根下层',
+    bossCount: 3,
+    bosses: ['热能过载电容器', '疯狂技师斯宾克', '放射性清扫机终极版'],
+    overview: '暴雪全新开辟的诺莫瑞根下层动力炉心，掉落工程学极品图纸与趣味侏儒科技饰品。',
+    keyMechanic: '躲避地面红色警戒激光射线，机甲自爆前需拉扯至减速齿轮区域中安全引爆。',
+    dropsHighlight: '【小型蒸汽增压器】、【斯宾克的超时空扳手】'
+  },
+  {
+    id: 'd_duskwood_stronghold',
+    name: '暮色古堡 (Duskwood Stronghold)',
+    level: '28 - 34 级',
+    type: '5人暗黑剧情地下城',
+    location: '暮色森林逆风小径边缘',
+    bossCount: 3,
+    bosses: ['狼人狂暴领主', '暗影死灵术士', '斯塔文的怨念幻象'],
+    overview: '续写暮色森林经典传说的全新地下城，产出前中期强力单手剑与暗影抗性装备。',
+    keyMechanic: '全场视野极低，需要拾取场地周边的火把照亮Boss以破除其无敌暗影护盾。',
+    dropsHighlight: '【暮色守护者之刃】、【斯塔文的哀鸣护符】'
+  }
+];
+
+// 8. 暴雪官方「无限服」(WoW Forever) 首发三大团队副本 (2026.12.10正式解锁)
+const INFINITE_RAIDS = [
+  {
+    id: 'r_the_deeps',
+    name: '深穴 (The Deeps)',
+    scale: '10人 / 20人 弹性模式',
+    unlockDate: '2026年12月10日',
+    location: '艾泽拉斯地心大裂隙',
+    bossCount: 6,
+    bosses: ['地底掘进者泰拉克斯', '虚空感染巨蝎', '被遗忘的深渊祭司', '熔岩巨像布拉格', '无面暗影领主', '上古之眼·克瑟拉斯'],
+    overview: '暴雪在无限服首发的原创全新终局团队副本！深入艾泽拉斯地壳深处的黑暗深渊，直面无面者与被遗忘的上古之神爪牙。支持 10人/20人 两种团队规模。',
+    dropsHighlight: '【T1.5 深渊守护者套装】、【克瑟拉斯的虚空凝视】(极品法系饰品)、【地壳断裂重锤】',
+    attunement: '需在【领主大厅】与【辛德拉档案馆】完成前置钥匙碎片合成任务。'
+  },
+  {
+    id: 'r_mount_hyjal',
+    name: '海加尔峰保卫战 (Battle of Mount Hyjal 60级原版)',
+    scale: '40人 经典史诗团队',
+    unlockDate: '2026年12月10日',
+    location: '海加尔山脉诺达希尔世界之树',
+    bossCount: 5,
+    bosses: ['雷基·冬寒', '安纳塞隆', '卡兹洛加', '阿兹加洛', '阿克蒙德 (60级原初化身)'],
+    overview: '暴雪官方将魔兽历史上最壮阔的世界之树保卫战原版降维适配60级无飞行时代！40人经典团队联手吉安娜与萨尔共同抵御燃烧军团天灾大军。',
+    dropsHighlight: '【世界之树守护者史诗套装】、【阿克蒙德原初之泪】、【灾变之刃 (60级版)】',
+    attunement: '需完成海加尔山秩序前哨声望崇敬，并击败奥妮克希亚获得巨龙之核。'
+  },
+  {
+    id: 'r_onyxia_lair',
+    name: '奥妮克希亚的巢穴 (Onyxia\'s Lair 重构版)',
+    scale: '40人 经典团队',
+    unlockDate: '2026年12月10日',
+    location: '尘泥沼泽巨龙泥沼',
+    bossCount: 1,
+    bosses: ['黑龙公主奥妮克希亚'],
+    overview: '经典旧世的标志性巨龙屠灭战！无限服全面重平衡了三阶段深呼吸与小龙刷新机制，混合职业（防骑聚怪拉小龙、猫德斩杀爆发等）大放异彩。',
+    dropsHighlight: '【T2 经典巨龙复仇头盔】、【奥妮克希亚龙头】(兑换史诗饰品/项链)、【奎尔塞拉铸剑任务触发】',
+    attunement: '联盟温德索尔元帅任务线 / 部落雷克萨幻象幻术之血任务线。'
+  }
+];
+
 module.exports = {
   FLIGHT_PATHS,
   WOW_RACES,
   WOW_CLASSES,
   TALENT_DATA_60,
   INITIAL_WISHES,
-  WOW_TERMS
+  WOW_TERMS,
+  INFINITE_DUNGEONS,
+  INFINITE_RAIDS
 };
+
 

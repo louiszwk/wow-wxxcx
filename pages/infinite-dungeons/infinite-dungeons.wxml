@@ -1,0 +1,307 @@
+<view class="page-container theme-{{theme}}">
+  <!-- Custom Nav Header -->
+  <view class="nav-header" bindtap="navigateBack" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">
+    <text class="back-icon">‹</text>
+    <text class="back-text">返回</text>
+  </view>
+
+  <!-- Title & Theme Toggle -->
+  <view class="header">
+    <view class="title">首发地下城与团本</view>
+    <view class="subtitle">暴雪无限服首发9大新地下城 · MDT地图与怪物技能速查</view>
+    <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
+  </view>
+
+  <!-- Mode Switcher: 列表总览 vs MDT地图怪物图鉴 -->
+  <view class="view-mode-bar">
+    <view class="view-mode-item {{viewMode === 'list' ? 'active' : ''}}" data-mode="list" bindtap="switchViewMode">
+      <text class="view-mode-icon">📋</text>
+      <text>副本机制总览</text>
+    </view>
+    <view class="view-mode-item {{viewMode === 'mdt' ? 'active' : ''}}" data-mode="mdt" bindtap="switchViewMode">
+      <text class="view-mode-icon">🗺️</text>
+      <text>MDT地图与怪物速览</text>
+    </view>
+  </view>
+
+  <!-- ================= 模式 1: 列表总览 ================= -->
+  <block wx:if="{{viewMode === 'list'}}">
+    <!-- Search Box -->
+    <view class="search-box">
+      <input 
+        class="search-input" 
+        placeholder="搜索副本 / 首领Boss / 掉落装备 (如 领主大厅, 深穴)..." 
+        placeholder-class="placeholder" 
+        value="{{searchKeyword}}" 
+        bindinput="onSearchInput" 
+      />
+      <view class="clear-btn" wx:if="{{searchKeyword}}" bindtap="clearSearch">✕</view>
+    </view>
+
+    <!-- Segmented Tabs: 5人本 vs 团本 -->
+    <view class="mode-tabs">
+      <view class="mode-tab {{activeTab === 'dungeons' ? 'active' : ''}}" data-tab="dungeons" bindtap="switchTab">
+        <text class="tab-icon">🏰</text>
+        <text>5人地下城 ({{displayDungeons.length}})</text>
+      </view>
+      <view class="mode-tab {{activeTab === 'raids' ? 'active' : ''}}" data-tab="raids" bindtap="switchTab">
+        <text class="tab-icon">⚔️</text>
+        <text>首发团队副本 ({{displayRaids.length}})</text>
+      </view>
+    </view>
+
+    <!-- TAB 1: 5人地下城列表 -->
+    <block wx:if="{{activeTab === 'dungeons'}}">
+      <view class="hero-banner">
+        <view class="banner-title">🌟 暴雪官方 9 大全新地下城</view>
+        <view class="banner-desc">突破传统60级五人本界限，涵盖泽风岛新手区至洛丹伦满级高阶挑战！</view>
+      </view>
+
+      <view class="dungeon-list">
+        <view class="dungeon-card" wx:for="{{displayDungeons}}" wx:key="id">
+          <view class="card-top-row">
+            <view class="dungeon-title-box">
+              <view class="dungeon-name">{{item.name}}</view>
+              <view class="dungeon-loc">📍 {{item.location}}</view>
+            </view>
+            <view class="badge-col">
+              <view class="level-badge">{{item.level}}</view>
+              <view class="type-badge">{{item.type}}</view>
+            </view>
+          </view>
+
+          <view class="overview-text">{{item.overview}}</view>
+
+          <!-- Bosses -->
+          <view class="boss-section">
+            <text class="section-label">首领 ({{item.bossCount}}名):</text>
+            <view class="boss-tags">
+              <text class="boss-tag" wx:for="{{item.bosses}}" wx:for-item="boss" wx:key="*this">{{boss}}</text>
+            </view>
+          </view>
+
+          <!-- Key Mechanics -->
+          <view class="mechanic-box">
+            <text class="mechanic-title">⚠️ 开荒灭团点与破局机制：</text>
+            <text class="mechanic-desc">{{item.keyMechanic}}</text>
+          </view>
+
+          <!-- Drops Highlight -->
+          <view class="drops-box" wx:if="{{item.dropsHighlight}}">
+            <text class="drops-title">💎 核心掉落推荐：</text>
+            <text class="drops-desc">{{item.dropsHighlight}}</text>
+          </view>
+
+          <!-- 一键查看 MDT 地图与怪群按钮 -->
+          <view class="mdt-jump-btn" catchtap="openDungeonMdt" data-id="{{item.id}}">
+            <text class="jump-icon">🗺️</text>
+            <text>查看副本地图与怪物分布 (MDT图鉴)</text>
+            <text class="jump-arrow">›</text>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- TAB 2: 团队副本列表 -->
+    <block wx:if="{{activeTab === 'raids'}}">
+      <view class="hero-banner raid-banner">
+        <view class="banner-title">🔥 12月10日 解锁三大团队副本</view>
+        <view class="banner-desc">首发原创全新终局团本【深穴】+ 经典40人【海加尔峰】与【奥妮克希亚】！</view>
+      </view>
+
+      <view class="dungeon-list">
+        <view class="dungeon-card raid-card" wx:for="{{displayRaids}}" wx:key="id">
+          <view class="card-top-row">
+            <view class="dungeon-title-box">
+              <view class="dungeon-name raid-name">{{item.name}}</view>
+              <view class="dungeon-loc">📍 {{item.location}} · {{item.unlockDate}} 解锁</view>
+            </view>
+            <view class="badge-col">
+              <view class="level-badge raid-badge">{{item.scale}}</view>
+              <view class="type-badge">首发团本</view>
+            </view>
+          </view>
+
+          <view class="overview-text">{{item.overview}}</view>
+
+          <!-- Bosses -->
+          <view class="boss-section">
+            <text class="section-label">首领列表 ({{item.bossCount}}名):</text>
+            <view class="boss-tags">
+              <text class="boss-tag raid-boss-tag" wx:for="{{item.bosses}}" wx:for-item="boss" wx:key="*this">{{boss}}</text>
+            </view>
+          </view>
+
+          <!-- Drops Highlight -->
+          <view class="drops-box">
+            <text class="drops-title">👑 史诗掉落与套装：</text>
+            <text class="drops-desc">{{item.dropsHighlight}}</text>
+          </view>
+
+          <!-- Attunement / 门任务 -->
+          <view class="attune-box" wx:if="{{item.attunement}}">
+            <text class="attune-title">🗝️ 开门钥匙 / 进门声望资格：</text>
+            <text class="attune-desc">{{item.attunement}}</text>
+          </view>
+        </view>
+      </view>
+    </block>
+  </block>
+
+  <!-- ================= 模式 2: MDT 地图与怪物速览 (免规划路线) ================= -->
+  <block wx:if="{{viewMode === 'mdt'}}">
+    <!-- 副本水平选择滑块 -->
+    <scroll-view class="dungeon-tabs-scroll" scroll-x="true" enable-flex="true" show-scrollbar="{{false}}" enhanced="{{true}}">
+      <view 
+        wx:for="{{mdtDungeons}}" 
+        wx:key="id" 
+        class="dungeon-tab-chip {{currentMdtIndex === index ? 'active' : ''}}" 
+        data-index="{{index}}" 
+        bindtap="selectMdtDungeon"
+      >
+        <text class="tab-dungeon-name">{{item.name}}</text>
+      </view>
+    </scroll-view>
+
+    <!-- MDT 提示条 -->
+    <view class="mdt-info-banner" style="border-left-color: {{currentMdtDungeon.accentColor}};">
+      <view class="mdt-banner-header">
+        <text class="mdt-banner-title">{{currentMdtDungeon.fullName}}</text>
+        <text class="mdt-level-tag">{{currentMdtDungeon.level}}</text>
+      </view>
+      <view class="mdt-banner-hint">
+        <text class="hint-dot"></text>
+        <text>轻触地图上任意首领 👑 或怪物 🛡️，查看 MDT 核心机制与读条技能</text>
+      </view>
+    </view>
+
+    <!-- MDT 地图视窗 (支持缩放平移) -->
+    <view class="mdt-map-wrapper">
+      <movable-area class="mdt-movable-area" scale-area="true">
+        <movable-view 
+          class="mdt-movable-view" 
+          direction="all" 
+          scale="true" 
+          scale-min="0.8" 
+          scale-max="3.0" 
+          scale-value="{{scaleValue}}" 
+          x="{{mapX}}" 
+          y="{{mapY}}" 
+          bindscale="onScaleChange"
+          style="width: {{currentMdtDungeon.mapWidth}}px; height: {{currentMdtDungeon.mapHeight}}px; background-color: {{currentMdtDungeon.mapTheme}};"
+        >
+          <!-- 建筑底图背景区域与房间轮廓 -->
+          <view class="map-grid-bg"></view>
+          
+          <!-- 房间/大厅区域线框 -->
+          <view 
+            class="dungeon-room-box" 
+            wx:for="{{currentMdtDungeon.rooms}}" 
+            wx:key="name" 
+            style="left: {{item.x}}px; top: {{item.y}}px; width: {{item.w}}px; height: {{item.h}}px;"
+          >
+            <text class="room-title">{{item.name}}</text>
+          </view>
+
+          <!-- 怪物与首领标记 (Pins) -->
+          <view 
+            class="enemy-marker {{item.isBoss ? 'boss-marker' : 'trash-marker'}}" 
+            wx:for="{{currentMdtDungeon.enemies}}" 
+            wx:key="id" 
+            style="left: {{item.x}}px; top: {{item.y}}px;" 
+            catchtap="inspectEnemy" 
+            data-enemy="{{item}}"
+          >
+            <view class="marker-avatar">
+              <text class="marker-icon">{{item.icon}}</text>
+            </view>
+            <view class="marker-tag {{item.isBoss ? 'boss-tag' : 'trash-tag'}}">
+              <text wx:if="{{item.isBoss}}">B{{item.bossNum}} {{item.name}}</text>
+              <text wx:else>{{item.name}}</text>
+            </view>
+          </view>
+        </movable-view>
+      </movable-area>
+
+      <!-- 浮动缩放控制面板 -->
+      <view class="map-zoom-tools">
+        <view class="zoom-tool-btn" bindtap="zoomIn">+</view>
+        <view class="zoom-tool-btn indicator">{{scalePercent}}%</view>
+        <view class="zoom-tool-btn" bindtap="zoomOut">−</view>
+        <view class="zoom-tool-btn reset" bindtap="resetZoom">重置</view>
+      </view>
+    </view>
+  </block>
+
+  <!-- ================= MDT 怪物与首领机制详情弹窗 ================= -->
+  <view class="enemy-modal-backdrop" wx:if="{{showEnemyModal}}" bindtap="closeEnemyModal">
+    <view class="enemy-modal-dialog" catchtap="stopPropagation">
+      <!-- 弹窗顶栏 -->
+      <view class="modal-header">
+        <view class="modal-avatar-wrapper {{inspectedEnemy.isBoss ? 'boss' : 'trash'}}">
+          <text class="modal-big-icon">{{inspectedEnemy.icon}}</text>
+        </view>
+        <view class="modal-info-col">
+          <view class="modal-name-row">
+            <text class="modal-enemy-name">{{inspectedEnemy.name}}</text>
+            <text class="modal-rank-badge {{inspectedEnemy.isBoss ? 'boss' : 'trash'}}">
+              {{inspectedEnemy.isBoss ? '首领' : '强力小怪'}}
+            </text>
+          </view>
+          <view class="modal-meta-row">
+            <text class="meta-chip">类型: {{inspectedEnemy.creatureType}}</text>
+            <text class="meta-chip" wx:if="{{inspectedEnemy.health}}">血量: {{inspectedEnemy.health}}</text>
+          </view>
+        </view>
+        <view class="modal-close-icon" bindtap="closeEnemyModal">✕</view>
+      </view>
+
+      <!-- 受控特性 Chips -->
+      <view class="chars-section" wx:if="{{inspectedEnemy.characteristics && inspectedEnemy.characteristics.length > 0}}">
+        <text class="chars-title">受控特性：</text>
+        <view class="chars-wrap">
+          <text class="char-pill" wx:for="{{inspectedEnemy.characteristics}}" wx:key="*this">
+            ● {{item}}
+          </text>
+        </view>
+      </view>
+
+      <!-- 技能与战术机制列表 -->
+      <view class="modal-spells-header">
+        <text class="spells-sec-title">⚔️ 怪物技能与破局机制</text>
+        <text class="spells-sec-count">{{inspectedEnemy.spells.length}} 个技能</text>
+      </view>
+
+      <scroll-view scroll-y="true" class="modal-spells-scroll">
+        <view class="spell-item-card" wx:for="{{inspectedEnemy.spells}}" wx:key="name">
+          <view class="spell-top-row">
+            <view class="spell-title-col">
+              <text class="spell-item-name">{{item.name}}</text>
+              <view class="spell-tags-row">
+                <text 
+                  wx:for="{{item.tags}}" 
+                  wx:for-item="t" 
+                  wx:key="*this" 
+                  class="spell-pill {{t === '全队AOE' ? 'aoe' : (t === '坦克死刑' || t === '灭团高危' ? 'danger' : (t === '必打断' || t === '可打断' ? 'interrupt' : 'info'))}}"
+                >{{t}}</text>
+              </view>
+            </view>
+            <view class="spell-meta-chips">
+              <text class="meta-chip-item" wx:if="{{item.castTime}}">{{item.castTime}}</text>
+              <text class="meta-chip-item" wx:if="{{item.range}}">{{item.range}}</text>
+            </view>
+          </view>
+          <view class="spell-desc-content">
+            <text class="desc-bullet">▸ </text>
+            <text>{{item.desc}}</text>
+          </view>
+        </view>
+      </scroll-view>
+
+      <!-- 底部关闭按钮 -->
+      <view class="modal-foot-btn" bindtap="closeEnemyModal">
+        <text>关闭</text>
+      </view>
+    </view>
+  </view>
+</view>

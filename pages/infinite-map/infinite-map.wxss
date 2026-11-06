@@ -159,6 +159,11 @@
 
 .filter-chip {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.4;
   padding: 6px 14px;
   font-size: 13px;
   border-radius: 20px;
