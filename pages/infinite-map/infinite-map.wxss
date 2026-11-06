@@ -49,16 +49,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 28px;
-  padding: 0 10px;
-  margin: 0 6px 0 0;
-  font-size: 12px;
+  height: 20px;
+  padding: 0 6px;
+  margin: 0 4px 0 0;
+  font-size: 11px;
   font-weight: 600;
   color: #38bdf8;
   background: rgba(56, 189, 248, 0.12);
   border: 1px solid rgba(56, 189, 248, 0.35);
-  border-radius: 14px;
-  line-height: normal;
+  border-radius: 10px;
+  line-height: 18px;
+  min-height: 0;
 }
 
 .compact-share-btn::after {
@@ -76,13 +77,8 @@
   transform: scale(0.96);
 }
 
-.share-icon {
-  margin-right: 3px;
-  font-size: 11px;
-}
-
 .title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 800;
   background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
   -webkit-background-clip: text;

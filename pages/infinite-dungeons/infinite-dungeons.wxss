@@ -49,16 +49,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 28px;
-  padding: 0 10px;
-  margin: 0 6px 0 0;
-  font-size: 12px;
+  height: 20px;
+  line-height: 18px;
+  padding: 0 6px;
+  margin: 0 4px 0 0;
+  font-size: 11px;
   font-weight: 600;
   color: #38bdf8;
   background: rgba(56, 189, 248, 0.12);
   border: 1px solid rgba(56, 189, 248, 0.35);
-  border-radius: 14px;
-  line-height: normal;
+  border-radius: 10px;
+  box-sizing: border-box;
 }
 
 .compact-share-btn::after {
@@ -76,13 +77,8 @@
   transform: scale(0.96);
 }
 
-.share-icon {
-  margin-right: 3px;
-  font-size: 11px;
-}
-
 .title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 800;
   background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
   -webkit-background-clip: text;
@@ -308,6 +304,14 @@
   padding-right: 10px;
 }
 
+.dungeon-name-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
 .dungeon-name {
   font-size: 17px;
   font-weight: 800;
@@ -327,6 +331,39 @@
   color: #9333ea;
 }
 
+.level-badge-inline {
+  font-size: 11px;
+  font-weight: 700;
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 1px 6px;
+  border-radius: 4px;
+  line-height: 16px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.level-badge-inline.raid-badge {
+  color: #c084fc;
+  background: rgba(168, 85, 247, 0.15);
+  border-color: rgba(168, 85, 247, 0.35);
+}
+
+.theme-light .level-badge-inline {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.25);
+  color: #dc2626;
+}
+
+.theme-light .level-badge-inline.raid-badge {
+  background: rgba(168, 85, 247, 0.1);
+  border-color: rgba(168, 85, 247, 0.3);
+  color: #9333ea;
+}
+
 .dungeon-loc {
   font-size: 12px;
   color: #94a3b8;
@@ -335,29 +372,6 @@
 
 .theme-light .dungeon-loc {
   color: #64748b;
-}
-
-.badge-col {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-}
-
-.level-badge {
-  font-size: 11px;
-  font-weight: 700;
-  background: rgba(239, 68, 68, 0.2);
-  color: #f87171;
-  padding: 3px 8px;
-  border-radius: 6px;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-.raid-badge {
-  background: rgba(168, 85, 247, 0.2);
-  color: #c084fc;
-  border-color: rgba(168, 85, 247, 0.35);
 }
 
 .type-badge {

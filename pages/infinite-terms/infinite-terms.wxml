@@ -12,10 +12,7 @@
       <view class="subtitle">萌新不懵圈 · 开荒不犯怵 · 全网权威魔兽黑话速查</view>
     </view>
     <view class="header-right-actions">
-      <button class="compact-share-btn" open-type="share" hover-class="share-btn-hover">
-        <text class="share-icon">↗</text>
-        <text>分享</text>
-      </button>
+      <button class="compact-share-btn" open-type="share" hover-class="share-btn-hover">分享</button>
       <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
     </view>
   </view>

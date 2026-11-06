@@ -12,11 +12,8 @@
       <view class="subtitle">魔兽世界无限服 · 主流权威配装库与51点加点模拟</view>
     </view>
     <view class="header-right-actions">
-      <!-- 紧凑小巧的分享按钮 -->
-      <button class="compact-share-btn" open-type="share" hover-class="share-btn-hover">
-        <text class="share-icon">↗</text>
-        <text>分享</text>
-      </button>
+      <!-- 紧凑小巧的分享按钮 (去图标、极简轻量) -->
+      <button class="compact-share-btn" open-type="share" hover-class="share-btn-hover">分享</button>
       <!-- 主题切换按钮 -->
       <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
     </view>
@@ -109,9 +106,7 @@
         <view class="card-top-line">
           <view class="build-title-box">
             <text class="build-title">{{item.name}}</text>
-            <text class="build-tag {{item.isOfficial ? 'official' : 'custom'}}">
-              {{item.isOfficial ? '官方权威' : '玩家自建'}}
-            </text>
+            <text class="build-tag {{item.isOfficial ? 'official' : 'custom'}}">{{item.isOfficial ? '官方权威' : '玩家自建'}}</text>
           </view>
           <view class="load-btn" catchtap="onBuildCardTap" data-id="{{item.id}}">
             <text>载入加点 ›</text>
@@ -248,9 +243,7 @@
 
               <!-- 天赋名字直接显示在节点上！无需点击即可一目了然！ -->
               <view class="talent-name-wrap">
-                <text class="talent-name-text {{cell.skill.rank === cell.skill.max ? 'name-max' : (cell.skill.rank > 0 ? 'name-allocated' : (cell.skill.isLocked ? 'name-locked' : ''))}}">
-                  {{cell.skill.name}}
-                </text>
+                <text class="talent-name-text {{cell.skill.rank === cell.skill.max ? 'name-max' : (cell.skill.rank > 0 ? 'name-allocated' : (cell.skill.isLocked ? 'name-locked' : ''))}}">{{cell.skill.name}}</text>
               </view>
             </block>
             <block wx:else>
@@ -320,12 +313,8 @@
 
       <!-- 前置未满足警告 -->
       <view class="tooltip-warning" wx:if="{{selectedSkill.isLocked}}">
-        <text wx:if="{{treePoints[activeTreeIndex] < (selectedSkill.row - 1) * 5}}">
-          ⚠️ 需要在当前天赋树投入 {{ (selectedSkill.row - 1) * 5 }} 点才能学习
-        </text>
-        <text wx:elif="{{selectedSkill.prereqName}}">
-          ⚠️ 需要先点满前置天赋【{{selectedSkill.prereqName}}】
-        </text>
+        <text wx:if="{{treePoints[activeTreeIndex] < (selectedSkill.row - 1) * 5}}">⚠️ 需要在当前天赋树投入 {{ (selectedSkill.row - 1) * 5 }} 点才能学习</text>
+        <text wx:elif="{{selectedSkill.prereqName}}">⚠️ 需要先点满前置天赋【{{selectedSkill.prereqName}}】</text>
       </view>
 
       <!-- 当前等级效果描述 -->

@@ -12,11 +12,8 @@
       <view class="subtitle">暴雪无限服首发9大新地下城 · 地下城全景与怪物机制图鉴</view>
     </view>
     <view class="header-right-actions">
-      <!-- 紧凑小巧的分享按钮 -->
-      <button class="compact-share-btn" open-type="share" hover-class="share-btn-hover">
-        <text class="share-icon">↗</text>
-        <text>分享</text>
-      </button>
+      <!-- 紧凑小巧的分享按钮 (去图标、极简轻量) -->
+      <button class="compact-share-btn" open-type="share" hover-class="share-btn-hover">分享</button>
       <!-- 主题切换按钮 -->
       <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
     </view>
@@ -71,13 +68,13 @@
         <view class="dungeon-card" wx:for="{{displayDungeons}}" wx:key="id">
           <view class="card-top-row">
             <view class="dungeon-title-box">
-              <view class="dungeon-name">{{item.name}}</view>
+              <view class="dungeon-name-row">
+                <text class="dungeon-name">{{item.name}}</text>
+                <text class="level-badge-inline">{{item.level}}</text>
+              </view>
               <view class="dungeon-loc">📍 {{item.location}}</view>
             </view>
-            <view class="badge-col">
-              <view class="level-badge">{{item.level}}</view>
-              <view class="type-badge">{{item.type}}</view>
-            </view>
+            <view class="type-badge">{{item.type}}</view>
           </view>
 
           <view class="overview-text">{{item.overview}}</view>
@@ -123,13 +120,13 @@
         <view class="dungeon-card raid-card" wx:for="{{displayRaids}}" wx:key="id">
           <view class="card-top-row">
             <view class="dungeon-title-box">
-              <view class="dungeon-name raid-name">{{item.name}}</view>
+              <view class="dungeon-name-row">
+                <text class="dungeon-name raid-name">{{item.name}}</text>
+                <text class="level-badge-inline raid-badge">{{item.scale}}</text>
+              </view>
               <view class="dungeon-loc">📍 {{item.location}} · {{item.unlockDate}} 解锁</view>
             </view>
-            <view class="badge-col">
-              <view class="level-badge raid-badge">{{item.scale}}</view>
-              <view class="type-badge">首发团本</view>
-            </view>
+            <view class="type-badge">首发团本</view>
           </view>
 
           <view class="overview-text">{{item.overview}}</view>
@@ -176,8 +173,10 @@
     <!-- 地下城提示条 -->
     <view class="mdt-info-banner" style="border-left-color: {{currentMdtDungeon.accentColor}};">
       <view class="mdt-banner-header">
-        <text class="mdt-banner-title">{{currentMdtDungeon.fullName}}</text>
-        <text class="mdt-level-tag">{{currentMdtDungeon.level}}</text>
+        <view class="dungeon-name-row">
+          <text class="mdt-banner-title">{{currentMdtDungeon.name}}</text>
+          <text class="level-badge-inline">{{currentMdtDungeon.level}}</text>
+        </view>
       </view>
       <view class="mdt-banner-hint">
         <text class="hint-dot"></text>
@@ -256,9 +255,7 @@
         <view class="modal-info-col">
           <view class="modal-name-row">
             <text class="modal-enemy-name">{{inspectedEnemy.name}}</text>
-            <text class="modal-rank-badge {{inspectedEnemy.isBoss ? 'boss' : 'trash'}}">
-              {{inspectedEnemy.isBoss ? '首领 Boss' : '强力小怪'}}
-            </text>
+            <text class="modal-rank-badge {{inspectedEnemy.isBoss ? 'boss' : 'trash'}}">{{inspectedEnemy.isBoss ? '首领 Boss' : '强力小怪'}}</text>
           </view>
           <view class="modal-meta-row">
             <text class="meta-chip">类型: {{inspectedEnemy.creatureType}}</text>
@@ -272,9 +269,7 @@
       <view class="chars-section" wx:if="{{inspectedEnemy.characteristics && inspectedEnemy.characteristics.length > 0}}">
         <text class="chars-title">受控特性：</text>
         <view class="chars-wrap">
-          <text class="char-pill" wx:for="{{inspectedEnemy.characteristics}}" wx:key="*this">
-            ● {{item}}
-          </text>
+          <text class="char-pill" wx:for="{{inspectedEnemy.characteristics}}" wx:key="*this">● {{item}}</text>
         </view>
       </view>
 
