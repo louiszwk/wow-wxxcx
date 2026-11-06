@@ -112,11 +112,11 @@ button.compact-share-btn::after,
 }
 
 .theme-toggle {
-  position: absolute;
-  top: 0;
-  right: 0;
-  font-size: 22px;
-  padding: 6px;
+  font-size: 20px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Search Box */

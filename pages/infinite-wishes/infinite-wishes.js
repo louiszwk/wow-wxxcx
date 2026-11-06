@@ -39,7 +39,7 @@ Page({
     formContent: ''
   },
 
-  onLoad() {
+  onLoad(options) {
     if (wx.showShareMenu) {
       wx.showShareMenu({ menus: ['shareAppMessage', 'shareTimeline'] });
     }
