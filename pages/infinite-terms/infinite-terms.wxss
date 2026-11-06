@@ -345,6 +345,7 @@ button.compact-share-btn::after,
   border-radius: 6px;
 }
 
+.badge-forever { background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3); }
 .badge-mechanics { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
 .badge-tactics { background: rgba(249, 115, 22, 0.15); color: #fb923c; }
 .badge-raid { background: rgba(239, 68, 68, 0.15); color: #f87171; }

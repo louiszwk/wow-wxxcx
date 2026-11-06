@@ -18,8 +18,8 @@ Page({
       { id: '卡利姆多', label: '卡利姆多' },
       { id: '无限探索区', label: '无限探索区' }
     ],
-    allFlightPaths: [],
-    filteredList: [],
+    allFlightPaths: FLIGHT_PATHS || [],
+    filteredList: FLIGHT_PATHS || [],
     // 航线规划
     startZones: [],
     destZones: [],

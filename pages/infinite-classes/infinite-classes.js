@@ -14,9 +14,9 @@ Page({
       { id: 'alliance', label: '🛡️ 联盟' },
       { id: 'horde', label: '⚔️ 部落' }
     ],
-    allRaces: [],
-    displayRaces: [],
-    allClasses: []
+    allRaces: WOW_RACES || [],
+    displayRaces: WOW_RACES || [],
+    allClasses: WOW_CLASSES || []
   },
 
   onLoad(options) {

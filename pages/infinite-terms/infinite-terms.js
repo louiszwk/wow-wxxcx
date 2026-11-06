@@ -2,9 +2,9 @@ const { WOW_TERMS } = require('../../data/infinite_data.js');
 
 Page({
   data: {
-    navBarHeight: 0,
-    menuButtonTop: 0,
-    menuButtonHeight: 0,
+    navBarHeight: 64,
+    menuButtonTop: 24,
+    menuButtonHeight: 32,
     theme: 'dark',
     searchKeyword: '',
     currentCategory: 'all',
@@ -17,8 +17,8 @@ Page({
       { id: 'gear', label: '经典神装' },
       { id: 'social', label: '社交行话' }
     ],
-    terms: [],
-    displayTerms: [],
+    terms: WOW_TERMS || [],
+    displayTerms: WOW_TERMS || [],
     favTerms: {},
     // 投稿弹窗
     showModal: false,
@@ -43,20 +43,32 @@ Page({
     }
 
     const app = getApp();
-    if (app.globalData) {
+    if (app && app.globalData) {
       this.setData({
-        navBarHeight: app.globalData.navBarHeight,
-        menuButtonTop: app.globalData.menuButtonTop,
-        menuButtonHeight: app.globalData.menuButtonHeight
+        navBarHeight: app.globalData.navBarHeight || 64,
+        menuButtonTop: app.globalData.menuButtonTop || 24,
+        menuButtonHeight: app.globalData.menuButtonHeight || 32
       });
     }
 
-    const savedTheme = wx.getStorageSync('app_theme') || 'dark';
-    const favTerms = wx.getStorageSync('infinite_fav_terms') || {};
-    const localUserTerms = wx.getStorageSync('infinite_user_terms') || [];
+    let savedTheme = 'dark';
+    let favTerms = {};
+    let localUserTerms = [];
+    try {
+      savedTheme = wx.getStorageSync('app_theme') || 'dark';
+      favTerms = wx.getStorageSync('infinite_fav_terms') || {};
+      const storedUserTerms = wx.getStorageSync('infinite_user_terms');
+      if (Array.isArray(storedUserTerms)) {
+        localUserTerms = storedUserTerms;
+      }
+    } catch (e) {
+      console.warn('Storage read warning in infinite-terms:', e);
+    }
 
-    const combinedTerms = [...localUserTerms, ...WOW_TERMS];
-    const initialCategory = (options && options.category) ? options.category : 'all';
+    const baseTerms = Array.isArray(WOW_TERMS) ? WOW_TERMS : [];
+    const combinedTerms = [...localUserTerms, ...baseTerms];
+    const validCats = ['all', 'forever', 'mechanics', 'tactics', 'raid', 'gear', 'social'];
+    const initialCategory = (options && options.category && validCats.includes(options.category)) ? options.category : 'all';
 
     this.setData({
       theme: savedTheme,
@@ -72,9 +84,21 @@ Page({
   },
 
   onShow() {
-    const savedTheme = wx.getStorageSync('app_theme') || 'dark';
+    let savedTheme = 'dark';
+    try {
+      savedTheme = wx.getStorageSync('app_theme') || 'dark';
+    } catch (e) {}
     if (this.data.theme !== savedTheme) {
       this.setData({ theme: savedTheme });
+    }
+
+    // 防御性恢复：如果由于任何外部因素导致 terms 为空，强制重新载入 WOW_TERMS
+    if (!this.data.terms || this.data.terms.length === 0) {
+      const baseTerms = Array.isArray(WOW_TERMS) ? WOW_TERMS : [];
+      this.setData({
+        terms: baseTerms,
+        displayTerms: baseTerms
+      });
     }
   },
 

@@ -14,8 +14,8 @@ Page({
       { id: '开荒通关', label: '🏰 团本通关' },
       { id: '欧气满满', label: '🍀 欧气祈福' }
     ],
-    wishes: [],
-    displayWishes: [],
+    wishes: INITIAL_WISHES || [],
+    displayWishes: INITIAL_WISHES || [],
     likedWishes: {},
     isLoadingWishes: false,
     // 许愿弹窗表单

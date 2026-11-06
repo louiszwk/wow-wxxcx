@@ -12,15 +12,15 @@ Page({
     searchKeyword: '',
     
     // 列表模式数据
-    allDungeons: [],
-    displayDungeons: [],
-    allRaids: [],
-    displayRaids: [],
+    allDungeons: INFINITE_DUNGEONS || [],
+    displayDungeons: INFINITE_DUNGEONS || [],
+    allRaids: INFINITE_RAIDS || [],
+    displayRaids: INFINITE_RAIDS || [],
 
     // 地下城与怪物浏览模式数据 (无需规划路线)
-    mdtDungeons: [],
+    mdtDungeons: INFINITE_MDT_DUNGEONS || [],
     currentMdtIndex: 0,
-    currentMdtDungeon: null,
+    currentMdtDungeon: (INFINITE_MDT_DUNGEONS && INFINITE_MDT_DUNGEONS.length > 0) ? INFINITE_MDT_DUNGEONS[0] : null,
     
     // 地图缩放与平移 (自动适配屏幕宽度)
     fitScale: 0.52,
