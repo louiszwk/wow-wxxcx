@@ -638,3 +638,4 @@ const INFINITE_MDT_DUNGEONS = [
 module.exports = {
   INFINITE_MDT_DUNGEONS
 };
+

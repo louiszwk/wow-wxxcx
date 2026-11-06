@@ -77,23 +77,7 @@
         </view>
       </view>
 
-      <!-- 3. 专精攻略与BiS -->
-      <view class="nav-card" bindtap="navigateToBis">
-        <view class="card-content">
-          <view class="card-title" style="color: #38bdf8;">专精攻略与BiS</view>
-          <view class="card-desc">全职业39专精真实攻略、单体/AOE手法与毕业推荐。</view>
-        </view>
-      </view>
-
-      <!-- 4. 配装模拟器 -->
-      <view class="nav-card" bindtap="navigateToBuild">
-        <view class="card-content">
-          <view class="card-title" style="color: #10b981;">配装模拟器</view>
-          <view class="card-desc">自由搭配装备部位、实时主副属性收益计算与方案导出。</view>
-        </view>
-      </view>
-
-      <!-- 5. 第二赛季掉落 -->
+      <!-- 3. 第二赛季掉落 -->
       <view class="nav-card" bindtap="navigateToLoot">
         <view class="card-content">
           <view class="card-title">第二赛季掉落</view>
@@ -101,7 +85,7 @@
         </view>
       </view>
 
-      <!-- 6. 大秘境路线 -->
+      <!-- 4. 大秘境路线 -->
       <view class="nav-card" bindtap="navigateToMdt">
         <view class="card-content">
           <view class="card-title" style="color: #a855f7;">大秘境路线 (Alpha)</view>
@@ -109,19 +93,19 @@
         </view>
       </view>
 
-      <!-- 7. 魔兽术语与黑话 -->
+      <!-- 5. 魔兽术语与黑话 -->
       <view class="nav-card" bindtap="goToInfiniteTerms">
         <view class="card-content">
           <view class="card-title" style="color: #ec4899;">魔兽术语与黑话</view>
-          <view class="card-desc">全网最全魔兽术语与黑话速查！GCD、仇恨OT、顺劈机制全收录。</view>
+          <view class="card-desc">全网最全魔兽术语与黑话速查！GCD、仇恨OT、顺劈、断条机制全收录。</view>
         </view>
       </view>
 
-      <!-- 8. 宏命令大全 -->
+      <!-- 6. 宏命令大全 -->
       <view class="nav-card" bindtap="navigateToMacros">
         <view class="card-content">
           <view class="card-title">宏命令大全</view>
-          <view class="card-desc">全职业鼠标指向打断、一键爆发、取消保护等常用宏速查。</view>
+          <view class="card-desc">全职业鼠标指向打断、一键爆发、取消保护、极限视距等常用实战宏命令速查。</view>
         </view>
       </view>
     </view>
