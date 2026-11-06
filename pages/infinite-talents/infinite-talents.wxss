@@ -37,40 +37,49 @@
 
 .title-col {
   flex: 1;
-  padding-right: 10px;
+  min-width: 0;
+  padding-right: 8px;
 }
 
 .header-right-actions {
   display: flex;
   align-items: center;
-  padding-top: 4px;
+  flex-shrink: 0;
+  padding-top: 2px;
 }
 
+button.compact-share-btn,
 .compact-share-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 20px;
-  line-height: 18px;
-  padding: 0 6px;
-  margin: 0 4px 0 0;
-  font-size: 11px;
-  font-weight: 600;
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  border-radius: 10px;
-  box-sizing: border-box;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 44px !important;
+  height: 20px !important;
+  line-height: 18px !important;
+  padding: 0 5px !important;
+  margin: 0 4px 0 0 !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: #f59e0b !important;
+  background: rgba(245, 158, 11, 0.12) !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+  border-radius: 10px !important;
+  box-sizing: border-box !important;
+  min-height: 0 !important;
 }
 
+button.compact-share-btn::after,
 .compact-share-btn::after {
-  border: none;
+  display: none !important;
 }
 
+.theme-light button.compact-share-btn,
 .theme-light .compact-share-btn {
-  color: #b45309;
-  background: rgba(180, 83, 9, 0.1);
-  border-color: rgba(180, 83, 9, 0.3);
+  color: #b45309 !important;
+  background: rgba(180, 83, 9, 0.1) !important;
+  border-color: rgba(180, 83, 9, 0.3) !important;
 }
 
 .share-btn-hover {
@@ -81,6 +90,7 @@
 .title {
   font-size: 20px;
   font-weight: 800;
+  white-space: nowrap;
   background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

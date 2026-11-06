@@ -12,7 +12,7 @@
       <view class="subtitle">投掷金币 · 愿圣光保佑你开服出风剑与提布</view>
     </view>
     <view class="header-right-actions">
-      <button class="compact-share-btn" open-type="share" hover-class="share-btn-hover">分享</button>
+      <button class="compact-share-btn" size="mini" open-type="share" hover-class="share-btn-hover">分享</button>
       <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
     </view>
   </view>
