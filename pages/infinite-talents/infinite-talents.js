@@ -245,7 +245,17 @@ Page({
 
   preventBubble() {},
 
-  tryAddPoint(skillId) {
+  tryAddPoint(eOrId) {
+    let skillId = null;
+    if (typeof eOrId === 'string') {
+      skillId = eOrId;
+    } else if (eOrId && eOrId.currentTarget && eOrId.currentTarget.dataset) {
+      skillId = eOrId.currentTarget.dataset.skillId;
+    } else if (this.data.selectedSkill) {
+      skillId = this.data.selectedSkill.id;
+    }
+    if (!skillId) return;
+
     const { trees, activeTreeIndex, pointsRemaining, treePoints } = this.data;
     const activeTree = trees[activeTreeIndex];
     const skill = activeTree.skills.find(s => s.id === skillId);

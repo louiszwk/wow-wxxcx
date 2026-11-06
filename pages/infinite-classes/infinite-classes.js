@@ -89,14 +89,14 @@ Page({
   },
   onShareAppMessage() {
     return {
-      title: '魔兽世界无限服 - 新种族天裔精灵与全职业解析',
+      title: '魔兽世界无限服 - 新种族天裔与全职业机制解析',
       path: '/pages/infinite-classes/infinite-classes'
     };
   },
 
   onShareTimeline() {
     return {
-      title: '魔兽世界无限服 - 新种族天裔精灵与全职业解析',
+      title: '魔兽世界无限服 - 新种族天裔与全职业机制解析',
       path: '/pages/infinite-classes/infinite-classes'
     };
   }
