@@ -126,6 +126,8 @@ Page({
       scalePercent: Math.round(this.data.fitScale * 100),
       mapX: 0,
       mapY: 0
+    }, () => {
+      if (wx.pageScrollTo) wx.pageScrollTo({ scrollTop: 0, duration: 100 });
     });
   },
 
@@ -142,6 +144,8 @@ Page({
       scalePercent: Math.round(this.data.fitScale * 100),
       mapX: 0,
       mapY: 0
+    }, () => {
+      if (wx.pageScrollTo) wx.pageScrollTo({ scrollTop: 0, duration: 100 });
     });
   },
 

@@ -118,6 +118,11 @@
           </view>
         </view>
 
+        <!-- 3 系天赋点数分布徽章 -->
+        <view class="build-points-line" wx:if="{{item.pointSummary}}">
+          <text class="points-badge-pill">⚡ {{item.pointSummary}} ({{item.totalPoints}}/51点)</text>
+        </view>
+
         <view class="build-desc">{{item.desc}}</view>
 
         <view class="build-meta-line">
@@ -140,7 +145,7 @@
 
           <!-- 操作按钮组 -->
           <view class="actions-group">
-            <view class="action-chip copy-chip" catchtap="copyTalentCode">
+            <view class="action-chip copy-chip" catchtap="copyTalentCode" data-id="{{item.id}}">
               <text>复制天赋码</text>
             </view>
             <view 

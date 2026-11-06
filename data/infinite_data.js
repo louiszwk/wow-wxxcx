@@ -453,8 +453,9 @@ const TALENT_DATA_60 = {
     name: '法师',
     icon: '🧙‍♂️',
     presets: [
+      { name: '无限服·奥火强化爆破 (30/21/0)', desc: '气定神闲+奥术强化双炎爆瞬秒爆发，无限服竞技场与野外秒杀流派', points: { m_subtle: 2, m_focus: 5, m_mind: 5, m_clearcast: 1, m_power: 1, m_impact: 5, m_ignite: 5, m_fireblast: 3, m_pyroblast: 1, m_crit: 5 } },
       { name: '深冰控场练级 (17/0/34)', desc: '开荒练级、单刷副本、冰环暴风雪AOE神级配置', points: { m_focus: 5, m_mind: 5, m_clearcast: 1, m_frostbolt: 5, m_icebite: 3, m_frostbite: 3, m_permafrost: 3, m_iceblock: 1, m_shatter: 5, m_icebarrier: 1 } },
-      { name: '火法团本输出 (17/31/3)', desc: '大后期黑翼之巢/安其拉暴击点燃融化BOSS主流', points: { m_focus: 5, m_mind: 5, m_clearcast: 1, m_ignite: 5, m_fireblast: 3, m_pyroblast: 1, m_burn: 5, m_crit: 5, m_combustion: 1, m_elemental: 3 } }
+      { name: '火法团本输出 (17/31/3)', desc: '大后期黑翼之巢/安其拉暴击点燃融化BOSS主流', points: { m_focus: 5, m_mind: 5, m_clearcast: 1, m_ignite: 5, m_fireblast: 3, m_pyroblast: 1, m_burn: 5, m_crit: 5, m_combustion: 1 } }
     ],
     trees: [
       {
@@ -500,6 +501,7 @@ const TALENT_DATA_60 = {
     name: '潜行者',
     icon: '🗡️',
     presets: [
+      { name: '无限服·封印出血敏锐 (21/3/27)', desc: '伺机待发双消失双闪避冷血剔骨，无限服PVP刺杀单挑最强', points: { r_malice: 5, r_eviscerate: 3, r_lethality: 5, r_coldblood: 1, r_imp_sinister: 2, r_opportunity: 5, r_initiative: 3, r_prep: 1, r_hemo: 1 } },
       { name: '战斗剑贼 (19/32/0)', desc: '经典60级副本割草DPS第一梯队剑刃乱舞冲动流', points: { r_malice: 5, r_lethality: 5, r_imp_sinister: 2, r_blade_flurry: 1, r_weapon_exp: 2, r_sword_spec: 5, r_adrenaline: 1 } },
       { name: '冷血出血敏锐贼 (21/3/27)', desc: '野外单挑与战场单杀伏击瞬秒冷血剔骨流', points: { r_malice: 5, r_coldblood: 1, r_opportunity: 5, r_prep: 1, r_hemo: 1 } }
     ],
@@ -669,6 +671,7 @@ const TALENT_DATA_60 = {
     name: '术士',
     icon: '💀',
     presets: [
+      { name: '无限服·恶魔灵魂链接 (7/31/13)', desc: '灵魂链接30%常驻高额减伤+高耐力恶魔之拥，无限服硬度极高肉盾流', points: { wl_suppress: 5, wl_demonicembrace: 5, wl_sacrifice: 1, wl_soullink: 1, wl_shadowvulnerability: 1, wl_ruin: 1 } },
       { name: '暗毁团本主力 (9/21/21)', desc: '牺牲魅魔暗影箭暴击连环轰炸第一DPS流派', points: { wl_suppress: 5, wl_shadowvulnerability: 5, wl_demonicembrace: 5, wl_sacrifice: 1, wl_shadowburn: 1, wl_ruin: 1 } },
       { name: '痛苦吸血流 (30/21/0)', desc: '野外多目标永动机双DOT挂满永不空蓝', points: { wl_suppress: 5, wl_imp_corrupt: 5, wl_nightfall: 2, wl_siphonlife: 1, wl_shadowmastery: 5 } }
     ],

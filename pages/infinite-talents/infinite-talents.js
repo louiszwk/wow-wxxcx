@@ -117,7 +117,9 @@ Page({
 
   switchViewMode(e) {
     const mode = e.currentTarget.dataset.mode;
-    this.setData({ viewMode: mode });
+    this.setData({ viewMode: mode }, () => {
+      if (wx.pageScrollTo) wx.pageScrollTo({ scrollTop: 0, duration: 100 });
+    });
   },
 
   selectClass(e) {
@@ -139,26 +141,43 @@ Page({
       }))
     }));
 
+    const computeBuildSummary = (points) => {
+      const treeSums = trees.map(t => {
+        return t.skills.reduce((acc, s) => acc + (points[s.id] || 0), 0);
+      });
+      const summaryStr = trees.map((t, idx) => `${t.name} ${treeSums[idx]}`).join(' / ');
+      const total = treeSums.reduce((a, b) => a + b, 0);
+      return { pointSummary: summaryStr, totalPoints: total };
+    };
+
     const presets = classData.presets || [];
 
     // 从本地存储加载玩家保存的该职业配装
     const userBuilds = wx.getStorageSync('infinite_user_talent_builds') || [];
-    const myClassBuilds = userBuilds.filter(b => b.classId === classId);
+    const myClassBuilds = userBuilds.filter(b => b.classId === classId).map(b => {
+      const { pointSummary, totalPoints } = computeBuildSummary(b.points || {});
+      return { ...b, pointSummary, totalPoints };
+    });
 
     // 格式化官方预设列表
-    const officialBuilds = presets.map((p, idx) => ({
-      id: `official_${classId}_${idx}`,
-      name: p.name,
-      desc: p.desc || '暴雪无限服权威主流加点方案。',
-      points: p.points || {},
-      classId: classId,
-      authorName: '暴雪官方推荐',
-      displayTime: '2026.11.05 上线权威',
-      isOfficial: true,
-      isOwner: false,
-      likes: 128 + idx * 37,
-      views: 450 + idx * 82
-    }));
+    const officialBuilds = presets.map((p, idx) => {
+      const { pointSummary, totalPoints } = computeBuildSummary(p.points || {});
+      return {
+        id: `official_${classId}_${idx}`,
+        name: p.name,
+        desc: p.desc || '暴雪无限服权威主流加点方案。',
+        points: p.points || {},
+        classId: classId,
+        authorName: '暴雪官方推荐',
+        displayTime: '2026.11.05 上线权威',
+        isOfficial: true,
+        isOwner: false,
+        pointSummary,
+        totalPoints,
+        likes: 128 + idx * 37,
+        views: 450 + idx * 82
+      };
+    });
 
     // 合并全部配装列表 (我的自定义配装置顶)
     const allBuilds = [...myClassBuilds, ...officialBuilds];
@@ -307,13 +326,19 @@ Page({
       return;
     }
 
-    // 收集点数映射
+    // 收集点数映射与汇总
     const pointMap = {};
     trees.forEach(t => {
       t.skills.forEach(s => {
         if (s.rank > 0) pointMap[s.id] = s.rank;
       });
     });
+
+    const treeSums = trees.map(t => {
+      return t.skills.reduce((acc, s) => acc + (pointMap[s.id] || 0), 0);
+    });
+    const pointSummary = trees.map((t, idx) => `${t.name} ${treeSums[idx]}`).join(' / ');
+    const totalPoints = treeSums.reduce((a, b) => a + b, 0);
 
     const userBuilds = wx.getStorageSync('infinite_user_talent_builds') || [];
     const buildId = currentBuildId && currentBuildId.startsWith('user_') ? currentBuildId : `user_${Date.now()}`;
@@ -328,6 +353,8 @@ Page({
       displayTime: '刚刚更新',
       isOfficial: false,
       isOwner: true,
+      pointSummary,
+      totalPoints,
       likes: 1,
       views: 1
     };
@@ -634,13 +661,24 @@ Page({
     wx.showToast({ title: '全部 51 点天赋已重置', icon: 'success' });
   },
 
-  copyTalentCode() {
+  copyTalentCode(e) {
+    const buildId = (e && e.currentTarget && e.currentTarget.dataset) ? e.currentTarget.dataset.id : null;
+    let targetBuild = null;
+    if (buildId) {
+      targetBuild = this.data.allBuilds.find(b => b.id === buildId);
+    }
+
     const { selectedClass, classList, treePoints, trees, currentBuildName } = this.data;
     const cls = classList.find(c => c.id === selectedClass);
     const className = cls ? cls.name : '职业';
-    const pointStr = treePoints.map((p, idx) => `${trees[idx].name}:${p}`).join(' / ');
 
-    const code = `[魔兽世界无限服 ${className} · ${currentBuildName}] ${pointStr} (已分配: ${this.data.pointsSpent}/51 点)`;
+    let code = '';
+    if (targetBuild && targetBuild.pointSummary) {
+      code = `[魔兽世界无限服 ${className} · ${targetBuild.name}] ${targetBuild.pointSummary} (${targetBuild.totalPoints}/51点满级方案)`;
+    } else {
+      const pointStr = treePoints.map((p, idx) => `${trees[idx].name}:${p}`).join(' / ');
+      code = `[魔兽世界无限服 ${className} · ${currentBuildName}] ${pointStr} (已分配: ${this.data.pointsSpent}/51 点)`;
+    }
 
     wx.setClipboardData({
       data: code,
