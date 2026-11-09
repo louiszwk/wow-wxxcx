@@ -233,7 +233,12 @@
               <!-- 顶部行: 图标与点数 -->
               <view class="node-icon-row">
                 <view class="node-icon-box">
-                  <text class="node-icon">{{cell.skill.icon}}</text>
+                  <image 
+                    class="node-icon-img" 
+                    src="https://wow.zamimg.com/images/wow/icons/medium/{{cell.skill.icon}}.jpg" 
+                    mode="aspectFill" 
+                    lazy-load="{{true}}"
+                  ></image>
                   <view class="lock-overlay" wx:if="{{cell.skill.isLocked && cell.skill.rank === 0}}">🔒</view>
                 </view>
                 <view class="rank-badge {{cell.skill.rank === cell.skill.max ? 'rank-max' : (cell.skill.rank > 0 ? 'rank-allocated' : '')}}">
@@ -302,7 +307,11 @@
     <view class="tooltip-card" catchtap="preventBubble">
       <view class="tooltip-header">
         <view class="tooltip-title-box">
-          <text class="tooltip-icon">{{selectedSkill.icon}}</text>
+          <image 
+            class="tooltip-icon-img" 
+            src="https://wow.zamimg.com/images/wow/icons/large/{{selectedSkill.icon}}.jpg" 
+            mode="aspectFill"
+          ></image>
           <view>
             <view class="tooltip-title">{{selectedSkill.name}}</view>
             <view class="tooltip-rank">等级 {{selectedSkill.rank}} / {{selectedSkill.max}}</view>
