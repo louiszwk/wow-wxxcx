@@ -1552,7 +1552,7 @@ const TALENT_DATA_60 = {
           {
             "id": "w_defiance",
             "name": "挑衅",
-            "icon": "ability_warrior_sunder",
+            "icon": "ability_warrior_innerrage",
             "row": 3,
             "col": 3,
             "max": 5,
@@ -1925,7 +1925,7 @@ const TALENT_DATA_60 = {
             "row": 7,
             "col": 2,
             "max": 1,
-            "prereq": "p_divine_favor",
+            "prereq": null,
             "ranks": [
               "以神圣能量冲击目标，对敌人造成伤害，或为盟友回复生命值"
             ]
@@ -2011,7 +2011,7 @@ const TALENT_DATA_60 = {
           {
             "id": "p_imp_righteous_fury",
             "name": "强化正义之怒",
-            "icon": "spell_holy_sealofwisdom",
+            "icon": "spell_holy_sealoffury",
             "row": 2,
             "col": 3,
             "max": 3,
