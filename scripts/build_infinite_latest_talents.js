@@ -17,13 +17,13 @@ const TALENT_DATA_60 = {
   "presets": [
     {
       "name": "游戏实装·经典战斗剑贼 (17/34/0)",
-      "desc": "【与游戏实装1:1完全一致】奇袭17点出强化切割与无情打击，战斗34点满剑类武器专精与冲动乱舞，开荒与团本最强泛用物理输出！",
+      "desc": "【与最新实装1:1完全一致】奇袭17点出强化切割与致命，战斗34点出高效打击、钢铁闪光、剑专精与冲动，开荒与团本最强泛用物理输出！",
       "points": {
         "r_remorseless": 2,
         "r_malice": 5,
         "r_ruthlessness": 3,
         "r_imp_snd": 3,
-        "r_rel_strikes": 2,
+        "r_imp_ea": 2,
         "r_lethality": 2,
         "r_imp_ss": 2,
         "r_lightning_ref": 3,
@@ -37,56 +37,59 @@ const TALENT_DATA_60 = {
         "r_dw_spec": 2,
         "r_blade_flurry": 1,
         "r_sword_spec": 5,
-        "r_aggression": 5,
+        "r_steel_flash": 5,
         "r_adrenaline_rush": 1
       }
     },
     {
       "name": "奇袭封印冷血毁伤 (31/8/12)",
-      "desc": "【暴击毁伤终结流】满封印命运与冷血毁伤，结合敏锐伺机而动与锯齿利刃，刺杀爆发上限天花板！",
+      "desc": "【暴击毁伤终结流】满封印命运与冷血毁伤（90%武器伤害高额爆发），搭配战斗高效打击与敏锐伪装、锯齿利刃！",
       "points": {
-        "r_imp_evisc": 3,
+        "r_remorseless": 2,
         "r_malice": 5,
         "r_ruthlessness": 3,
         "r_puncturing": 3,
         "r_imp_snd": 3,
-        "r_rel_strikes": 2,
-        "r_lethality": 5,
+        "r_imp_ea": 2,
+        "r_lethality": 2,
+        "r_vile_poisons": 3,
+        "r_imp_poisons": 2,
         "r_cold_blood": 1,
-        "r_seal_fate": 5,
+        "r_seal_fate": 4,
         "r_mutilate": 1,
-        "r_imp_gouge": 3,
         "r_imp_ss": 2,
+        "r_lightning_ref": 3,
         "r_deflection": 3,
         "r_opportunity": 5,
-        "r_camouflage": 5,
+        "r_camouflage": 3,
+        "r_initiative": 2,
         "r_serrated_blades": 2
       }
     },
     {
-      "name": "敏锐伺机出血出血贼 (21/0/30)",
-      "desc": "【敏锐伺机待发双重技能爆发】出血极低耗能附带物理易伤，伺机待发重置双闪避双消失双致盲，PVP控场单挑封王！",
+      "name": "敏锐出血伺机待发 (17/0/34)",
+      "desc": "【锁喉割裂出血流】强化闷棍机制提升目标上限与移速，出血同步增强锁喉与割裂15%，伺机待发重置双套技能，PVP控场单挑封王！",
       "points": {
-        "r_imp_evisc": 3,
+        "r_remorseless": 2,
         "r_malice": 5,
         "r_ruthlessness": 3,
-        "r_puncturing": 3,
         "r_imp_snd": 3,
-        "r_rel_strikes": 2,
-        "r_lethality": 1,
-        "r_cold_blood": 1,
+        "r_imp_ea": 2,
+        "r_lethality": 2,
         "r_opportunity": 5,
-        "r_camouflage": 5,
+        "r_camouflage": 3,
         "r_initiative": 3,
         "r_ghostly": 1,
         "r_imp_sap": 3,
         "r_serrated_blades": 3,
         "r_hemo": 1,
         "r_elusiveness": 2,
+        "r_imp_sap_mechanic": 2,
         "r_prep": 1,
         "r_dirty_deeds": 2,
         "r_heightened_senses": 2,
-        "r_deadliness": 2
+        "r_deadliness": 5,
+        "r_premeditation": 1
       }
     }
   ],
@@ -194,24 +197,11 @@ const TALENT_DATA_60 = {
           ]
         },
         {
-          "id": "r_rel_strikes",
-          "name": "无情打击",
-          "icon": "ability_warrior_decisivestrike",
-          "row": 3,
-          "col": 1,
-          "max": 2,
-          "prereq": null,
-          "ranks": [
-            "终结技每消耗 1 点连击点，就有 10% 几率恢复 25 点能量",
-            "每消耗 1 点连击点，就有 20% 几率恢复 25 点能量"
-          ]
-        },
-        {
           "id": "r_imp_ea",
           "name": "强化破甲",
           "icon": "ability_warrior_riposte",
           "row": 3,
-          "col": 2,
+          "col": 1,
           "max": 2,
           "prereq": null,
           "ranks": [
@@ -221,18 +211,15 @@ const TALENT_DATA_60 = {
         },
         {
           "id": "r_lethality",
-          "name": "致命偷袭",
+          "name": "致命",
           "icon": "ability_criticalstrike",
           "row": 3,
           "col": 3,
-          "max": 5,
+          "max": 2,
           "prereq": "r_malice",
           "ranks": [
-            "邪恶攻击、背刺、剔骨、毁伤致命一击伤害加成提高 6%",
-            "提高 12%",
-            "提高 18%",
-            "提高 24%",
-            "提高 30%"
+            "使你的刺杀技能暴击伤害加成提高 10%",
+            "暴击伤害加成提高 20%"
           ]
         },
         {
@@ -308,6 +295,22 @@ const TALENT_DATA_60 = {
           ]
         },
         {
+          "id": "r_rel_strikes",
+          "name": "无情打击",
+          "icon": "ability_warrior_decisivestrike",
+          "row": 5,
+          "col": 4,
+          "max": 5,
+          "prereq": null,
+          "ranks": [
+            "终结技每消耗 1 个连击点数，有 4% 的几率回复 25 点能量",
+            "有 8% 的几率回复 25 点能量",
+            "有 12% 的几率回复 25 点能量",
+            "有 16% 的几率回复 25 点能量",
+            "有 20% 的几率回复 25 点能量"
+          ]
+        },
+        {
           "id": "r_vigor",
           "name": "精力",
           "icon": "spell_nature_drowsy",
@@ -329,7 +332,7 @@ const TALENT_DATA_60 = {
           "max": 1,
           "prereq": null,
           "ranks": [
-            "同时使用双武器进行瞬发打击，对目标造成主副手武器伤害并附加额外伤害，若目标处于中毒状态则伤害提高 20%，奖励 2 个连击点"
+            "同时使用双武器进行瞬发打击，对目标造成 90% 主副手武器伤害并附加额外基础伤害，若目标处于中毒状态则伤害提高 20%，奖励 2 个连击点"
           ]
         }
       ]
@@ -339,29 +342,29 @@ const TALENT_DATA_60 = {
       "name": "战斗",
       "skills": [
         {
-          "id": "r_imp_gouge",
-          "name": "强化凿击",
-          "icon": "ability_gouge",
+          "id": "r_deadly_strike",
+          "name": "致命一击",
+          "icon": "ability_rogue_eviscerate",
           "row": 1,
           "col": 1,
           "max": 3,
           "prereq": null,
           "ranks": [
-            "凿击效果持续时间延长 0.5 秒",
-            "延长 1.0 秒",
-            "延长 1.5 秒"
+            "使你的剔骨伤害提高 7%，并使死亡印记技能的伤害与储存速率同样提高 7%",
+            "剔骨伤害提高 13%，死亡印记伤害与储存速率同样提高 13%",
+            "剔骨伤害提高 20%，死亡印记伤害与储存速率同样提高 20%"
           ]
         },
         {
           "id": "r_imp_ss",
-          "name": "强化邪恶攻击",
+          "name": "高效打击",
           "icon": "spell_shadow_ritualofsacrifice",
           "row": 1,
           "col": 2,
           "max": 2,
           "prereq": null,
           "ranks": [
-            "使邪恶攻击消耗的能量减少 3 点",
+            "使你的邪恶攻击和出血技能消耗的能量减少 3 点",
             "减少 5 点"
           ]
         },
@@ -497,7 +500,7 @@ const TALENT_DATA_60 = {
           "max": 2,
           "prereq": null,
           "ranks": [
-            "副手武器造成的伤害提高 25%",
+            "使你的副手武器造成的伤害提高 25%",
             "副手武器造成的伤害提高 50%"
           ]
         },
@@ -543,19 +546,19 @@ const TALENT_DATA_60 = {
           ]
         },
         {
-          "id": "r_aggression",
-          "name": "侵略",
-          "icon": "ability_racial_avatar",
+          "id": "r_steel_flash",
+          "name": "钢铁闪光",
+          "icon": "inv_sword_33",
           "row": 6,
           "col": 3,
           "max": 5,
           "prereq": null,
           "ranks": [
-            "邪恶攻击、剔骨造成的伤害提高 2%",
-            "提高 4%",
-            "提高 6%",
-            "提高 8%",
-            "提高 10%"
+            "使玩家的捅刺技能产生的能量提高 3 点，并将其冷却时间缩短 0.4 秒",
+            "能量提高 6 点，冷却缩短 0.8 秒",
+            "能量提高 9 点，冷却缩短 1.2 秒",
+            "能量提高 12 点，冷却缩短 1.6 秒",
+            "能量提高 15 点，冷却缩短 2.0 秒"
           ]
         },
         {
@@ -627,14 +630,12 @@ const TALENT_DATA_60 = {
           "icon": "ability_stealth",
           "row": 2,
           "col": 2,
-          "max": 5,
+          "max": 3,
           "prereq": null,
           "ranks": [
-            "潜行移动速度提高 3%，潜行冷却减少 1 秒",
-            "速度提高 6%，冷却减少 2 秒",
-            "速度提高 9%，冷却减少 3 秒",
-            "速度提高 12%，冷却减少 4 秒",
-            "速度提高 15%，冷却减少 5 秒"
+            "使潜行时的移动速度提高 5%，并使潜行冷却时间缩短 2 秒",
+            "移动速度提高 10%，冷却缩短 4 秒",
+            "移动速度提高 15%，冷却缩短 6 秒"
           ]
         },
         {
@@ -740,7 +741,20 @@ const TALENT_DATA_60 = {
           "max": 1,
           "prereq": "r_serrated_blades",
           "ranks": [
-            "对目标造成武器伤害并施加出血减益，使其受到的下 30 次物理伤害提高"
+            "立即对目标造成武器伤害，并使其受到的物理伤害提高，最多生效 30 次；同时使施法者的割裂和锁喉伤害提高 15%"
+          ]
+        },
+        {
+          "id": "r_imp_sap_mechanic",
+          "name": "强化闷棍机制",
+          "icon": "ability_sap",
+          "row": 4,
+          "col": 4,
+          "max": 2,
+          "prereq": null,
+          "ranks": [
+            "使可闷棍的目标上限提高 1 个，并在成功闷棍目标后使玩家移动速度提高 15%，持续 3 秒",
+            "上限提高 1 个，并在成功闷棍后移动速度提高 30%，持续 3 秒"
           ]
         },
         {
