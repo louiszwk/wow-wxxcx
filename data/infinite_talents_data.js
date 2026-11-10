@@ -3,7 +3,7 @@
  * 暴雪《魔兽世界：无限》（World of Warcraft: Forever 2026最新独立产品线）
  * 全职业60级权威天赋树与主流配装方案
  * 严格按照暴雪Zamimg CDN官方高清图标、真实依赖链与51点加点矩阵
- * 生成时间: 2026-11-10T06:01:07.270Z
+ * 生成时间: 2026-11-10T08:06:49.179Z
  */
 
 const TALENT_DATA_60 = {
@@ -13,83 +13,84 @@ const TALENT_DATA_60 = {
     "classIcon": "class_rogue",
     "presets": [
       {
-        "name": "敏锐死亡印记出血 (15/5/31)",
-        "desc": "【无限服木桩单体T0王者】千刀万剐与割裂无视护甲暴击联动，死亡印记终结技6秒储能爆发引爆真实伤害，单体上限封神！",
+        "name": "游戏实装·经典战斗剑贼 (17/34/0)",
+        "desc": "【与游戏实装1:1完全一致】奇袭17点出强化切割与无情打击，战斗34点满剑类武器专精与冲动乱舞，开荒与团本最强泛用物理输出！",
         "points": {
+          "r_remorseless": 2,
           "r_malice": 5,
           "r_ruthlessness": 3,
-          "r_puncturing": 3,
-          "r_rel_strikes": 1,
-          "r_lethality": 3,
+          "r_imp_snd": 3,
+          "r_rel_strikes": 2,
+          "r_lethality": 2,
           "r_imp_ss": 2,
           "r_lightning_ref": 3,
-          "r_opportunity": 5,
-          "r_camouflage": 5,
-          "r_initiative": 3,
-          "r_ghostly": 1,
-          "r_imp_sap": 1,
-          "r_serrated_blades": 3,
-          "r_hemo": 1,
-          "r_elusiveness": 2,
-          "r_heightened_senses": 2,
-          "r_prep": 1,
-          "r_dirty_deeds": 2,
-          "r_deadliness": 4,
-          "r_death_mark": 1
-        }
-      },
-      {
-        "name": "战斗大开大合剑斧 (19/32/0)",
-        "desc": "【无限服综合开荒清场王牌】大开大合合并剑斧锤武器专精，还击招架缴械，剑刃乱舞双倍清怪，冲动极速回能！",
-        "points": {
-          "r_imp_evisc": 2,
-          "r_malice": 5,
-          "r_ruthlessness": 3,
-          "r_rel_strikes": 1,
-          "r_lethality": 4,
-          "r_imp_poisons": 4,
-          "r_imp_ss": 2,
-          "r_lightning_ref": 3,
-          "r_deflection": 5,
-          "r_precision": 5,
-          "r_endurance": 2,
+          "r_deflection": 3,
+          "r_precision": 3,
+          "r_endurance": 1,
           "r_riposte": 1,
-          "r_dw_spec": 5,
+          "r_imp_sprint": 2,
+          "r_imp_kick": 2,
+          "r_dagger_spec": 3,
+          "r_dw_spec": 2,
           "r_blade_flurry": 1,
-          "r_hack_slash": 5,
-          "r_weapon_mastery": 2,
+          "r_sword_spec": 5,
+          "r_aggression": 5,
           "r_adrenaline_rush": 1
         }
       },
       {
-        "name": "刺杀双持毁伤毒针 (38/11/2)",
-        "desc": "【无限服毒伤爆发巅峰】主打毁伤双重涂毒，猛毒终结技伤害加成30%，冷血封印命运必暴返星，毒针大招终极斩杀！",
+        "name": "奇袭封印冷血毁伤 (31/8/12)",
+        "desc": "【暴击毁伤终结流】满封印命运与冷血毁伤，结合敏锐伺机而动与锯齿利刃，刺杀爆发上限天花板！",
         "points": {
           "r_imp_evisc": 3,
           "r_malice": 5,
-          "r_puncturing": 3,
           "r_ruthlessness": 3,
-          "r_murder": 2,
-          "r_rel_strikes": 1,
+          "r_puncturing": 3,
+          "r_imp_snd": 3,
+          "r_rel_strikes": 2,
           "r_lethality": 5,
-          "r_vile_poisons": 3,
-          "r_imp_poisons": 5,
           "r_cold_blood": 1,
           "r_seal_fate": 5,
           "r_mutilate": 1,
-          "r_venom_sting": 1,
+          "r_imp_gouge": 3,
           "r_imp_ss": 2,
-          "r_lightning_ref": 3,
-          "r_deflection": 5,
-          "r_riposte": 1,
-          "r_opportunity": 2
+          "r_deflection": 3,
+          "r_opportunity": 5,
+          "r_camouflage": 5,
+          "r_serrated_blades": 2
+        }
+      },
+      {
+        "name": "敏锐伺机出血出血贼 (21/0/30)",
+        "desc": "【敏锐伺机待发双重技能爆发】出血极低耗能附带物理易伤，伺机待发重置双闪避双消失双致盲，PVP控场单挑封王！",
+        "points": {
+          "r_imp_evisc": 3,
+          "r_malice": 5,
+          "r_ruthlessness": 3,
+          "r_puncturing": 3,
+          "r_imp_snd": 3,
+          "r_rel_strikes": 2,
+          "r_lethality": 1,
+          "r_cold_blood": 1,
+          "r_opportunity": 5,
+          "r_camouflage": 5,
+          "r_initiative": 3,
+          "r_ghostly": 1,
+          "r_imp_sap": 3,
+          "r_serrated_blades": 3,
+          "r_hemo": 1,
+          "r_elusiveness": 2,
+          "r_prep": 1,
+          "r_dirty_deeds": 2,
+          "r_heightened_senses": 2,
+          "r_deadliness": 2
         }
       }
     ],
     "trees": [
       {
         "id": "assassination",
-        "name": "刺杀",
+        "name": "奇袭",
         "skills": [
           {
             "id": "r_imp_evisc",
@@ -176,15 +177,30 @@ const TALENT_DATA_60 = {
             ]
           },
           {
+            "id": "r_imp_snd",
+            "name": "强化切割",
+            "icon": "ability_rogue_slicedice",
+            "row": 2,
+            "col": 4,
+            "max": 3,
+            "prereq": null,
+            "ranks": [
+              "使你的切割技能持续时间延长 15%",
+              "延长 30%",
+              "延长 45%"
+            ]
+          },
+          {
             "id": "r_rel_strikes",
             "name": "无情打击",
             "icon": "ability_warrior_decisivestrike",
             "row": 3,
             "col": 1,
-            "max": 1,
+            "max": 2,
             "prereq": null,
             "ranks": [
-              "终结技每消耗 1 点连击点，就有 20% 几率恢复 25 点能量"
+              "终结技每消耗 1 点连击点，就有 10% 几率恢复 25 点能量",
+              "每消耗 1 点连击点，就有 20% 几率恢复 25 点能量"
             ]
           },
           {
@@ -209,7 +225,7 @@ const TALENT_DATA_60 = {
             "max": 5,
             "prereq": "r_malice",
             "ranks": [
-              "邪恶攻击、背刺、毁伤暴击伤害加成提高 6%",
+              "邪恶攻击、背刺、剔骨、毁伤致命一击伤害加成提高 6%",
               "提高 12%",
               "提高 18%",
               "提高 24%",
@@ -217,31 +233,17 @@ const TALENT_DATA_60 = {
             ]
           },
           {
-            "id": "r_vile_poison_master",
-            "name": "猛毒",
-            "icon": "ability_creature_poison_06",
-            "row": 3,
-            "col": 4,
-            "max": 3,
-            "prereq": null,
-            "ranks": [
-              "【无限服核心机制】目标身上的毒药额外享受你 5% 的攻击强度加成",
-              "享受 10% 攻击强度加成",
-              "享受 15% 攻击强度加成"
-            ]
-          },
-          {
             "id": "r_vile_poisons",
             "name": "剧毒",
-            "icon": "ability_rogue_feigndeath",
+            "icon": "ability_creature_poison_06",
             "row": 4,
             "col": 1,
             "max": 3,
             "prereq": null,
             "ranks": [
-              "毒药和流血效果伤害提高 4%，抵抗驱散几率提高 10%",
-              "伤害提高 8%，抵抗驱散提高 20%",
-              "伤害提高 12%，抵抗驱散提高 30%"
+              "使你的毒药伤害提高 4%，抵抗驱散几率提高 10%",
+              "伤害提高 8%，抵抗驱散几率提高 20%",
+              "伤害提高 12%，抵抗驱散几率提高 30%"
             ]
           },
           {
@@ -253,24 +255,11 @@ const TALENT_DATA_60 = {
             "max": 5,
             "prereq": null,
             "ranks": [
-              "使武器涂抹速效毒药或致伤毒药的几率提高 2%",
+              "使武器施加毒药几率提高 2%",
               "提高 4%",
               "提高 6%",
               "提高 8%",
               "提高 10%"
-            ]
-          },
-          {
-            "id": "r_fleet_foot",
-            "name": "蓄势待发",
-            "icon": "ability_rogue_feigndeath",
-            "row": 4,
-            "col": 3,
-            "max": 2,
-            "prereq": null,
-            "ranks": [
-              "【无限服特色】潜行状态下移动速度提高 10%，起手技能能量消耗降低 5 点",
-              "移速提高 20%，起手能量降低 10 点"
             ]
           },
           {
@@ -282,7 +271,7 @@ const TALENT_DATA_60 = {
             "max": 3,
             "prereq": null,
             "ranks": [
-              "目标受到肾击影响期间，受到的所有伤害提高 3%",
+              "受到肾击的目标所承受的所有伤害提高 3%",
               "提高 6%",
               "提高 9%"
             ]
@@ -296,7 +285,7 @@ const TALENT_DATA_60 = {
             "max": 1,
             "prereq": null,
             "ranks": [
-              "激活后，使你的下一次攻击技能（剔骨、毁伤或毒针）暴击率提高 100%"
+              "激活后，使下一次邪恶攻击、背刺、毁伤、剔骨的致命一击几率提高 100%"
             ]
           },
           {
@@ -308,7 +297,7 @@ const TALENT_DATA_60 = {
             "max": 5,
             "prereq": "r_cold_blood",
             "ranks": [
-              "技能暴击后有 20% 几率额外增加 1 个连击点",
+              "暴击产生连击点的技能有 20% 几率额外增加 1 个连击点",
               "几率提高到 40%",
               "几率提高到 60%",
               "几率提高到 80%",
@@ -316,16 +305,16 @@ const TALENT_DATA_60 = {
             ]
           },
           {
-            "id": "r_master_poisoner",
-            "name": "毒药大师",
-            "icon": "ability_creature_poison_06",
+            "id": "r_vigor",
+            "name": "精力",
+            "icon": "spell_nature_drowsy",
             "row": 6,
             "col": 2,
             "max": 2,
             "prereq": null,
             "ranks": [
-              "攻击中毒目标暴击率提高 2%，受到中毒效果持续时间缩短 25%",
-              "暴击提高 4%，中毒时间缩短 50%"
+              "使你的能量上限提高 10 点，施加毒药时有 50% 几率恢复 5 点能量",
+              "使你的能量上限提高 10 点，施加毒药时有 100% 几率恢复 5 点能量"
             ]
           },
           {
@@ -337,19 +326,7 @@ const TALENT_DATA_60 = {
             "max": 1,
             "prereq": null,
             "ranks": [
-              "瞬发 60点能量。双武器同时刺穿目标，造成主副手武器伤害附加 101 点伤害。若目标处于中毒状态，伤害提高 20%。奖励 2 个连击点。"
-            ]
-          },
-          {
-            "id": "r_venom_sting",
-            "name": "毒针",
-            "icon": "spell_nature_corrosivebreath",
-            "row": 7,
-            "col": 3,
-            "max": 1,
-            "prereq": null,
-            "ranks": [
-              "【无限服刺杀终极】瞬发终结技，消耗 35点能量。将高浓度猛毒注入目标体内，在 12 秒内造成大量自然伤害，并使目标受到的毒药伤害提高 30%。"
+              "同时使用双武器进行瞬发打击，对目标造成主副手武器伤害并附加额外伤害，若目标处于中毒状态则伤害提高 20%，奖励 2 个连击点"
             ]
           }
         ]
@@ -367,7 +344,7 @@ const TALENT_DATA_60 = {
             "max": 3,
             "prereq": null,
             "ranks": [
-              "凿击持续时间延长 0.5 秒",
+              "凿击效果持续时间延长 0.5 秒",
               "延长 1.0 秒",
               "延长 1.5 秒"
             ]
@@ -381,8 +358,8 @@ const TALENT_DATA_60 = {
             "max": 2,
             "prereq": null,
             "ranks": [
-              "邪恶攻击能量消耗降低 3 点",
-              "降低 5 点"
+              "使邪恶攻击消耗的能量减少 3 点",
+              "减少 5 点"
             ]
           },
           {
@@ -402,17 +379,17 @@ const TALENT_DATA_60 = {
             ]
           },
           {
-            "id": "r_imp_snd",
-            "name": "强化切割",
-            "icon": "ability_rogue_slicedice",
+            "id": "r_imp_backstab",
+            "name": "强化背刺",
+            "icon": "ability_backstab",
             "row": 2,
             "col": 1,
             "max": 3,
             "prereq": null,
             "ranks": [
-              "切割持续时间延长 15%",
-              "延长 30%",
-              "延长 45%"
+              "背刺的致命一击几率提高 10%",
+              "提高 20%",
+              "提高 30%"
             ]
           },
           {
@@ -421,14 +398,12 @@ const TALENT_DATA_60 = {
             "icon": "ability_parry",
             "row": 2,
             "col": 2,
-            "max": 5,
+            "max": 3,
             "prereq": null,
             "ranks": [
-              "招架几率提高 1%",
-              "提高 2%",
-              "提高 3%",
+              "招架几率提高 2%",
               "提高 4%",
-              "提高 5%"
+              "提高 6%"
             ]
           },
           {
@@ -437,12 +412,10 @@ const TALENT_DATA_60 = {
             "icon": "ability_marksmanship",
             "row": 2,
             "col": 3,
-            "max": 5,
+            "max": 3,
             "prereq": null,
             "ranks": [
-              "近战武器命中几率提高 1%",
-              "提高 2%",
-              "提高 3%",
+              "近战武器命中几率提高 2%",
               "提高 4%",
               "提高 5%"
             ]
@@ -456,8 +429,8 @@ const TALENT_DATA_60 = {
             "max": 2,
             "prereq": null,
             "ranks": [
-              "疾跑和闪避冷却时间缩短 45 秒",
-              "缩短 90 秒"
+              "疾跑与闪避冷却时间减少 45 秒",
+              "减少 90 秒"
             ]
           },
           {
@@ -469,7 +442,7 @@ const TALENT_DATA_60 = {
             "max": 1,
             "prereq": "r_deflection",
             "ranks": [
-              "招架敌人攻击后可激活，造成 150% 武器伤害并缴械目标 6 秒，消耗 10点能量"
+              "在招架敌人攻击后激活，造成 150% 武器伤害并使目标缴械，持续 6 秒"
             ]
           },
           {
@@ -477,11 +450,11 @@ const TALENT_DATA_60 = {
             "name": "强化疾跑",
             "icon": "ability_rogue_sprint",
             "row": 3,
-            "col": 3,
+            "col": 4,
             "max": 2,
             "prereq": null,
             "ranks": [
-              "使用疾跑有 50% 几率移除所有移动限制效果",
+              "激活疾跑时有 50% 几率解除所有移动限制效果",
               "几率提高到 100%"
             ]
           },
@@ -490,12 +463,12 @@ const TALENT_DATA_60 = {
             "name": "强化脚踢",
             "icon": "ability_kick",
             "row": 4,
-            "col": 1,
+            "col": 3,
             "max": 2,
             "prereq": null,
             "ranks": [
-              "脚踢使目标沉默 1 秒",
-              "使目标沉默 2 秒"
+              "脚踢有 50% 几率令目标沉默 2 秒",
+              "几率提高到 100%"
             ]
           },
           {
@@ -503,13 +476,11 @@ const TALENT_DATA_60 = {
             "name": "匕首专精",
             "icon": "ability_shockwave",
             "row": 4,
-            "col": 2,
-            "max": 5,
+            "col": 4,
+            "max": 3,
             "prereq": null,
             "ranks": [
-              "匕首致命一击几率提高 1%",
-              "提高 2%",
-              "提高 3%",
+              "匕首造成致命一击几率提高 2%",
               "提高 4%",
               "提高 5%"
             ]
@@ -518,32 +489,13 @@ const TALENT_DATA_60 = {
             "id": "r_dw_spec",
             "name": "双武器专精",
             "icon": "ability_dualwield",
-            "row": 4,
-            "col": 3,
-            "max": 5,
-            "prereq": null,
-            "ranks": [
-              "副手武器伤害提高 10%",
-              "提高 20%",
-              "提高 30%",
-              "提高 40%",
-              "提高 50%"
-            ]
-          },
-          {
-            "id": "r_mace_spec",
-            "name": "锤类武器专精",
-            "icon": "inv_mace_01",
             "row": 5,
             "col": 1,
-            "max": 5,
+            "max": 2,
             "prereq": null,
             "ranks": [
-              "锤类武器使目标昏迷 3 秒几率提高 1%，护甲穿透提高 100 点",
-              "昏迷几率提高 2%，破甲 200 点",
-              "昏迷几率提高 3%，破甲 300 点",
-              "昏迷几率提高 4%，破甲 400 点",
-              "昏迷几率提高 5%，破甲 500 点"
+              "副手武器造成的伤害提高 25%",
+              "副手武器造成的伤害提高 50%"
             ]
           },
           {
@@ -555,19 +507,19 @@ const TALENT_DATA_60 = {
             "max": 1,
             "prereq": null,
             "ranks": [
-              "攻击速度提高 20%，同时攻击附近一名额外敌人，持续 15 秒，冷却 2 分钟"
+              "攻击速度提高 20%，同时攻击附近一名额外的敌人，持续 15 秒"
             ]
           },
           {
-            "id": "r_hack_slash",
-            "name": "大开大合",
-            "icon": "inv_axe_06",
+            "id": "r_sword_spec",
+            "name": "剑类武器专精",
+            "icon": "inv_sword_27",
             "row": 5,
             "col": 3,
             "max": 5,
             "prereq": null,
             "ranks": [
-              "【无限服武器整合】剑类或斧类武器击中目标后有 1% 几率额外获得一次攻击机会",
+              "用剑击中敌人后有 1% 几率额外追加一次攻击",
               "几率提高到 2%",
               "几率提高到 3%",
               "几率提高到 4%",
@@ -579,12 +531,12 @@ const TALENT_DATA_60 = {
             "name": "武器大师",
             "icon": "ability_warrior_weaponmastery",
             "row": 6,
-            "col": 1,
+            "col": 2,
             "max": 2,
             "prereq": null,
             "ranks": [
-              "所有武器技能等级提高 3 点，被缴械持续时间缩短 25%",
-              "提高 5 点，被缴械缩短 50%"
+              "使你的所有单手武器技能提高 3 点",
+              "提高 5 点"
             ]
           },
           {
@@ -592,27 +544,15 @@ const TALENT_DATA_60 = {
             "name": "侵略",
             "icon": "ability_racial_avatar",
             "row": 6,
-            "col": 2,
-            "max": 3,
-            "prereq": null,
-            "ranks": [
-              "邪恶攻击、剔骨伤害提高 2%",
-              "提高 4%",
-              "提高 6%"
-            ]
-          },
-          {
-            "id": "r_coup_de_grace",
-            "name": "完美处决",
-            "icon": "ability_warrior_decisivestrike",
-            "row": 6,
             "col": 3,
-            "max": 3,
+            "max": 5,
             "prereq": null,
             "ranks": [
-              "【无限服特色】对生命值低于 20% 的目标，剔骨和刺杀技能能量消耗降低 5 点",
-              "能量消耗降低 10 点",
-              "能量消耗降低 15 点"
+              "邪恶攻击、剔骨造成的伤害提高 2%",
+              "提高 4%",
+              "提高 6%",
+              "提高 8%",
+              "提高 10%"
             ]
           },
           {
@@ -624,7 +564,7 @@ const TALENT_DATA_60 = {
             "max": 1,
             "prereq": null,
             "ranks": [
-              "能量恢复速度提高 100%，持续 15 秒，冷却时间 5 分钟"
+              "使你的能量恢复速度提高 100%，持续 15 秒"
             ]
           }
         ]
@@ -642,11 +582,11 @@ const TALENT_DATA_60 = {
             "max": 5,
             "prereq": null,
             "ranks": [
-              "潜行状态下降低敌人发现几率",
-              "更难被发现",
-              "大幅降低发现几率",
-              "极难被发现",
-              "几乎不可被侦测"
+              "潜行状态下降低敌人察觉几率",
+              "进一步降低",
+              "大幅降低",
+              "极大降低",
+              "难以察觉"
             ]
           },
           {
@@ -658,7 +598,7 @@ const TALENT_DATA_60 = {
             "max": 5,
             "prereq": null,
             "ranks": [
-              "从背后使用背刺、绞喉或伏击造成的伤害提高 4%",
+              "从背后使用背刺、绞喉、伏击造成的伤害提高 4%",
               "提高 8%",
               "提高 12%",
               "提高 16%",
@@ -668,14 +608,14 @@ const TALENT_DATA_60 = {
           {
             "id": "r_sleight_of_hand",
             "name": "诡计",
-            "icon": "ability_rogue_feint",
+            "icon": "ability_stealth",
             "row": 2,
             "col": 1,
             "max": 2,
             "prereq": null,
             "ranks": [
-              "佯攻技能降低威胁值效果提高 10%，被近战和远程暴击几率降低 1%",
-              "提高 20%，被暴击降低 2%"
+              "受到近战和远程致命一击几率降低 1%，佯攻仇恨降低量提高 10%",
+              "致命一击几率降低 2%，佯攻仇恨降低量提高 20%"
             ]
           },
           {
@@ -687,11 +627,11 @@ const TALENT_DATA_60 = {
             "max": 5,
             "prereq": null,
             "ranks": [
-              "潜行移速提高 3%，潜行冷却缩短 1 秒",
-              "移速提高 6%，冷却缩短 2 秒",
-              "移速提高 9%，冷却缩短 3 秒",
-              "移速提高 12%，冷却缩短 4 秒",
-              "移速提高 15%，冷却缩短 5 秒"
+              "潜行移动速度提高 3%，潜行冷却减少 1 秒",
+              "速度提高 6%，冷却减少 2 秒",
+              "速度提高 9%，冷却减少 3 秒",
+              "速度提高 12%，冷却减少 4 秒",
+              "速度提高 15%，冷却减少 5 秒"
             ]
           },
           {
@@ -703,7 +643,7 @@ const TALENT_DATA_60 = {
             "max": 3,
             "prereq": null,
             "ranks": [
-              "伏击、绞喉或偷袭有 25% 几率增加 1 个连击点",
+              "伏击、绞喉、偷袭有 25% 几率额外增加 1 个连击点",
               "几率提高到 50%",
               "几率提高到 75%"
             ]
@@ -717,8 +657,8 @@ const TALENT_DATA_60 = {
             "max": 2,
             "prereq": null,
             "ranks": [
-              "伏击致命一击几率提高 25%",
-              "伏击致命一击几率提高 50%"
+              "伏击的致命一击几率提高 25%",
+              "提高 45%"
             ]
           },
           {
@@ -730,7 +670,7 @@ const TALENT_DATA_60 = {
             "max": 1,
             "prereq": null,
             "ranks": [
-              "造成 125% 武器伤害，并使你的躲闪几率提高 15%，持续 7 秒，冷却 20 秒"
+              "造成 125% 武器伤害，并使你的躲闪几率提高 15%，持续 7 秒"
             ]
           },
           {
@@ -742,7 +682,7 @@ const TALENT_DATA_60 = {
             "max": 3,
             "prereq": null,
             "ranks": [
-              "使用闷棍后有 30% 几率重回潜行",
+              "使用闷棍后有 30% 几率重新进入潜行",
               "几率提高到 60%",
               "几率提高到 90%"
             ]
@@ -750,15 +690,15 @@ const TALENT_DATA_60 = {
           {
             "id": "r_serrated_blades",
             "name": "锯齿利刃",
-            "icon": "inv_sword_33",
+            "icon": "inv_sword_17",
             "row": 3,
             "col": 3,
             "max": 3,
             "prereq": null,
             "ranks": [
-              "攻击无视目标 100 点护甲，割裂伤害提高 10%",
-              "无视 200 点护甲，割裂提高 20%",
-              "无视 300 点护甲，割裂提高 30%"
+              "忽略目标 100 点护甲，割裂伤害提高 10%",
+              "忽略 200 点护甲，割裂伤害提高 20%",
+              "忽略 300 点护甲，割裂伤害提高 30%"
             ]
           },
           {
@@ -770,7 +710,7 @@ const TALENT_DATA_60 = {
             "max": 3,
             "prereq": null,
             "ranks": [
-              "躲闪或招架攻击后有 15% 几率获得 1 个连击点",
+              "躲闪敌人攻击后有 15% 几率增加 1 个连击点",
               "几率提高到 30%",
               "几率提高到 45%"
             ]
@@ -784,8 +724,8 @@ const TALENT_DATA_60 = {
             "max": 2,
             "prereq": null,
             "ranks": [
-              "消失和致盲冷却时间缩短 45 秒",
-              "缩短 90 秒"
+              "消失和致盲的冷却时间减少 45 秒",
+              "减少 90 秒"
             ]
           },
           {
@@ -797,7 +737,7 @@ const TALENT_DATA_60 = {
             "max": 1,
             "prereq": "r_serrated_blades",
             "ranks": [
-              "瞬发 35点能量。立即造成武器伤害并使目标附带出血效果，受到的物理伤害提高，最多生效 30 次"
+              "对目标造成武器伤害并施加出血减益，使其受到的下 30 次物理伤害提高"
             ]
           },
           {
@@ -809,8 +749,8 @@ const TALENT_DATA_60 = {
             "max": 2,
             "prereq": null,
             "ranks": [
-              "侦测潜行几率提高，被法术和远程攻击命中几率降低 2%",
-              "大幅提高侦测，被命中几率降低 4%"
+              "潜行侦测能力提高，并降低受到的法术和远程攻击命中率 2%",
+              "降低受到的法术和远程命中率 4%"
             ]
           },
           {
@@ -822,7 +762,7 @@ const TALENT_DATA_60 = {
             "max": 1,
             "prereq": null,
             "ranks": [
-              "瞬发。激活后立即重置疾跑、闪避、消失、冷血和鬼魅攻击的冷却时间。冷却时间 10 分钟。"
+              "立即结束除冲动外所有潜行者技能的冷却时间"
             ]
           },
           {
@@ -834,21 +774,8 @@ const TALENT_DATA_60 = {
             "max": 2,
             "prereq": null,
             "ranks": [
-              "偷袭和绞喉消耗能量降低 10 点",
-              "消耗能量降低 20 点"
-            ]
-          },
-          {
-            "id": "r_boot_knife",
-            "name": "短靴暗刃",
-            "icon": "ability_rogue_ambush",
-            "row": 6,
-            "col": 2,
-            "max": 2,
-            "prereq": null,
-            "ranks": [
-              "【无限服特色】刺杀与敏锐技能对目标造成暴击时，有 50% 几率额外追加一次暗刃刺击",
-              "几率提高到 100%"
+              "偷袭和绞喉消耗的能量减少 10 点",
+              "减少 20 点"
             ]
           },
           {
@@ -876,19 +803,7 @@ const TALENT_DATA_60 = {
             "max": 1,
             "prereq": null,
             "ranks": [
-              "潜行状态下使用，立即为目标增加 2 个连击点，持续 20 秒，冷却 2 分钟"
-            ]
-          },
-          {
-            "id": "r_death_mark",
-            "name": "死亡印记",
-            "icon": "spell_shadow_antimagicshell",
-            "row": 7,
-            "col": 3,
-            "max": 1,
-            "prereq": null,
-            "ranks": [
-              "【无限服敏锐终极】瞬发终结技，给目标打上暗影死印，持续 6 秒。在持续期间目标受到的所有流血和刺杀伤害的 25% 将在印记结束时瞬间爆发引爆！"
+              "仅在潜行下使用，为目标增加 2 个连击点，持续 20 秒"
             ]
           }
         ]
