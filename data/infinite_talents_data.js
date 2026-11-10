@@ -3,7 +3,7 @@
  * 暴雪《魔兽世界：无限》（World of Warcraft: Forever 2026最新独立产品线）
  * 全职业60级权威天赋树与主流配装方案
  * 严格按照暴雪Zamimg CDN官方高清图标、真实依赖链与51点加点矩阵
- * 生成时间: 2026-11-10T03:37:34.685Z
+ * 生成时间: 2026-11-10T05:47:19.436Z
  */
 
 const TALENT_DATA_60 = {
@@ -1205,7 +1205,7 @@ const TALENT_DATA_60 = {
             "row": 7,
             "col": 2,
             "max": 1,
-            "prereq": "w_sweeping_strikes",
+            "prereq": null,
             "ranks": [
               "造成武器伤害加额外伤害，并使目标受到的治疗效果降低 50%，持续 10 秒"
             ]
@@ -1432,7 +1432,7 @@ const TALENT_DATA_60 = {
             "row": 7,
             "col": 2,
             "max": 1,
-            "prereq": "w_death_wish",
+            "prereq": null,
             "ranks": [
               "立即发起攻击造成基于攻击强度的伤害，下 5 次成功击中均回复生命值"
             ]
@@ -1664,7 +1664,7 @@ const TALENT_DATA_60 = {
             "row": 7,
             "col": 2,
             "max": 1,
-            "prereq": "w_concussion_blow",
+            "prereq": null,
             "ranks": [
               "以盾牌重击目标造成格挡值加成物理伤害，驱散 1 个魔法效果并产生大量仇恨"
             ]
@@ -1948,7 +1948,7 @@ const TALENT_DATA_60 = {
           {
             "id": "p_redoubt",
             "name": "盾牌壁垒",
-            "icon": "spell_holy_innerfire",
+            "icon": "ability_defend",
             "row": 1,
             "col": 2,
             "max": 5,
@@ -2568,7 +2568,7 @@ const TALENT_DATA_60 = {
             "row": 7,
             "col": 2,
             "max": 1,
-            "prereq": "s_elemental_fury",
+            "prereq": null,
             "ranks": [
               "激活后你的下一个闪电或震击法术瞬发且必定暴击，法力消耗降低 100%"
             ]
@@ -3362,7 +3362,7 @@ const TALENT_DATA_60 = {
             "row": 7,
             "col": 2,
             "max": 1,
-            "prereq": "h_barrage",
+            "prereq": null,
             "ranks": [
               "小队光环使所有小队成员远程和近战攻击强度提高 100 点"
             ]
@@ -3509,7 +3509,7 @@ const TALENT_DATA_60 = {
             "row": 5,
             "col": 3,
             "max": 1,
-            "prereq": "h_survivalist",
+            "prereq": "h_deterrence",
             "ranks": [
               "招架后激活造成近战武器伤害，并使目标无法移动 5 秒"
             ]
@@ -4643,7 +4643,7 @@ const TALENT_DATA_60 = {
             "row": 5,
             "col": 3,
             "max": 1,
-            "prereq": "m_pyroblast",
+            "prereq": null,
             "ranks": [
               "释放烈焰巨浪攻击周围所有敌人造成火焰伤害，并减速 50% 持续 6 秒"
             ]
@@ -4872,7 +4872,7 @@ const TALENT_DATA_60 = {
             "row": 7,
             "col": 2,
             "max": 1,
-            "prereq": "m_ice_block",
+            "prereq": null,
             "ranks": [
               "立即为自己施加冰盾吸收高额伤害，护盾存在期间施法不被打退"
             ]
@@ -5521,7 +5521,7 @@ const TALENT_DATA_60 = {
             "row": 7,
             "col": 2,
             "max": 1,
-            "prereq": "p_vampiric_embrace",
+            "prereq": null,
             "ranks": [
               "变身暗影形态暗影伤害提高 15%，受到物理伤害降低 15%"
             ]
@@ -5943,7 +5943,7 @@ const TALENT_DATA_60 = {
             "row": 7,
             "col": 2,
             "max": 1,
-            "prereq": "wl_demonic_sacrifice",
+            "prereq": null,
             "ranks": [
               "激活后术士所受伤害的 30% 由恶魔宠物分担，且双方造成的伤害提高 3%"
             ]
