@@ -1,6 +1,6 @@
 # 《魔兽世界》小程序开发仓库
 
-* **Git 仓库地址**：`https://git.weixin.qq.com/277166525/winds.git`
+* **Git 仓库地址**：`https://github.com/louiszwk/wow-wxxcx.git`
 * **默认分支**：`master`
 
 本项目为微信小程序，包含两大业务模块：
