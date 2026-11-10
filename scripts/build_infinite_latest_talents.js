@@ -206,7 +206,7 @@ const TALENT_DATA_60 = {
           { id: 'w_dw_spec', name: '双武器专精', icon: 'ability_dualwield', row: 4, col: 1, max: 5, prereq: null, ranks: ['副手武器伤害提高 5%', '提高 10%', '提高 15%', '提高 20%', '提高 25%'] },
           { id: 'w_imp_execute', name: '强化斩杀', icon: 'inv_sword_48', row: 4, col: 2, max: 2, prereq: null, ranks: ['斩杀怒气消耗降低 2 点', '降低 5 点'] },
           { id: 'w_enrage', name: '激怒', icon: 'spell_shadow_unholyfrenzy', row: 4, col: 3, max: 5, prereq: null, ranks: ['受到致命一击后物理近战伤害提高 5%', '提高 10%', '提高 15%', '提高 20%', '提高 25%'] },
-          { id: 'w_imp_slam', name: '强化猛击', icon: 'ability_flamingarrows', row: 5, col: 1, max: 5, prereq: null, ranks: ['猛击施法时间缩短 0.1 秒', '缩短 0.2 秒', '缩短 0.3 秒', '缩短 0.4 秒', '缩短 0.5 秒'] },
+          { id: 'w_imp_slam', name: '强化猛击', icon: 'ability_warrior_decisivestrike', row: 5, col: 1, max: 5, prereq: null, ranks: ['猛击施法时间缩短 0.1 秒', '缩短 0.2 秒', '缩短 0.3 秒', '缩短 0.4 秒', '缩短 0.5 秒'] },
           { id: 'w_death_wish', name: '死亡之愿', icon: 'spell_shadow_deathpact', row: 5, col: 2, max: 1, prereq: null, ranks: ['物理伤害提高 20%，免疫恐惧，护甲与抗性降低 20%，持续 30 秒'] },
           { id: 'w_flurry', name: '乱舞', icon: 'ability_ghoulfrenzy', row: 6, col: 2, max: 5, prereq: 'w_enrage', ranks: ['近战暴击后下 3 次攻击速度提高 10%', '提高 15%', '提高 20%', '提高 25%', '提高 30%'] },
           { id: 'w_bloodthirst', name: '嗜血', icon: 'spell_nature_bloodlust', row: 7, col: 2, max: 1, prereq: 'w_death_wish', ranks: ['立即发起攻击造成基于攻击强度的伤害，下 5 次成功击中均回复生命值'] }
@@ -228,7 +228,7 @@ const TALENT_DATA_60 = {
           { id: 'w_imp_disarm', name: '强化缴械', icon: 'ability_warrior_disarm', row: 4, col: 2, max: 3, prereq: null, ranks: ['缴械持续时间延长 1 秒', '延长 2 秒', '延长 3 秒'] },
           { id: 'w_imp_taunt', name: '强化嘲讽', icon: 'spell_nature_reincarnation', row: 4, col: 3, max: 2, prereq: null, ranks: ['嘲讽冷却时间缩短 1 秒', '缩短 2 秒'] },
           { id: 'w_imp_shield_wall', name: '强化盾墙', icon: 'ability_warrior_shieldwall', row: 5, col: 1, max: 2, prereq: null, ranks: ['盾墙持续时间延长 3 秒，冷却缩短 2 分钟', '延长 5 秒，冷却缩短 5 分钟'] },
-          { id: 'w_concussion_blow', name: '震荡猛击', icon: 'ability_golemstorm', row: 5, col: 2, max: 1, prereq: null, ranks: ['重击目标使其昏迷 5 秒，造成物理伤害并产生高仇恨'] },
+          { id: 'w_concussion_blow', name: '震荡猛击', icon: 'ability_thunderbolt', row: 5, col: 2, max: 1, prereq: null, ranks: ['重击目标使其昏迷 5 秒，造成物理伤害并产生高仇恨'] },
           { id: 'w_imp_shield_bash', name: '强化盾击', icon: 'ability_warrior_shieldbash', row: 5, col: 3, max: 2, prereq: null, ranks: ['盾击有 50% 几率使目标沉默 3 秒', '几率 100%'] },
           { id: 'w_one_hand_spec', name: '单手武器专精', icon: 'inv_sword_20', row: 6, col: 3, max: 5, prereq: null, ranks: ['单手物理武器造成的伤害提高 2%', '提高 4%', '提高 6%', '提高 8%', '提高 10%'] },
           { id: 'w_shield_slam', name: '盾牌猛击', icon: 'inv_shield_05', row: 7, col: 2, max: 1, prereq: 'w_concussion_blow', ranks: ['以盾牌重击目标造成格挡值加成物理伤害，驱散 1 个魔法效果并产生大量仇恨'] }
@@ -283,7 +283,7 @@ const TALENT_DATA_60 = {
           { id: 'p_divine_favor', name: '神圣眷顾', icon: 'spell_holy_heal', row: 5, col: 2, max: 1, prereq: 'p_illumination', ranks: ['激活后使你的下一次圣光闪现、圣光术或神圣震击必定暴击'] },
           { id: 'p_holy_power', name: '神圣强化', icon: 'spell_holy_power', row: 5, col: 3, max: 5, prereq: null, ranks: ['神圣法术致命一击几率提高 1%', '提高 2%', '提高 3%', '提高 4%', '提高 5%'] },
           { id: 'p_holy_guidance', name: '神圣指引', icon: 'spell_holy_spiritualguidence', row: 6, col: 2, max: 5, prereq: null, ranks: ['法术治疗和法术伤害提高智力总值的 5%', '提高 10%', '提高 15%', '提高 20%', '提高 25%'] },
-          { id: 'p_holy_shock', name: '神圣震击', icon: 'spell_holy_sealinggloriouslight', row: 7, col: 2, max: 1, prereq: 'p_divine_favor', ranks: ['以神圣能量冲击目标，对敌人造成伤害，或为盟友回复生命值'] },
+          { id: 'p_holy_shock', name: '神圣震击', icon: 'spell_holy_searinglight', row: 7, col: 2, max: 1, prereq: 'p_divine_favor', ranks: ['以神圣能量冲击目标，对敌人造成伤害，或为盟友回复生命值'] },
           { id: 'p_light_watch', name: '圣光守望', icon: 'ability_paladin_beaconoflight', row: 7, col: 3, max: 1, prereq: null, ranks: ['【无限服特色大招】神圣震击命中后激发生命共鸣，无冷却智能弹跳治疗全小队'] }
         ]
       },
@@ -292,7 +292,7 @@ const TALENT_DATA_60 = {
         name: '防护',
         skills: [
           { id: 'p_redoubt', name: '盾牌壁垒', icon: 'spell_holy_innerfire', row: 1, col: 2, max: 5, prereq: null, ranks: ['受到暴击后格挡几率提高 6%，持续 10 秒或格挡 5 次', '提高 12%', '提高 18%', '提高 24%', '提高 30%'] },
-          { id: 'p_purifying_aura', name: '纯洁之心', icon: 'spell_holy_purifyingaura', row: 1, col: 3, max: 3, prereq: null, ranks: ['抵抗诅咒和疾病效果几率提高 5%', '提高 10%', '提高 15%'] },
+          { id: 'p_purifying_aura', name: '纯洁之心', icon: 'spell_holy_purifyingpower', row: 1, col: 3, max: 3, prereq: null, ranks: ['抵抗诅咒和疾病效果几率提高 5%', '提高 10%', '提高 15%'] },
           { id: 'p_precision', name: '精确', icon: 'ability_marksmanship', row: 2, col: 1, max: 3, prereq: null, ranks: ['近战武器和法术命中几率提高 1%', '提高 2%', '提高 3%'] },
           { id: 'p_toughness', name: '坚韧', icon: 'spell_holy_devotionaura', row: 2, col: 2, max: 5, prereq: null, ranks: ['装备护甲值提高 2%', '提高 4%', '提高 6%', '提高 8%', '提高 10%'] },
           { id: 'p_imp_righteous_fury', name: '强化正义之怒', icon: 'spell_holy_sealofwisdom', row: 2, col: 3, max: 3, prereq: null, ranks: ['正义之怒产生的神圣仇恨提高 16%', '提高 33%', '提高 50%'] },
@@ -484,7 +484,7 @@ const TALENT_DATA_60 = {
           { id: 'h_aimed_shot', name: '瞄准射击', icon: 'inv_spear_07', row: 3, col: 1, max: 1, prereq: null, ranks: ['强力狙击造成武器伤害+600点额外伤害，使目标受到的治疗效果降低 50%'] },
           { id: 'h_hawk_eye', name: '鹰眼', icon: 'ability_townwatch', row: 3, col: 3, max: 3, prereq: null, ranks: ['远程武器射程增加 2 码', '增加 4 码', '增加 6 码'] },
           { id: 'h_mortal_shots', name: '致死射击', icon: 'ability_searingarrow', row: 4, col: 3, max: 5, prereq: 'h_lethal_shots', ranks: ['远程武器暴击伤害加成提高 6%', '提高 12%', '提高 18%', '提高 24%', '提高 30%'] },
-          { id: 'h_scatter_shot', name: '驱散射击', icon: 'ability_golemstorm', row: 5, col: 1, max: 1, prereq: null, ranks: ['短程射击造成 50% 武器伤害并使目标迷惑 4 秒，受伤害打断'] },
+          { id: 'h_scatter_shot', name: '驱散射击', icon: 'ability_impalingbolt', row: 5, col: 1, max: 1, prereq: null, ranks: ['短程射击造成 50% 武器伤害并使目标迷惑 4 秒，受伤害打断'] },
           { id: 'h_barrage', name: '弹幕', icon: 'ability_upgrademoonglaive', row: 5, col: 2, max: 3, prereq: null, ranks: ['多重射击和乱射造成的伤害提高 5%', '提高 10%', '提高 15%'] },
           { id: 'h_ranged_spec', name: '远程武器专精', icon: 'inv_weapon_rifle_01', row: 6, col: 2, max: 5, prereq: null, ranks: ['远程武器造成的伤害提高 1%', '提高 2%', '提高 3%', '提高 4%', '提高 5%'] },
           { id: 'h_lone_wolf', name: '独来独往', icon: 'ability_hunter_pet_wolf', row: 6, col: 3, max: 3, prereq: null, ranks: ['【无限服特色】不召唤宠物时，自身远程攻击造成的伤害提高 7%', '伤害提高 14%', '伤害提高 20%'] },
@@ -554,7 +554,7 @@ const TALENT_DATA_60 = {
           { id: 'd_insect_swarm', name: '虫群', icon: 'spell_nature_insectswarm', row: 3, col: 2, max: 1, prereq: null, ranks: ['昆虫侵扰目标在 12 秒内造成自然伤害，并使其物理命中几率降低 2%'] },
           { id: 'd_moonfury', name: '月怒', icon: 'spell_nature_moonglow', row: 3, col: 3, max: 5, prereq: null, ranks: ['星火术、月火术和愤怒伤害提高 2%', '提高 4%', '提高 6%', '提高 8%', '提高 10%'] },
           { id: 'd_eclipse', name: '日月之蚀', icon: 'spell_nature_crystalball', row: 4, col: 2, max: 3, prereq: null, ranks: ['【无限服特色】星火术暴击使愤怒暴击提高 10%，愤怒暴击使星火术伤害提高 10%', '提高 20%/20%', '提高 30%/30%'] },
-          { id: 'd_natures_grace', name: '自然赐福', icon: 'spell_nature_naturesspeaking', row: 5, col: 2, max: 1, prereq: null, ranks: ['法术致命一击后使你的下一个法术施法时间缩短 0.5 秒'] },
+          { id: 'd_natures_grace', name: '自然赐福', icon: 'spell_nature_naturesblessing', row: 5, col: 2, max: 1, prereq: null, ranks: ['法术致命一击后使你的下一个法术施法时间缩短 0.5 秒'] },
           { id: 'd_moonglow', name: '月光', icon: 'spell_nature_moonglow', row: 5, col: 3, max: 3, prereq: null, ranks: ['月火术、星火术、治疗之触法力消耗降低 3%', '降低 6%', '降低 9%'] },
           { id: 'd_dreamstate', name: '梦境', icon: 'spell_nature_sentinal', row: 6, col: 2, max: 3, prereq: null, ranks: ['智力总值的 4% 转化为法术伤害和治疗效果', '转化为 7%', '转化为 10%'] },
           { id: 'd_moonkin_form', name: '枭兽形态', icon: 'spell_nature_forceofnature', row: 7, col: 2, max: 1, prereq: 'd_natures_grace', ranks: ['变身枭兽护甲值提高 360%，小队法术致命一击几率提高 3%'] }
@@ -597,7 +597,7 @@ const TALENT_DATA_60 = {
           { id: 'd_reflection', name: '反射', icon: 'spell_frost_windwalkon', row: 5, col: 3, max: 3, prereq: null, ranks: ['在施法时保持 5% 的法力恢复速度', '保持 10%', '保持 15%'] },
           { id: 'd_imp_regrowth', name: '强化愈合', icon: 'spell_nature_resistnature', row: 6, col: 3, max: 5, prereq: null, ranks: ['愈合暴击几率提高 10%', '提高 20%', '提高 30%', '提高 40%', '提高 50%'] },
           { id: 'd_swiftmend', name: '迅捷治愈', icon: 'inv_relics_idolofrejuvenation', row: 7, col: 2, max: 1, prereq: null, ranks: ['消耗目标身上的回春术或愈合效果，立即为其回复大量生命值'] },
-          { id: 'd_wild_growth', name: '野性成长', icon: 'ability_druid_haesharsh', row: 7, col: 3, max: 2, prereq: null, ranks: ['【无限服特色大招】为小队全员施加回春能量，在 7 秒内全员持续回复高额生命', '治疗量提高 25%'] }
+          { id: 'd_wild_growth', name: '野性成长', icon: 'ability_druid_flourish', row: 7, col: 3, max: 2, prereq: null, ranks: ['【无限服特色大招】为小队全员施加回春能量，在 7 秒内全员持续回复高额生命', '治疗量提高 25%'] }
         ]
       }
     ]
@@ -683,7 +683,7 @@ const TALENT_DATA_60 = {
           { id: 'm_blast_wave', name: '冲击波', icon: 'spell_holy_excorcism_02', row: 5, col: 3, max: 1, prereq: 'm_pyroblast', ranks: ['释放烈焰巨浪攻击周围所有敌人造成火焰伤害，并减速 50% 持续 6 秒'] },
           { id: 'm_fire_power', name: '火焰强化', icon: 'spell_fire_immolation', row: 6, col: 3, max: 5, prereq: null, ranks: ['火焰法术伤害提高 2%', '提高 4%', '提高 6%', '提高 8%', '提高 10%'] },
           { id: 'm_combustion', name: '燃烧', icon: 'spell_fire_sealoffire', row: 7, col: 2, max: 1, prereq: null, ranks: ['激活后使你的火焰伤害法术暴击几率每次递增 10%，直到产生 3 次暴击'] },
-          { id: 'm_frostfire_bolt', name: '霜火之箭', icon: 'spell_frost_frostfirebolt', row: 7, col: 3, max: 1, prereq: null, ranks: ['【无限服特色大招】发射冰火交融的飞箭，同时造成冰霜和火焰伤害，享受双重增益加成！'] }
+          { id: 'm_frostfire_bolt', name: '霜火之箭', icon: 'ability_mage_frostfirebolt', row: 7, col: 3, max: 1, prereq: null, ranks: ['【无限服特色大招】发射冰火交融的飞箭，同时造成冰霜和火焰伤害，享受双重增益加成！'] }
         ]
       },
       {
@@ -693,7 +693,7 @@ const TALENT_DATA_60 = {
           { id: 'm_frost_warding', name: '抗寒结界', icon: 'spell_frost_frostward', row: 1, col: 1, max: 2, prereq: null, ranks: ['防护冰霜结界和火结界吸收量提高 15%，且有 10% 几率反射', '提高 30%/20% 几率'] },
           { id: 'm_imp_frostbolt', name: '强化寒冰箭', icon: 'spell_frost_frostbolt02', row: 1, col: 2, max: 5, prereq: null, ranks: ['寒冰箭施法时间缩短 0.1 秒', '缩短 0.2 秒', '缩短 0.3 秒', '缩短 0.4 秒', '缩短 0.5 秒'] },
           { id: 'm_elemental_precision', name: '元素精准', icon: 'spell_ice_magicdamage', row: 1, col: 3, max: 3, prereq: null, ranks: ['冰霜和火焰法术抵抗几率降低 2%，法力消耗降低 1%', '降低 4%/2%', '降低 6%/3%'] },
-          { id: 'm_ice_shards', name: '寒冰碎片', icon: 'spell_frost_iceardor', row: 2, col: 1, max: 5, prereq: null, ranks: ['冰霜法术致命一击伤害加成提高 20%', '提高 40%', '提高 60%', '提高 80%', '提高 100%'] },
+          { id: 'm_ice_shards', name: '寒冰碎片', icon: 'spell_frost_iceshard', row: 2, col: 1, max: 5, prereq: null, ranks: ['冰霜法术致命一击伤害加成提高 20%', '提高 40%', '提高 60%', '提高 80%', '提高 100%'] },
           { id: 'm_frostbite', name: '霜寒刺骨', icon: 'spell_frost_frostarmor', row: 2, col: 2, max: 3, prereq: null, ranks: ['冰冷效果有 5% 几率使目标冻结 5 秒', '几率 10%', '几率 15%'] },
           { id: 'm_piercing_ice', name: '刺骨寒冰', icon: 'spell_frost_frostbolt', row: 3, col: 1, max: 3, prereq: null, ranks: ['冰霜法术伤害提高 2%', '提高 4%', '提高 6%'] },
           { id: 'm_cold_snap', name: '急速冷却', icon: 'spell_frost_wizardmark', row: 3, col: 2, max: 1, prereq: null, ranks: ['立即结束所有冰霜法术的冷却时间'] },
@@ -773,10 +773,10 @@ const TALENT_DATA_60 = {
           { id: 'p_imp_renew', name: '强化恢复', icon: 'spell_holy_renew', row: 1, col: 3, max: 3, prereq: null, ranks: ['恢复治疗量提高 5%', '提高 10%', '提高 15%'] },
           { id: 'p_holy_spec', name: '神圣专精', icon: 'spell_holy_sealofsalvation', row: 1, col: 4, max: 5, prereq: null, ranks: ['神圣法术致命一击几率提高 1%', '提高 2%', '提高 3%', '提高 4%', '提高 5%'] },
           { id: 'p_spell_warding', name: '法术屏障', icon: 'spell_holy_spellwarding', row: 2, col: 2, max: 5, prereq: null, ranks: ['受到的所有法术伤害降低 2%', '降低 4%', '降低 6%', '降低 8%', '降低 10%'] },
-          { id: 'p_divine_fury', name: '神圣之怒', icon: 'spell_holy_sealinggloriouslight', row: 2, col: 3, max: 5, prereq: null, ranks: ['惩击、神圣之火、治疗术施法时间缩短 0.1 秒', '缩短 0.2 秒', '缩短 0.3 秒', '缩短 0.4 秒', '缩短 0.5 秒'] },
+          { id: 'p_divine_fury', name: '神圣之怒', icon: 'spell_holy_searinglight', row: 2, col: 3, max: 5, prereq: null, ranks: ['惩击、神圣之火、治疗术施法时间缩短 0.1 秒', '缩短 0.2 秒', '缩短 0.3 秒', '缩短 0.4 秒', '缩短 0.5 秒'] },
           { id: 'p_holy_nova', name: '神圣新星', icon: 'spell_holy_holynova', row: 3, col: 2, max: 1, prereq: null, ranks: ['在施法者周围引起神圣爆炸，对 10 码内敌人造成伤害，并为队友回复生命'] },
           { id: 'p_inspiration', name: '灵感', icon: 'spell_holy_layonhands', row: 3, col: 3, max: 3, prereq: null, ranks: ['快速治疗、治疗术或强效治疗暴击后使目标护甲值提高 8%，持续 15 秒', '提高 16%', '提高 25%'] },
-          { id: 'p_holy_reach', name: '神圣延伸', icon: 'spell_holy_purifyingaura', row: 4, col: 2, max: 2, prereq: null, ranks: ['神圣法术射程增加 10%，神圣新星半径增加 10%', '增加 20%/20%'] },
+          { id: 'p_holy_reach', name: '神圣延伸', icon: 'spell_holy_purifyingpower', row: 4, col: 2, max: 2, prereq: null, ranks: ['神圣法术射程增加 10%，神圣新星半径增加 10%', '增加 20%/20%'] },
           { id: 'p_imp_healing', name: '强化治疗术', icon: 'spell_holy_heal02', row: 4, col: 3, max: 3, prereq: null, ranks: ['次级治疗术、治疗术和强效治疗术法力消耗降低 5%', '降低 10%', '降低 15%'] },
           { id: 'p_spirit_redemption', name: '救赎之魂', icon: 'inv_enchant_essenceeternallarge', row: 5, col: 2, max: 1, prereq: null, ranks: ['死亡后化身救赎之魂，在 10 秒内无需消耗任何法力自由施放治疗法术'] },
           { id: 'p_spiritual_guidance', name: '精神指引', icon: 'spell_holy_spiritualguidence', row: 6, col: 2, max: 5, prereq: null, ranks: ['法术治疗和法术伤害提高精神总值的 5%', '提高 10%', '提高 15%', '提高 20%', '提高 25%'] },
@@ -875,7 +875,7 @@ const TALENT_DATA_60 = {
           { id: 'wl_fel_intellect', name: '恶魔智力', icon: 'spell_holy_magicalsentry', row: 2, col: 2, max: 5, prereq: null, ranks: ['小鬼、虚空行者、魅魔、地狱猎犬法力上限提高 3%', '提高 6%', '提高 9%', '提高 12%', '提高 15%'] },
           { id: 'wl_fel_domination', name: '恶魔支配', icon: 'spell_nature_removecurse', row: 3, col: 2, max: 1, prereq: null, ranks: ['下一次召唤小鬼、虚空行者、魅魔或地狱猎犬施法时间缩短 5.5 秒，法力减少 50%'] },
           { id: 'wl_fel_stamina', name: '恶魔耐力', icon: 'spell_shadow_antishadow', row: 3, col: 3, max: 5, prereq: null, ranks: ['恶魔宠物生命上限提高 3%，术士生命上限提高 3%', '提高 6%/6%', '提高 9%/9%', '提高 12%/12%', '提高 15%/15%'] },
-          { id: 'wl_master_summoner', name: '召唤大师', icon: 'spell_shadow_impsofsummoning', row: 4, col: 2, max: 2, prereq: 'wl_fel_domination', ranks: ['召唤恶魔施法时间缩短 2 秒，法力减少 20%', '缩短 4 秒，法力减少 40%'] },
+          { id: 'wl_master_summoner', name: '召唤大师', icon: 'spell_shadow_impphaseshift', row: 4, col: 2, max: 2, prereq: 'wl_fel_domination', ranks: ['召唤恶魔施法时间缩短 2 秒，法力减少 20%', '缩短 4 秒，法力减少 40%'] },
           { id: 'wl_unholy_power', name: '邪恶强化', icon: 'spell_shadow_shadowworddominate', row: 4, col: 3, max: 5, prereq: null, ranks: ['恶魔宠物的近战攻击伤害提高 4%', '提高 8%', '提高 12%', '提高 16%', '提高 20%'] },
           { id: 'wl_demonic_sacrifice', name: '恶魔牺牲', icon: 'spell_shadow_psychicscream', row: 5, col: 2, max: 1, prereq: null, ranks: ['牺牲恶魔宠物获得专属强力 Buff：牺牲魅魔暗影伤害+15%，牺牲小鬼火焰伤害+15%'] },
           { id: 'wl_master_demon', name: '恶魔统御', icon: 'spell_shadow_shadowpact', row: 6, col: 3, max: 5, prereq: null, ranks: ['携带恶魔宠物时获得常驻防御属性强化', '加成提高', '加成提高', '加成提高', '全属性与抗性大幅度提高'] },
@@ -887,7 +887,7 @@ const TALENT_DATA_60 = {
         name: '毁灭',
         skills: [
           { id: 'wl_imp_sb', name: '强化暗影箭', icon: 'spell_shadow_shadowbolt', row: 1, col: 2, max: 5, prereq: null, ranks: ['暗影箭暴击使目标受到的下 4 次暗影伤害提高 4%', '提高 8%', '提高 12%', '提高 16%', '提高 20%'] },
-          { id: 'wl_cataclysm', name: '灾变', icon: 'spell_fire_windfire', row: 1, col: 3, max: 5, prereq: null, ranks: ['毁灭法术法力消耗降低 1%', '降低 2%', '降低 3%', '降低 4%', '降低 5%'] },
+          { id: 'wl_cataclysm', name: '灾变', icon: 'spell_fire_meteorstorm', row: 1, col: 3, max: 5, prereq: null, ranks: ['毁灭法术法力消耗降低 1%', '降低 2%', '降低 3%', '降低 4%', '降低 5%'] },
           { id: 'wl_bane', name: '灾祸', icon: 'spell_shadow_deathpact', row: 2, col: 2, max: 5, prereq: null, ranks: ['暗影箭和献祭施法时间缩短 0.1 秒，灵魂之火缩短 0.4 秒', '缩短 0.2s/0.8s', '缩短 0.3s/1.2s', '缩短 0.4s/1.6s', '缩短 0.5s/2.0s'] },
           { id: 'wl_aftermath', name: '清算', icon: 'spell_fire_fire', row: 2, col: 3, max: 5, prereq: null, ranks: ['毁灭法术命中后有 2% 几率使目标眩晕 5 秒', '几率 4%', '几率 6%', '几率 8%', '几率 10%'] },
           { id: 'wl_devastation', name: '破坏', icon: 'spell_fire_flameshock', row: 3, col: 2, max: 5, prereq: null, ranks: ['毁灭法术致命一击几率提高 1%', '提高 2%', '提高 3%', '提高 4%', '提高 5%'] },

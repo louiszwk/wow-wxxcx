@@ -3,7 +3,7 @@
  * 暴雪《魔兽世界：无限》（World of Warcraft: Forever 2026最新独立产品线）
  * 全职业60级权威天赋树与主流配装方案
  * 严格按照暴雪Zamimg CDN官方高清图标、真实依赖链与51点加点矩阵
- * 生成时间: 2026-11-10T02:12:45.941Z
+ * 生成时间: 2026-11-10T02:26:41.225Z
  */
 
 const TALENT_DATA_60 = {
@@ -1388,7 +1388,7 @@ const TALENT_DATA_60 = {
           {
             "id": "w_imp_slam",
             "name": "强化猛击",
-            "icon": "ability_flamingarrows",
+            "icon": "ability_warrior_decisivestrike",
             "row": 5,
             "col": 1,
             "max": 5,
@@ -1623,7 +1623,7 @@ const TALENT_DATA_60 = {
           {
             "id": "w_concussion_blow",
             "name": "震荡猛击",
-            "icon": "ability_golemstorm",
+            "icon": "ability_thunderbolt",
             "row": 5,
             "col": 2,
             "max": 1,
@@ -1922,7 +1922,7 @@ const TALENT_DATA_60 = {
           {
             "id": "p_holy_shock",
             "name": "神圣震击",
-            "icon": "spell_holy_sealinggloriouslight",
+            "icon": "spell_holy_searinglight",
             "row": 7,
             "col": 2,
             "max": 1,
@@ -1968,7 +1968,7 @@ const TALENT_DATA_60 = {
           {
             "id": "p_purifying_aura",
             "name": "纯洁之心",
-            "icon": "spell_holy_purifyingaura",
+            "icon": "spell_holy_purifyingpower",
             "row": 1,
             "col": 3,
             "max": 3,
@@ -3306,7 +3306,7 @@ const TALENT_DATA_60 = {
           {
             "id": "h_scatter_shot",
             "name": "驱散射击",
-            "icon": "ability_golemstorm",
+            "icon": "ability_impalingbolt",
             "row": 5,
             "col": 1,
             "max": 1,
@@ -3722,7 +3722,7 @@ const TALENT_DATA_60 = {
           {
             "id": "d_natures_grace",
             "name": "自然赐福",
-            "icon": "spell_nature_naturesspeaking",
+            "icon": "spell_nature_naturesblessing",
             "row": 5,
             "col": 2,
             "max": 1,
@@ -4170,7 +4170,7 @@ const TALENT_DATA_60 = {
           {
             "id": "d_wild_growth",
             "name": "野性成长",
-            "icon": "ability_druid_haesharsh",
+            "icon": "ability_druid_flourish",
             "row": 7,
             "col": 3,
             "max": 2,
@@ -4683,7 +4683,7 @@ const TALENT_DATA_60 = {
           {
             "id": "m_frostfire_bolt",
             "name": "霜火之箭",
-            "icon": "spell_frost_frostfirebolt",
+            "icon": "ability_mage_frostfirebolt",
             "row": 7,
             "col": 3,
             "max": 1,
@@ -4744,7 +4744,7 @@ const TALENT_DATA_60 = {
           {
             "id": "m_ice_shards",
             "name": "寒冰碎片",
-            "icon": "spell_frost_iceardor",
+            "icon": "spell_frost_iceshard",
             "row": 2,
             "col": 1,
             "max": 5,
@@ -5205,7 +5205,7 @@ const TALENT_DATA_60 = {
           {
             "id": "p_divine_fury",
             "name": "神圣之怒",
-            "icon": "spell_holy_sealinggloriouslight",
+            "icon": "spell_holy_searinglight",
             "row": 2,
             "col": 3,
             "max": 5,
@@ -5247,7 +5247,7 @@ const TALENT_DATA_60 = {
           {
             "id": "p_holy_reach",
             "name": "神圣延伸",
-            "icon": "spell_holy_purifyingaura",
+            "icon": "spell_holy_purifyingpower",
             "row": 4,
             "col": 2,
             "max": 2,
@@ -5886,7 +5886,7 @@ const TALENT_DATA_60 = {
           {
             "id": "wl_master_summoner",
             "name": "召唤大师",
-            "icon": "spell_shadow_impsofsummoning",
+            "icon": "spell_shadow_impphaseshift",
             "row": 4,
             "col": 2,
             "max": 2,
@@ -5977,7 +5977,7 @@ const TALENT_DATA_60 = {
           {
             "id": "wl_cataclysm",
             "name": "灾变",
-            "icon": "spell_fire_windfire",
+            "icon": "spell_fire_meteorstorm",
             "row": 1,
             "col": 3,
             "max": 5,
