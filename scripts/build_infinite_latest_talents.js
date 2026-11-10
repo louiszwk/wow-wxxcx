@@ -157,16 +157,16 @@ const TALENT_DATA_60 = {
         },
         {
           "id": "r_murder",
-          "name": "谋杀",
-          "icon": "spell_shadow_deathscream",
-          "row": 2,
-          "col": 2,
-          "max": 2,
-          "prereq": null,
-          "ranks": [
-            "对人型、巨人、野兽和龙类造成的伤害提高 1%",
-            "提高 2%"
-          ]
+            "name": "谋杀",
+            "icon": "spell_shadow_deathscream",
+            "row": 2,
+            "col": 2,
+            "max": 2,
+            "prereq": null,
+            "ranks": [
+              "对人型生物、巨龙、巨人和野兽造成的伤害提高 2%",
+              "对人型生物、巨龙、巨人和野兽造成的伤害提高 4%"
+            ]
         },
         {
           "id": "r_puncturing",
@@ -184,17 +184,17 @@ const TALENT_DATA_60 = {
         },
         {
           "id": "r_imp_snd",
-          "name": "强化切割",
-          "icon": "ability_rogue_slicedice",
-          "row": 2,
-          "col": 4,
-          "max": 3,
-          "prereq": null,
-          "ranks": [
-            "使你的切割技能持续时间延长 15%",
-            "延长 30%",
-            "延长 45%"
-          ]
+            "name": "强化切割",
+            "icon": "ability_rogue_slicedice",
+            "row": 2,
+            "col": 4,
+            "max": 3,
+            "prereq": null,
+            "ranks": [
+              "使切割持续时间延长 15%，切割状态下普通攻击命中后有极小概率额外回复 2 点能量",
+              "持续时间延长 30%，切割状态下普通攻击命中后有极小概率额外回复 2 点能量",
+              "持续时间延长 45%，切割状态下普通攻击命中后有极小概率额外回复 2 点能量"
+            ]
         },
         {
           "id": "r_imp_ea",
@@ -312,16 +312,16 @@ const TALENT_DATA_60 = {
         },
         {
           "id": "r_vigor",
-          "name": "精力",
-          "icon": "spell_nature_drowsy",
-          "row": 6,
-          "col": 2,
-          "max": 2,
-          "prereq": null,
-          "ranks": [
-            "使你的能量上限提高 10 点，施加毒药时有 50% 几率恢复 5 点能量",
-            "使你的能量上限提高 10 点，施加毒药时有 100% 几率恢复 5 点能量"
-          ]
+            "name": "精力",
+            "icon": "spell_nature_drowsy",
+            "row": 6,
+            "col": 2,
+            "max": 2,
+            "prereq": null,
+            "ranks": [
+              "使你的能量上限提高 15 点，施加毒药时有 50% 几率恢复 5 点能量",
+              "使你的能量上限提高 15 点，施加毒药时有 100% 几率恢复 5 点能量"
+            ]
         },
         {
           "id": "r_mutilate",
@@ -640,17 +640,17 @@ const TALENT_DATA_60 = {
         },
         {
           "id": "r_initiative",
-          "name": "先发制人",
-          "icon": "spell_shadow_fumble",
-          "row": 2,
-          "col": 3,
-          "max": 3,
-          "prereq": null,
-          "ranks": [
-            "伏击、绞喉、偷袭有 25% 几率额外增加 1 个连击点",
-            "几率提高到 50%",
-            "几率提高到 75%"
-          ]
+            "name": "先发制人",
+            "icon": "spell_shadow_fumble",
+            "row": 2,
+            "col": 3,
+            "max": 3,
+            "prereq": null,
+            "ranks": [
+              "使用伏击、绞喉或偷袭技能后有 33% 几率额外获得 1 个连击点",
+              "几率提高到 66%",
+              "几率提高到 100%"
+            ]
         },
         {
           "id": "r_imp_ambush",
@@ -721,16 +721,16 @@ const TALENT_DATA_60 = {
         },
         {
           "id": "r_elusiveness",
-          "name": "飘忽不定",
-          "icon": "spell_magic_lesserinvisibilty",
-          "row": 4,
-          "col": 2,
-          "max": 2,
-          "prereq": null,
-          "ranks": [
-            "消失和致盲的冷却时间减少 45 秒",
-            "减少 90 秒"
-          ]
+            "name": "飘忽不定",
+            "icon": "spell_magic_lesserinvisibilty",
+            "row": 4,
+            "col": 2,
+            "max": 2,
+            "prereq": null,
+            "ranks": [
+              "消失和致盲的冷却时间减少 45 秒，并使暗影步的冷却时间额外缩短 2 秒",
+              "消失和致盲的冷却时间减少 90 秒，并使暗影步的冷却时间额外缩短 4 秒"
+            ]
         },
         {
           "id": "r_hemo",
