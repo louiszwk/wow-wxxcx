@@ -5,9 +5,9 @@
   </view>
 
   <view class="header">
-    <view class="title">BiS 装备推荐</view>
-    <view class="subtitle">40 个专精的 BiS 装备、天赋码与输出手法</view>
-    <view class="desc">装备取自 12.1.5 官方客户端数据（2026-11-13），天赋码与手法查不到则留空。</view>
+    <view class="title">天赋与手法</view>
+    <view class="subtitle">40 个专精各一套 12.1.5 天赋与输出手法</view>
+    <view class="desc">天赋码取自 12.1.5 专精指南原文，可在游戏内直接导入；中文手法依据该页优先级归纳整理。</view>
   </view>
 
   <view class="class-list">

@@ -436,3 +436,435 @@
   border-radius: 4px;
   margin-bottom: 8px;
 }
+
+/* 天赋与手法：流派元信息、来源链接、BiS 入口提示 */
+.talent-meta {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.source-row {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  font-size: 11px;
+  color: #7dd3fc;
+  line-height: 1.5;
+}
+
+.source-row:active {
+  background: rgba(56, 189, 248, 0.2);
+}
+
+.bis-tip {
+  margin: 0 15px 30px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  font-size: 12px;
+  color: #fcd34d;
+  line-height: 1.6;
+}
+
+/* 官方推荐 vs 自定义配置 分段切换 */
+.talent-tab-nav {
+  display: flex;
+  margin: 10px 15px 4px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(74, 77, 122, 0.4);
+  border-radius: 8px;
+  padding: 4px;
+  gap: 6px;
+}
+.talent-tab-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8f95c4;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+.talent-tab-item.active {
+  background: linear-gradient(135deg, #0284c7, #0ea5e9);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+}
+.custom-badge {
+  background: #f59e0b;
+  color: #000;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 10px;
+  line-height: 1.2;
+}
+
+/* 官方卡片头部行 */
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.save-preset-btn {
+  font-size: 11px;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 属性优先级高亮条 */
+.stat-priority-highlight {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border-left: 4px solid #38bdf8;
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+.stat-label {
+  font-weight: 700;
+  color: #38bdf8;
+}
+.stat-val {
+  color: #e2e8f0;
+}
+
+/* 自定义面板 */
+.custom-panel-area {
+  padding: 12px 15px 30px;
+}
+.custom-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  background: rgba(35, 37, 64, 0.6);
+  border: 1px solid rgba(74, 77, 122, 0.5);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.custom-tip-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.strong-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+.sub-text {
+  font-size: 11px;
+  color: #94a3b8;
+}
+.new-plan-btn {
+  background: linear-gradient(135deg, #0284c7, #0ea5e9);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+  white-space: nowrap;
+}
+.new-plan-btn:active {
+  transform: scale(0.97);
+}
+
+/* 空状态 */
+.custom-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  background: rgba(35, 37, 64, 0.5);
+  border: 1px dashed rgba(74, 77, 122, 0.5);
+  border-radius: 12px;
+  margin-top: 10px;
+}
+.custom-empty-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+.custom-empty-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin-bottom: 8px;
+}
+.custom-empty-desc {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.custom-empty-btns {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.empty-action-btn {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 8px;
+}
+.empty-action-btn.primary {
+  background: linear-gradient(135deg, #0284c7, #0ea5e9);
+  color: #ffffff;
+}
+.empty-action-btn.secondary {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #f59e0b;
+}
+
+/* 自定义卡片列表 */
+.custom-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.custom-talent-card {
+  background: #232540;
+  border: 1px solid #36395e;
+  border-radius: 10px;
+  padding: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.custom-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.custom-title-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.custom-plan-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ff9900;
+}
+.custom-plan-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.plan-tag {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+.hero-tag {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.scene-tag {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.custom-time {
+  font-size: 11px;
+  color: #64748b;
+  flex-shrink: 0;
+}
+.custom-note-box {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #cbd5e1;
+  background: rgba(15, 23, 42, 0.4);
+  padding: 8px 10px;
+  border-radius: 6px;
+  line-height: 1.5;
+}
+.note-label {
+  color: #38bdf8;
+  font-weight: 600;
+}
+.custom-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+  border-top: 1px solid rgba(54, 57, 94, 0.6);
+  padding-top: 10px;
+}
+.card-opt-btn {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+.card-opt-btn.edit-btn {
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+}
+.card-opt-btn.del-btn {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+/* 弹窗样式 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+.modal-dialog {
+  background: #1e2238;
+  border: 1px solid #36395e;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid #2e3352;
+}
+.modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #38bdf8;
+}
+.modal-close {
+  font-size: 18px;
+  color: #94a3b8;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.modal-body {
+  padding: 16px;
+  max-height: 58vh;
+  box-sizing: border-box;
+}
+.form-group {
+  margin-bottom: 14px;
+}
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+.label-with-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.paste-pill {
+  font-size: 11px;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  padding: 2px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.paste-pill:active {
+  opacity: 0.7;
+}
+.required {
+  color: #ef4444;
+}
+.form-input {
+  background: #111424;
+  border: 1px solid #36395e;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #fff;
+  width: 100%;
+  box-sizing: border-box;
+}
+.form-textarea {
+  background: #111424;
+  border: 1px solid #36395e;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #fff;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 60px;
+  line-height: 1.5;
+}
+.code-textarea {
+  min-height: 90px;
+  font-family: monospace;
+  color: #38bdf8;
+}
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 12px 16px;
+  border-top: 1px solid #2e3352;
+  background: #1a1e32;
+}
+.modal-btn {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 6px;
+}
+.modal-btn.cancel-btn {
+  background: #2a2e48;
+  color: #94a3b8;
+}
+.modal-btn.confirm-btn {
+  background: linear-gradient(135deg, #0284c7, #0ea5e9);
+  color: #ffffff;
+}

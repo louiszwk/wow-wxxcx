@@ -109,10 +109,21 @@
         </view>
       </view>
 
-      <!-- 配装模拟器 / BiS 毕业装备速查：数据与功能待完善，首页入口暂时隐藏（2026-11-13）。
-           页面仍保留在 app.json 中注册，跳转方法 navigateToBuild / navigateToBis 保留在 index.js。
-           注意：不要因为「页面已注册但首页没卡片」就自动补入口，需等数据修完并确认后再恢复。
-           恢复方式：在此处加两张 nav-card，bindtap 分别为 navigateToBuild、navigateToBis。 -->
+      <!-- 7. BiS与配装：配装模拟器 + 每个专精的 BiS 配装清单，可一键载入 -->
+      <view class="nav-card" bindtap="navigateToBuild">
+        <view class="card-content">
+          <view class="card-title">BiS与配装</view>
+          <view class="card-desc">40 个专精的毕业装备清单，一键套用进配装模拟器，自由调整并统计属性占比。</view>
+        </view>
+      </view>
+
+      <!-- 8. 天赋与手法：每个专精一套可导入天赋码 + 输出手法 -->
+      <view class="nav-card" bindtap="navigateToBis">
+        <view class="card-content">
+          <view class="card-title">天赋与手法</view>
+          <view class="card-desc">每个专精一套 12.1.5 可导入天赋码与中文输出手法优先级，可直接复制进游戏。</view>
+        </view>
+      </view>
     </view>
   </block>
 

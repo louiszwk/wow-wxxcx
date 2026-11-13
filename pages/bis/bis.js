@@ -136,14 +136,14 @@ Page({
 ,
   onShareAppMessage() {
     return {
-      title: '魔兽世界全职业 BiS 装备推荐与指南',
+      title: '魔兽世界全职业 12.1.5 天赋与手法',
       path: '/pages/bis/bis'
     };
   },
 
   onShareTimeline() {
     return {
-      title: '魔兽世界全职业 BiS 装备推荐与指南',
+      title: '魔兽世界全职业 12.1.5 天赋与手法',
       path: '/pages/bis/bis'
     };
   }

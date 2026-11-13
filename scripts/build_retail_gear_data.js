@@ -24,7 +24,8 @@
  *  - 官方 tooltip 与 BiS 清单均未标注掉落源的装备归入「地下堡掉落」。
  *  - 每件装备都带真实数值属性与清洗后的装备/使用特效，供页面直接注明。
  *  - BiS 清单来自 bispath.gg 公开推荐（基于掉落 API 与攻略权重，不是模拟出的理论最优）。
- *  - 天赋码与输出手法只保留项目内可核实的独立条目；查不到的一律留空，绝不用模板填充。
+ *  - 40 个专精各一套 12.1.5 天赋导入码与中文输出手法，来源 wowsod.pro（对齐 Icy Veins 12.1.5）；
+ *    导入码取页面原文可在游戏内直接导入，绝不编造；中文手法据该页 Rotation Priority 归纳翻译。
  */
 const fs = require('fs');
 const path = require('path');
@@ -33,11 +34,13 @@ const Module = require('module');
 
 const ROOT = path.join(__dirname, '..');
 const SRC = path.join(__dirname, 'cache', 'retail_gear_source.json');
-const LEGACY = path.join(__dirname, 'cache', 'legacy_spec_content.json');
+const TALENT_RAW = path.join(__dirname, 'cache', 'spec_talent_rotation_raw.json');
+const TALENT_ZH = path.join(__dirname, 'cache', 'spec_talent_rotation_zh.json');
 const MASTER_FILE = path.join(ROOT, 'data', 'retail_items_master.js');
 
 const source = JSON.parse(fs.readFileSync(SRC, 'utf8'));
-const legacy = fs.existsSync(LEGACY) ? JSON.parse(fs.readFileSync(LEGACY, 'utf8')) : {};
+const talentRaw = JSON.parse(fs.readFileSync(TALENT_RAW, 'utf8'));
+const talentZh = JSON.parse(fs.readFileSync(TALENT_ZH, 'utf8'));
 const { meta, specMeta, specBis } = source;
 
 const {
@@ -387,22 +390,55 @@ function gearRow(row) {
   };
 }
 
-const guides = Object.entries(specBis).map(([slug, rows]) => {
+// 每个专精一套 12.1.5 天赋 + 中文手法：导入码取自抓取快照原文，中文内容取自人工整理版。
+// 任一项缺失都直接报错，避免悄悄回退到旧的占位数据。
+function buildTalent(slug) {
+  const z = talentZh.specs[slug];
+  const r = talentRaw.specs[slug];
+  if (!z || !r) throw new Error('缺少 12.1.5 天赋/手法数据: ' + slug);
+  const b = r.builds[z.buildIndex];
+  if (!b || !b.code || !/^[A-Za-z0-9+/]{60,}$/.test(b.code)) {
+    throw new Error('天赋导入码缺失或格式异常: ' + slug);
+  }
+  if (!Array.isArray(z.rotation) || z.rotation.length < 3) {
+    throw new Error('手法条目不足: ' + slug);
+  }
+  return {
+    talents: {
+      code: b.code,                 // 游戏内可直接导入的原文码
+      buildName: z.buildName,
+      heroTree: b.heroTree || '',
+      scene: z.scene,
+      note: z.talentNote,
+      whenToUse: b.whenToUse,
+      calculator: b.calculator,
+      sourceTitle: b.title
+    },
+    rotation: z.rotation,
+    source: {
+      name: 'wowsod.pro 12.1.5 专精指南（页面标注对齐 Icy Veins 12.1.5）',
+      url: r.url,
+      patch: r.patch || '12.1.5'
+    }
+  };
+}
+
+const guides = Object.entries(specBis).map(([slug]) => {
   const sm = specMeta[slug];
   const [classSlug, className, specId, specName] = sm;
-  const content = legacy[classSlug + '/' + specId] || { talents: null, rotation: [] };
+  const t = buildTalent(slug);
   return {
     classSlug,
     className,
     specId,
     specName,
-    // 天赋码与手法：有可核实数据才展示，否则留空
-    talents: content.talents || null,
-    rotation: content.rotation || [],
+    talents: t.talents,
+    rotation: t.rotation,
+    talentSource: t.source,
     gear: { left: [], right: [], weapons: [] },
     dataDate: meta.dataDate,
     dataVersion: meta.patch,
-    source: 'bispath.gg 全专精 BiS 清单 + Wowhead 官方简中物品数据'
+    source: 'bispath.gg 全专精 BiS 清单 + Wowhead 物品数据 / wowsod.pro · Icy Veins 12.1.5 天赋与手法'
   };
 });
 
@@ -428,20 +464,21 @@ const guideSeed = guides.map((g, i) => {
     bucket[key].push([r.itemId, r.slot]);
   });
   return [g.classSlug, g.className, g.specId, g.specName,
-    bucket.left, bucket.right, bucket.weapons, g.talents, g.rotation];
+    bucket.left, bucket.right, bucket.weapons, g.talents, g.rotation, g.talentSource];
 });
 
 writeDerived('data/wow_guides_data.js', [
-  'BiS 速查：40 个专精的 BiS 装备 / 天赋码 / 输出手法。',
+  '40 个专精：BiS 装备清单 + 一套 12.1.5 天赋导入码与中文输出手法。',
   'BiS 装备为公开权威推荐清单（非模拟最优），物品名称与属性取自官方客户端数据。',
-  '天赋码与手法仅在有可核实来源时填充，缺失一律为 null / 空数组。'
+  '天赋码取自 wowsod.pro 12.1.5 专精指南原文（对齐 Icy Veins 12.1.5），可在游戏内直接导入；',
+  '中文手法依据该页 Rotation Priority 归纳翻译，技能名保留英文原名以便核对。'
 ], [
   "var M = require('./retail_items_master.js').items;",
   'var LABEL = ' + dump(SLOT_LABEL) + ';',
   'var SEED = ' + dump(guideSeed) + ';',
   'var DATA_DATE = ' + dump(meta.dataDate) + ';',
   'var DATA_VERSION = ' + dump(meta.patch) + ';',
-  'var SOURCE = ' + dump('bispath.gg 全专精 BiS 清单 + Wowhead 官方简中物品数据') + ';',
+  'var SOURCE = ' + dump('bispath.gg 全专精 BiS 清单 + Wowhead 物品数据 / wowsod.pro · Icy Veins 12.1.5 天赋与手法') + ';',
   'function gearRow(pair) {',
   '  var it = M[String(pair[0])];',
   '  if (!it) return null;',
@@ -458,14 +495,14 @@ writeDerived('data/wow_guides_data.js', [
   '}',
   'module.exports = SEED.map(function (s) {',
   '  return { classSlug: s[0], className: s[1], specId: s[2], specName: s[3],',
-  '    talents: s[7], rotation: s[8],',
+  '    talents: s[7], rotation: s[8], talentSource: s[9],',
   '    gear: { left: rows(s[4]), right: rows(s[5]), weapons: rows(s[6]) },',
   '    dataDate: DATA_DATE, dataVersion: DATA_VERSION, source: SOURCE };',
   '});'
 ], guides);
 
 // ---------------------------------------------------------------- 对账单
-const talentCount = guides.filter(g => g.talents && g.talents.mythicPlus).length;
+const talentCount = guides.filter(g => g.talents && g.talents.code).length;
 const rotationCount = guides.filter(g => g.rotation && g.rotation.length).length;
 const gearCount = guides.reduce((n, g) => n + g.gear.left.length + g.gear.right.length + g.gear.weapons.length, 0);
 const lootFlat = loot.flatMap(d => d.encounters.flatMap(e => e.items));

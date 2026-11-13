@@ -1562,3 +1562,119 @@
   font-size: 30rpx;
 }
 
+/* ================= 专精 BiS 配装卡片 ================= */
+.bis-gear-card {
+  margin: 20rpx 24rpx 0;
+  padding: 24rpx;
+  background-color: var(--card-bg);
+  border: 2rpx solid var(--border-color);
+  border-radius: 20rpx;
+  box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.06);
+}
+.bis-gear-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.bis-gear-head-text {
+  display: flex;
+  flex-direction: column;
+}
+.bis-gear-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.bis-gear-sub {
+  font-size: 22rpx;
+  color: var(--text-secondary);
+  margin-top: 6rpx;
+}
+.bis-gear-toggle {
+  font-size: 22rpx;
+  color: var(--primary-accent);
+  padding: 8rpx 16rpx;
+  background-color: var(--card-sub-bg);
+  border-radius: 999rpx;
+}
+.bis-picker-row {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+.bis-picker-row picker {
+  flex: 1;
+  min-width: 0;
+}
+.bis-picker-pill {
+  text-align: center;
+  font-size: 24rpx;
+  color: var(--text-primary);
+  background-color: var(--card-sub-bg);
+  border: 2rpx solid var(--border-color);
+  border-radius: 12rpx;
+  padding: 14rpx 8rpx;
+}
+.bis-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20rpx;
+}
+.bis-summary-text {
+  font-size: 22rpx;
+  color: var(--text-secondary);
+}
+.bis-load-btn {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  padding: 12rpx 24rpx;
+  border-radius: 999rpx;
+}
+.bis-load-btn:active {
+  opacity: 0.85;
+}
+.bis-gear-scroll {
+  max-height: 420rpx;
+  margin-top: 16rpx;
+}
+.bis-gear-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 14rpx 0;
+  border-bottom: 1rpx solid var(--border-color);
+}
+.bis-gear-icon {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 10rpx;
+  flex-shrink: 0;
+  background-color: var(--slot-empty-bg);
+}
+.bis-gear-info {
+  flex: 1;
+  min-width: 0;
+}
+.bis-gear-name {
+  font-size: 25rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bis-gear-desc {
+  font-size: 21rpx;
+  color: var(--text-secondary);
+  margin-top: 4rpx;
+}
+.bis-gear-empty {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 30rpx;
+}
+

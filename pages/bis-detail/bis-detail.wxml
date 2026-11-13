@@ -3,12 +3,11 @@
     <view class="nav-back" bindtap="navigateBack" style="height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px; display: flex; align-items: center;">
       <text class="back-icon" style="font-size: 28px;">‹</text>
     </view>
-    <view class="nav-title" style="line-height: {{menuButtonHeight}}px;">{{className}}</view>
+    <view class="nav-title" style="line-height: {{menuButtonHeight}}px;">{{className}} · 天赋与手法</view>
   </view>
 
   <view class="banner-area">
-    <view class="time-limit">12.1.5 · 官方客户端物品数据 · 2026-11-13</view>
-    <!-- 顶部背景图，可以用死亡骑士的职业背景替代 -->
+    <view class="time-limit">12.1.5 · 天赋码可游戏内导入 · 2026-11-13</view>
     <image class="banner-img" src="https://wow.zamimg.com/images/wow/icons/large/class_deathknight.jpg" mode="aspectFill"></image>
   </view>
 
@@ -21,22 +20,27 @@
       </block>
     </view>
 
-    <view class="mode-tabs">
-      <block wx:for="{{sectionTabs}}" wx:key="*this">
-        <view class="mode-tab {{activeSection === index ? 'active' : ''}}" bindtap="switchSection" data-index="{{index}}">
-          <text>{{item}}</text>
-        </view>
-      </block>
+    <!-- 天赋模式切换：官方推荐 vs 自定义配置 -->
+    <view class="talent-tab-nav">
+      <view class="talent-tab-item {{talentTab === 'official' ? 'active' : ''}}" bindtap="switchTalentTab" data-tab="official">
+        <text class="tab-icon">🌟</text>
+        <text>官方/后台推荐</text>
+      </view>
+      <view class="talent-tab-item {{talentTab === 'custom' ? 'active' : ''}}" bindtap="switchTalentTab" data-tab="custom">
+        <text class="tab-icon">🛠️</text>
+        <text>我的自定义配置</text>
+        <text class="custom-badge" wx:if="{{customTalents.length > 0}}">{{customTalents.length}}</text>
+      </view>
     </view>
   </view>
 
   <view wx:if="{{isLoading}}" class="loading-state">
-    <text>正在载入官方 BiS 数据...</text>
+    <text>正在载入 12.1.5 天赋与手法...</text>
   </view>
 
-  <view wx:elif="{{!guideData}}" class="empty-state">
+  <view wx:elif="{{!guideData && talentTab === 'official'}}" class="empty-state">
     <view class="empty-icon">📂</view>
-    <text class="empty-text">该专精暂无可核实的 BiS 数据\n请从 BiS 列表重新选择职业专精</text>
+    <text class="empty-text">该专精暂无可核实的天赋与手法\n请从列表重新选择职业专精</text>
     <view class="retry-btn-guide" bindtap="fetchDynamicBisGear">
       <text class="retry-icon">↻</text>
       <text>点击重试</text>
@@ -44,95 +48,177 @@
   </view>
 
   <view wx:else>
-    <!-- Section 0: 天赋代码（只展示可核实数据，缺失一律留空） -->
-    <view class="guide-panel" wx:if="{{activeSection === 0}}">
-      <view class="panel-card" wx:if="{{guideData.talents && guideData.talents.mythicPlus}}">
-        <view class="card-title">大秘境天赋代码</view>
-        <view class="talent-box">
-          <text class="talent-code" user-select="true">{{guideData.talents.mythicPlus}}</text>
-          <view class="copy-btn" bindtap="copyTalent" data-code="{{guideData.talents.mythicPlus}}">一键复制</view>
+    <!-- ================= 模式一：官方/后台推荐 ================= -->
+    <view wx:if="{{talentTab === 'official'}}">
+      <!-- 一套 12.1.5 天赋：真实可导入码 + 流派说明 + 来源 -->
+      <view class="guide-panel">
+        <view class="panel-card" wx:if="{{guideData.talents}}">
+          <view class="card-header-row">
+            <view class="card-title">推荐天赋 · {{guideData.talents.buildName}}</view>
+            <view class="save-preset-btn" bindtap="saveOfficialToCustom">＋ 存为我的配置</view>
+          </view>
+          
+          <view class="talent-meta" wx:if="{{guideData.talents.heroTree || guideData.talents.scene}}">
+            <text wx:if="{{guideData.talents.heroTree}}">英雄天赋 {{guideData.talents.heroTree}} · </text>
+            <text>{{guideData.talents.scene}}</text>
+          </view>
+
+          <!-- 属性优先级提示（若后台或权威库已录入） -->
+          <view class="stat-priority-highlight" wx:if="{{guideData.statPriority}}">
+            <text class="stat-label">⚡ 属性优先级：</text>
+            <text class="stat-val">{{guideData.statPriority}}</text>
+          </view>
+
+          <view class="talent-box">
+            <text class="talent-code" user-select="true">{{guideData.talents.code}}</text>
+            <view class="copy-btn" bindtap="copyTalent" data-code="{{guideData.talents.code}}">一键复制</view>
+          </view>
+          <view class="talent-desc" wx:if="{{guideData.talents.note}}">{{guideData.talents.note}}</view>
+          <view class="source-row" bindtap="openTalentSource" wx:if="{{guideData.talentSource}}">
+            <text>数据来源：{{guideData.talentSource.name}}（{{guideData.talentSource.patch}}）· 点击查看原文 ↗</text>
+          </view>
         </view>
-        <view class="talent-desc" wx:if="{{guideData.talents.mythicPlusName}}">{{guideData.talents.mythicPlusName}}</view>
+        <view class="panel-card" wx:else>
+          <view class="card-title">推荐天赋</view>
+          <view class="talent-desc">暂无可核实的天赋导入码，留空待补。</view>
+        </view>
       </view>
 
-      <view class="panel-card" wx:if="{{guideData.talents && guideData.talents.raid}}">
-        <view class="card-title">团本天赋代码</view>
-        <view class="talent-box">
-          <text class="talent-code" user-select="true">{{guideData.talents.raid}}</text>
-          <view class="copy-btn" bindtap="copyTalent" data-code="{{guideData.talents.raid}}">一键复制</view>
+      <!-- 中文输出手法优先级 -->
+      <view class="guide-panel">
+        <view class="panel-card" wx:if="{{guideData.rotation.length > 0}}">
+          <view class="card-title">输出手法 · 优先级</view>
+          <view class="rotation-list">
+            <view class="rot-item" wx:for="{{guideData.rotation}}" wx:key="name">
+              <view class="rot-step">{{index + 1}}</view>
+              <view class="rot-info">
+                <view class="rot-name">{{item.name}}</view>
+                <view class="rot-desc">{{item.desc}}</view>
+              </view>
+            </view>
+          </view>
+          <view class="talent-desc">中文要点依据该专精 12.1.5 输出优先级原文归纳，技能名保留英文原名便于核对。</view>
         </view>
-        <view class="talent-desc" wx:if="{{guideData.talents.raidName}}">{{guideData.talents.raidName}}</view>
-        <view class="talent-desc" wx:if="{{guideData.talents.desc}}">{{guideData.talents.desc}}</view>
+        <view class="panel-card" wx:else>
+          <view class="card-title">输出手法</view>
+          <view class="talent-desc">暂无可核实的输出手法，留空待补。</view>
+        </view>
       </view>
 
-      <view class="panel-card" wx:if="{{!guideData.talents || (!guideData.talents.mythicPlus && !guideData.talents.raid)}}">
-        <view class="card-title">天赋代码</view>
-        <view class="talent-desc">暂无可核实的天赋代码，留空待补。</view>
+      <!-- BiS 装备清单已归入《BiS与配装》 -->
+      <view class="bis-tip">
+        <text>需要该专精的 BiS 装备清单？请到首页「BiS与配装」查看并一键套用。</text>
       </view>
     </view>
 
-    <!-- Section 1: 输出手法（无数据则留空） -->
-    <view class="guide-panel" wx:if="{{activeSection === 1}}">
-      <view class="panel-card" wx:if="{{guideData.rotation.length > 0}}">
-        <view class="card-title">输出优先级 (自上而下)</view>
-        <view class="rotation-list">
-          <view class="rot-item" wx:for="{{guideData.rotation}}" wx:key="name">
-            <image class="rot-icon" wx:if="{{item.icon}}" src="{{item.icon}}" mode="aspectFill"></image>
-            <view class="rot-step" wx:else>{{index + 1}}</view>
-            <view class="rot-info">
-              <view class="rot-name">{{item.name}}</view>
-              <view class="rot-desc">{{item.desc}}</view>
-            </view>
+    <!-- ================= 模式二：我的自定义配置 ================= -->
+    <view wx:if="{{talentTab === 'custom'}}" class="custom-panel-area">
+      <!-- 顶部操作栏 -->
+      <view class="custom-top-bar">
+        <view class="custom-tip-text">
+          <text class="strong-text">我的专属天赋库</text>
+          <text class="sub-text">支持输入或粘贴游戏导出的 Base64 天赋代码</text>
+        </view>
+        <view class="new-plan-btn" bindtap="openAddTalentModal">
+          <text>+ 新建方案</text>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="custom-empty-state" wx:if="{{customTalents.length === 0}}">
+        <view class="custom-empty-icon">📜</view>
+        <view class="custom-empty-title">暂无该专精的自定义配置</view>
+        <view class="custom-empty-desc">您可以点击下方按钮添加属于您的天赋方案，或者一键将官方推荐方案另存为自定义配置进行修改。</view>
+        <view class="custom-empty-btns">
+          <view class="empty-action-btn primary" bindtap="openAddTalentModal">
+            <text>+ 新建自定义天赋</text>
+          </view>
+          <view class="empty-action-btn secondary" bindtap="saveOfficialToCustom">
+            <text>🌟 导入官方推荐方案</text>
           </view>
         </view>
       </view>
-      <view class="panel-card" wx:if="{{!guideData.rotation || guideData.rotation.length === 0}}">
-        <view class="card-title">输出手法</view>
-        <view class="talent-desc">暂无可核实的输出手法，留空待补。</view>
-      </view>
-    </view>
 
-    <!-- Section 2: BiS装备（物品名与属性来自官方客户端） -->
-    <view class="guide-panel" wx:if="{{activeSection === 2}}">
-      <view class="gear-panel">
-        <view class="gear-col left-col">
-          <block wx:for="{{leftGear}}" wx:key="slot">
-            <view class="gear-item {{item.quality === 'empty' ? 'empty-slot' : ''}}" bindtap="openItemStats" data-name="{{item.name}}">
-              <image class="gear-icon" wx:if="{{item.icon}}" src="{{item.icon}}" mode="aspectFill"></image>
-              <view class="gear-slot-tag">{{item.slot}}</view>
-              <view class="gear-info" wx:if="{{item.name}}">
-                <view class="gear-name epic-text">{{item.name}}</view>
-                <view class="gear-desc">{{item.desc}}</view>
+      <!-- 自定义方案列表 -->
+      <view class="custom-cards-list" wx:else>
+        <block wx:for="{{customTalents}}" wx:key="id">
+          <view class="custom-talent-card">
+            <view class="custom-card-header">
+              <view class="custom-title-box">
+                <text class="custom-plan-name">{{item.name}}</text>
+                <view class="custom-plan-tags">
+                  <text class="plan-tag hero-tag" wx:if="{{item.heroTree}}">{{item.heroTree}}</text>
+                  <text class="plan-tag scene-tag" wx:if="{{item.scene}}">{{item.scene}}</text>
+                </view>
               </view>
+              <text class="custom-time" wx:if="{{item.updatedAtText}}">{{item.updatedAtText}}</text>
             </view>
-          </block>
-        </view>
 
-        <view class="gear-col right-col">
-          <block wx:for="{{rightGear}}" wx:key="slot">
-            <view class="gear-item reverse {{item.quality === 'empty' ? 'empty-slot' : ''}}" bindtap="openItemStats" data-name="{{item.name}}">
-              <image class="gear-icon" wx:if="{{item.icon}}" src="{{item.icon}}" mode="aspectFill"></image>
-              <view class="gear-slot-tag">{{item.slot}}</view>
-              <view class="gear-info" wx:if="{{item.name}}">
-                <view class="gear-name epic-text">{{item.name}}</view>
-                <view class="gear-desc">{{item.desc}}</view>
+            <view class="talent-box">
+              <text class="talent-code" user-select="true">{{item.code}}</text>
+              <view class="copy-btn" bindtap="copyTalent" data-code="{{item.code}}">一键复制</view>
+            </view>
+
+            <view class="talent-desc custom-note-box" wx:if="{{item.note}}">
+              <text class="note-label">📝 心得备注：</text>{{item.note}}
+            </view>
+
+            <view class="custom-card-footer">
+              <view class="card-opt-btn edit-btn" bindtap="openEditTalentModal" data-id="{{item.id}}">
+                <text>✏️ 编辑方案</text>
               </view>
-            </view>
-          </block>
-        </view>
-      </view>
-
-      <view class="weapons-panel">
-        <block wx:for="{{weapons}}" wx:key="slot">
-          <view class="gear-item {{item.quality === 'empty' ? 'empty-slot' : ''}}" bindtap="openItemStats" data-name="{{item.name}}">
-            <image class="gear-icon" wx:if="{{item.icon}}" src="{{item.icon}}" mode="aspectFill"></image>
-            <view class="gear-slot-tag">{{item.slot}}</view>
-            <view class="gear-info" wx:if="{{item.name}}">
-              <view class="gear-name epic-text">{{item.name}}</view>
-              <view class="gear-desc">{{item.desc}}</view>
+              <view class="card-opt-btn del-btn" bindtap="deleteCustomTalent" data-id="{{item.id}}">
+                <text>🗑️ 删除</text>
+              </view>
             </view>
           </view>
         </block>
+      </view>
+    </view>
+  </view>
+
+  <!-- ================= 自定义天赋编辑弹窗 ================= -->
+  <view class="modal-mask" wx:if="{{isTalentModalOpen}}" catchtouchmove="true">
+    <view class="modal-dialog">
+      <view class="modal-header">
+        <text class="modal-title">{{modalTitle}}</text>
+        <view class="modal-close" bindtap="closeTalentModal">✕</view>
+      </view>
+
+      <scroll-view scroll-y="true" class="modal-body">
+        <view class="form-group">
+          <text class="form-label">方案名称 <text class="required">*</text></text>
+          <input class="form-input" placeholder="如：我的高层大秘境 / 纯单体配法" value="{{modalForm.name}}" bindinput="onModalInput" data-field="name" />
+        </view>
+
+        <view class="form-row-2">
+          <view class="form-group">
+            <text class="form-label">英雄天赋树</text>
+            <input class="form-input" placeholder="如：影踪派 / 圣殿骑士" value="{{modalForm.heroTree}}" bindinput="onModalInput" data-field="heroTree" />
+          </view>
+          <view class="form-group">
+            <text class="form-label">适用场景</text>
+            <input class="form-input" placeholder="如：大秘境 / 团本" value="{{modalForm.scene}}" bindinput="onModalInput" data-field="scene" />
+          </view>
+        </view>
+
+        <view class="form-group">
+          <view class="label-with-action">
+            <text class="form-label">游戏内天赋导入字符串 <text class="required">*</text></text>
+            <view class="paste-pill" bindtap="pasteCodeFromClipboard">📋 从剪贴板粘贴</view>
+          </view>
+          <textarea class="form-textarea code-textarea" placeholder="魔兽世界游戏内导出的 Base64 天赋代码（以 CwQ... 等开头）" value="{{modalForm.code}}" bindinput="onModalInput" data-field="code"></textarea>
+        </view>
+
+        <view class="form-group">
+          <text class="form-label">心得要点与手法备注</text>
+          <textarea class="form-textarea" placeholder="可记录技能循环注意点、爆发配合宏或饰品开启时机等..." value="{{modalForm.note}}" bindinput="onModalInput" data-field="note"></textarea>
+        </view>
+      </scroll-view>
+
+      <view class="modal-footer">
+        <view class="modal-btn cancel-btn" bindtap="closeTalentModal">取消</view>
+        <view class="modal-btn confirm-btn" bindtap="saveCustomTalent">保存配置</view>
       </view>
     </view>
   </view>

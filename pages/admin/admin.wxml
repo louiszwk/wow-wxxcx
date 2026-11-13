@@ -49,8 +49,13 @@
           <text class="section-title">推荐装备配置 (共 16 部位)</text>
           <text class="mini-counter">已配置 {{configuredSlotsCount}} / 16 部位</text>
         </view>
-        <view class="header-action-pill" bindtap="quickFillFrom121Set">
-          <text>⚡ 快速载入该职业12.1套装</text>
+        <view class="header-action-group">
+          <view class="header-action-pill" bindtap="loadDefaultGuideData">
+            <text>⚡ 载入默认官方配置</text>
+          </view>
+          <view class="header-action-pill" bindtap="quickFillFrom121Set">
+            <text>⚡ 快速载入套装</text>
+          </view>
         </view>
       </view>
       <view class="tip-banner">
@@ -84,22 +89,86 @@
       </view>
     </view>
 
-    <!-- 核心天赋代码与解析 -->
+    <!-- 属性优先级 (Stat Priority) -->
     <view class="card">
       <view class="card-header">
-        <text class="section-title">推荐天赋代码 (Talents)</text>
+        <text class="section-title">属性优先级 (Stat Priority)</text>
       </view>
       <view class="input-item">
-        <text class="input-label">大秘境天赋字符串 (Mythic+)</text>
-        <input class="text-input" placeholder="魔兽客户端导出的大秘境天赋字符串" value="{{talentsMythic}}" bindinput="onBuildFieldInput" data-field="talentsMythic" />
+        <text class="input-label">副属性优先级推荐</text>
+        <input class="text-input" placeholder="如：急速 > 暴击 > 精通 > 全能（或 急速(25%+) > 暴击 > 精通）" value="{{statPriority}}" bindinput="onBuildFieldInput" data-field="statPriority" />
+      </view>
+    </view>
+
+    <!-- 推荐天赋代码与流派解析 -->
+    <view class="card">
+      <view class="card-header">
+        <text class="section-title">推荐天赋配置 (Talents)</text>
+      </view>
+      <view class="grid-2">
+        <view class="input-item">
+          <text class="input-label">流派方案名称</text>
+          <input class="text-input" placeholder="如：大秘境 · 影踪派酒仙流" value="{{talentBuildName}}" bindinput="onBuildFieldInput" data-field="talentBuildName" />
+        </view>
+        <view class="input-item">
+          <text class="input-label">英雄天赋树 (Hero Tree)</text>
+          <input class="text-input" placeholder="如：Shado-Pan / 影踪派" value="{{talentHeroTree}}" bindinput="onBuildFieldInput" data-field="talentHeroTree" />
+        </view>
       </view>
       <view class="input-item">
-        <text class="input-label">团本天赋字符串 (Raid)</text>
-        <input class="text-input" placeholder="魔兽客户端导出的团本天赋字符串" value="{{talentsRaid}}" bindinput="onBuildFieldInput" data-field="talentsRaid" />
+        <text class="input-label">适用场景 (Scene)</text>
+        <input class="text-input" placeholder="如：大秘境 / 多目标坦克" value="{{talentScene}}" bindinput="onBuildFieldInput" data-field="talentScene" />
       </view>
       <view class="input-item">
-        <text class="input-label">天赋核心流派点评与手法思路</text>
-        <textarea class="textarea-input" placeholder="如：大秘境推荐英雄天赋【圣殿骑士】，依靠灰烬觉醒和倾天圣威触发高频大锤..." value="{{talentsDesc}}" bindinput="onBuildFieldInput" data-field="talentsDesc"></textarea>
+        <text class="input-label">游戏内直接导入代码 (Base64字符串)</text>
+        <textarea class="textarea-input" placeholder="魔兽客户端导出的完整天赋字符串（如 CwQ...）" value="{{talentCode}}" bindinput="onBuildFieldInput" data-field="talentCode"></textarea>
+      </view>
+      <view class="input-item">
+        <text class="input-label">核心机制心得与手法思路</text>
+        <textarea class="textarea-input" placeholder="详细说明天赋联动机制、循环要点、减伤覆盖逻辑等..." value="{{talentNote}}" bindinput="onBuildFieldInput" data-field="talentNote"></textarea>
+      </view>
+      <view class="grid-2">
+        <view class="input-item">
+          <text class="input-label">备用大秘境码 (Mythic+)</text>
+          <input class="text-input" placeholder="可选备用大秘境字符串" value="{{talentsMythic}}" bindinput="onBuildFieldInput" data-field="talentsMythic" />
+        </view>
+        <view class="input-item">
+          <text class="input-label">备用团本码 (Raid)</text>
+          <input class="text-input" placeholder="可选备用团本字符串" value="{{talentsRaid}}" bindinput="onBuildFieldInput" data-field="talentsRaid" />
+        </view>
+      </view>
+    </view>
+
+    <!-- 输出手法优先级 (Rotation Priority) -->
+    <view class="card">
+      <view class="card-header">
+        <view class="title-with-badge">
+          <text class="section-title">输出手法优先级 (Rotation)</text>
+          <text class="mini-counter">{{rotationList.length}} 个步骤</text>
+        </view>
+        <view class="header-action-pill" bindtap="addRotationStep">
+          <text>+ 添加步骤</text>
+        </view>
+      </view>
+      <view class="tip-banner">
+        💡 手法步骤按优先级从上到下执行。建议技能名保留中英文对照（如：醉酿投 Keg Smash）。
+      </view>
+      <view class="rotation-edit-list" wx:if="{{rotationList.length > 0}}">
+        <block wx:for="{{rotationList}}" wx:key="index">
+          <view class="rotation-edit-row">
+            <view class="rot-step-num">{{index + 1}}</view>
+            <view class="rot-edit-main">
+              <input class="text-input rot-name-input" placeholder="技能名称 (如: 醉酿投 Keg Smash)" value="{{item.name}}" bindinput="onRotationStepName" data-index="{{index}}" />
+              <textarea class="textarea-input rot-desc-input" auto-height placeholder="优先级条件或手法细节解析" value="{{item.desc}}" bindinput="onRotationStepDesc" data-index="{{index}}"></textarea>
+            </view>
+            <view class="rot-del-action" bindtap="removeRotationStep" data-index="{{index}}">
+              <text>✕</text>
+            </view>
+          </view>
+        </block>
+      </view>
+      <view class="empty-rot-tip" wx:else>
+        <text>暂未添加手法步骤，点击右上角「+ 添加步骤」或点击顶部「⚡ 载入默认官方配置」一键导入。</text>
       </view>
     </view>
 

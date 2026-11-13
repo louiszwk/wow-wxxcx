@@ -7,7 +7,7 @@
       <text class="back-text">{{currentView === 'editor' ? '返回列表' : '返回'}}</text>
     </view>
     <view class="nav-title" style="line-height: {{menuButtonHeight}}px;">
-      {{currentView === 'editor' ? '配装模拟器' : '配装方案库'}}
+      {{currentView === 'editor' ? '配装模拟器' : 'BiS与配装'}}
     </view>
     <view class="theme-toggle" bindtap="toggleTheme">
       <text class="theme-icon">{{theme === 'light' ? '🌙' : '☀️'}}</text>
@@ -23,13 +23,50 @@
       <view class="list-hero-card">
         <view class="hero-content">
           <view class="hero-title-row">
-            <text class="hero-title">12.1 S2 配装方案库</text>
+            <text class="hero-title">BiS与配装</text>
             <text class="hero-badge">共 {{filteredBuilds.length}} 套方案</text>
           </view>
           <view class="hero-subtitle">
-            按专精自由模拟配装，区分双手武器与主副手，全套 12.1 数据库实时统计与一键分享。
+            每个专精一套 12.1.5 BiS 配装，一键载入后自由试穿替换，实时统计四维占比与来源分布。
           </view>
         </view>
+      </view>
+
+      <!-- 每个专精的 BiS 配装：选职业/专精 -> 查看清单 -> 一键载入编辑器 -->
+      <view class="bis-gear-card">
+        <view class="bis-gear-head">
+          <view class="bis-gear-head-text">
+            <text class="bis-gear-title">专精 BiS 配装</text>
+            <text class="bis-gear-sub">40 个专精 · 12.1.5 官方物品数据</text>
+          </view>
+          <view class="bis-gear-toggle" bindtap="toggleBisGear">{{bisGearExpanded ? '收起 ▲' : '展开 ▼'}}</view>
+        </view>
+
+        <view class="bis-picker-row">
+          <picker mode="selector" range="{{classes}}" range-key="name" value="{{bisClassIndex}}" bindchange="onBisClassChange">
+            <view class="bis-picker-pill">{{classes[bisClassIndex].name}} ▼</view>
+          </picker>
+          <picker mode="selector" range="{{bisSpecOptions}}" range-key="name" value="{{bisSpecIndex}}" bindchange="onBisSpecChange">
+            <view class="bis-picker-pill">{{bisSpecOptions[bisSpecIndex].name}} ▼</view>
+          </picker>
+        </view>
+
+        <block wx:if="{{bisGearExpanded}}">
+          <view class="bis-summary-row">
+            <text class="bis-summary-text">{{bisSpecLabel}} · {{bisGearRows.length}} 件</text>
+            <view class="bis-load-btn" bindtap="loadBisIntoEditor">一键载入配装</view>
+          </view>
+          <scroll-view class="bis-gear-scroll" scroll-y="true">
+            <view class="bis-gear-row" wx:for="{{bisGearRows}}" wx:key="slot">
+              <image class="bis-gear-icon" wx:if="{{item.icon}}" src="{{item.icon}}" mode="aspectFill"></image>
+              <view class="bis-gear-info">
+                <view class="bis-gear-name">{{item.name}}</view>
+                <view class="bis-gear-desc">{{item.slot}} · {{item.ilvl}} 装等<text wx:if="{{item.statCombo}}"> · {{item.statCombo}}</text></view>
+              </view>
+            </view>
+            <view class="bis-gear-empty" wx:if="{{bisGearRows.length === 0}}">该专精暂无 BiS 清单</view>
+          </scroll-view>
+        </block>
       </view>
 
       <!-- 职业横向滚动筛选条 -->
@@ -72,7 +109,7 @@
         <view class="empty-builds-box" wx:if="{{filteredBuilds.length === 0}}">
           <text class="empty-icon">🛡️</text>
           <text class="empty-title">暂无该专精的配装方案</text>
-          <text class="empty-desc">点击下方“创建新配装”，立即为 {{selectedClassFilter.name}} 打造 12.1 S2 毕业搭配！</text>
+          <text class="empty-desc">点击下方“创建新配装”，立即为 {{selectedClassFilter.name}} 打造 12.1.5 毕业搭配！</text>
           <view class="create-trigger-btn" bindtap="openNewBuildEditor">+ 立即创建配装</view>
         </view>
 
@@ -91,7 +128,7 @@
               </view>
               <view class="build-meta-row">
                 <text class="equip-badge">{{item.equippedCount || 0}} / 16 部位已配</text>
-                <text class="update-time">{{item.updatedAtText || '12.1 S2'}}</text>
+                <text class="update-time">{{item.updatedAtText || '12.1.5'}}</text>
               </view>
             </view>
 

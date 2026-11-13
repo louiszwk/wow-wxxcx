@@ -1,5 +1,17 @@
 // pages/build/build.js
 const equipmentDb = require('../../data/wow_equipment_db.js');
+const guidesData = require('../../data/wow_guides_data.js');
+
+// BiS 清单的槽位标签 -> 配装编辑器的 equippedGear 键
+const BIS_SLOT_MAP = {
+  '头部': 'head', '颈部': 'neck', '肩部': 'shoulder', '背部': 'back',
+  '胸部': 'chest', '腕部': 'wrist', '手部': 'hands', '腰部': 'waist',
+  '腿部': 'legs', '脚部': 'feet',
+  '戒指 1': 'finger1', '戒指 2': 'finger2', '戒指1': 'finger1', '戒指2': 'finger2',
+  '饰品 1': 'trinket1', '饰品 2': 'trinket2', '饰品1': 'trinket1', '饰品2': 'trinket2',
+  '主手武器': 'mainHand', '主手': 'mainHand', '武器': 'mainHand', '双手武器': 'mainHand', '主手/双手': 'mainHand',
+  '副手/盾牌': 'offHand', '副手': 'offHand', '副手武器': 'offHand', '盾牌': 'offHand'
+};
 
 const TWO_HANDED_TYPES = ['双手剑', '双手斧', '双手锤', '法杖', '长柄武器', '弓', '枪械', '弩'];
 const ONE_HANDED_TYPES = ['单手剑', '单手斧', '单手锤', '匕首', '拳套', '战刃', '魔杖'];
@@ -65,7 +77,8 @@ const WOW_CLASSES = [
     id: 'demon-hunter', name: '恶魔猎手', icon: '🦇', color: '#A330C9', armor: '皮甲', mainStat: '敏捷',
     specs: [
       { id: 'havoc', name: '浩劫', desc: '双持战刃/单手剑/单手斧' },
-      { id: 'vengeance', name: '复仇', desc: '双持战刃/单手剑/单手斧' }
+      { id: 'vengeance', name: '复仇', desc: '双持战刃/单手剑/单手斧' },
+      { id: 'devourer', name: '噬灭', desc: '12.1 新增专精 · 双持战刃/单手剑' }
     ]
   },
   {
@@ -205,6 +218,14 @@ Page({
     savedBuilds: [],
     filteredBuilds: [],
 
+    // ================= 专精 BiS 配装清单 =================
+    bisGearExpanded: true,
+    bisClassIndex: 0,
+    bisSpecIndex: 0,
+    bisSpecOptions: WOW_CLASSES[0].specs,
+    bisSpecLabel: WOW_CLASSES[0].name + ' · ' + WOW_CLASSES[0].specs[0].name,
+    bisGearRows: [],
+
     // ================= 编辑器状态 =================
     currentBuild: {
       id: null,
@@ -270,8 +291,9 @@ Page({
     const savedTheme = wx.getStorageSync('app_theme') || 'dark';
     this.setData({ theme: savedTheme });
 
-    // 初始化已保存的配装库
+    // 初始化已保存的配装库与专精 BiS 清单
     this.loadSavedBuilds();
+    this.refreshBisGear();
 
     // 检查是否通过分享口令进入
     if (options && options.shareCode) {
@@ -396,6 +418,187 @@ Page({
     }
 
     this.setData({ filteredBuilds: list });
+  },
+
+  // ========================================================
+  // 专精 BiS 配装：40 专精清单 + 一键载入配装编辑器
+  // ========================================================
+  toggleBisGear() {
+    this.setData({ bisGearExpanded: !this.data.bisGearExpanded });
+  },
+
+  onBisClassChange(e) {
+    const idx = Number(e.detail.value) || 0;
+    const cls = WOW_CLASSES[idx];
+    if (!cls) return;
+    this.setData({
+      bisClassIndex: idx,
+      bisSpecIndex: 0,
+      bisSpecOptions: cls.specs || []
+    }, () => this.refreshBisGear());
+  },
+
+  onBisSpecChange(e) {
+    this.setData({ bisSpecIndex: Number(e.detail.value) || 0 }, () => this.refreshBisGear());
+  },
+
+  refreshBisGear() {
+    const cls = WOW_CLASSES[this.data.bisClassIndex] || WOW_CLASSES[0];
+    const specs = cls.specs || [];
+    const spec = specs[this.data.bisSpecIndex] || specs[0];
+    if (!spec) return;
+
+    const customKey = 'wow_guide_' + cls.id + '_' + spec.id;
+    let guide = null;
+    let isFromBackend = false;
+
+    // 1. 优先读取后台录入的本地持久化数据
+    try {
+      const cached = wx.getStorageSync(customKey);
+      if (cached && cached.gear && (
+        (cached.gear.left && cached.gear.left.length > 0) ||
+        (cached.gear.right && cached.gear.right.length > 0) ||
+        (cached.gear.weapons && cached.gear.weapons.length > 0)
+      )) {
+        guide = cached;
+        isFromBackend = true;
+      }
+    } catch (e) {}
+
+    // 2. 异步尝试从云数据库查询最新配置更新缓存
+    if (wx.cloud && typeof wx.cloud.database === 'function') {
+      try {
+        const db = wx.cloud.database();
+        db.collection('wow_guides').where({ classSlug: cls.id, specId: spec.id }).get().then(res => {
+          if (res.data && res.data.length > 0) {
+            const doc = res.data[0];
+            const d = doc.data || doc;
+            if (d && d.gear) {
+              wx.setStorageSync(customKey, d);
+              const curCls = WOW_CLASSES[this.data.bisClassIndex];
+              const curSpec = curCls && curCls.specs[this.data.bisSpecIndex];
+              if (curCls && curCls.id === cls.id && curSpec && curSpec.id === spec.id) {
+                this.renderBisGearFromGuide(cls, spec, d, true);
+              }
+            }
+          }
+        }).catch(() => {});
+      } catch (err) {}
+    }
+
+    // 3. 兜底官方权威库
+    if (!guide) {
+      guide = guidesData.find(g => g.classSlug === cls.id && g.specId === spec.id);
+    }
+
+    this.renderBisGearFromGuide(cls, spec, guide, isFromBackend);
+  },
+
+  renderBisGearFromGuide(cls, spec, guide, isFromBackend) {
+    if (!guide || !guide.gear) {
+      this.setData({
+        bisSpecLabel: cls.name + ' · ' + spec.name,
+        bisGearRows: []
+      });
+      return;
+    }
+
+    const allItems = [
+      ...(guide.gear.left || []),
+      ...(guide.gear.right || []),
+      ...(guide.gear.weapons || [])
+    ];
+
+    const rows = allItems.map(r => {
+      const found = equipmentDb.find(x =>
+        (r.itemId && String(x.id) === String(r.itemId)) ||
+        (r.name && x.name === r.name)
+      );
+      return {
+        slot: r.slot,
+        name: r.name,
+        icon: (found && found.icon) || r.icon || 'inv_misc_questionmark',
+        ilvl: (found && found.item_level) || r.ilvl || 639,
+        statCombo: (found && (found.stat_combo || (found.secondary_stats && found.secondary_stats.ratio_text))) || r.statCombo || r.desc || '',
+        itemId: (found && found.id) || r.itemId || null
+      };
+    });
+
+    this.setData({
+      bisSpecLabel: cls.name + ' · ' + spec.name + (isFromBackend ? ' (后台最新配置)' : ''),
+      bisGearRows: rows
+    });
+  },
+
+  // 把该专精的 BiS 清单转成一套可编辑配装方案
+  loadBisIntoEditor() {
+    const cls = WOW_CLASSES[this.data.bisClassIndex] || WOW_CLASSES[0];
+    const specs = cls.specs || [];
+    const spec = specs[this.data.bisSpecIndex] || specs[0];
+    if (!spec) return;
+
+    const customKey = 'wow_guide_' + cls.id + '_' + spec.id;
+    let guide = null;
+    let isFromBackend = false;
+    try {
+      const cached = wx.getStorageSync(customKey);
+      if (cached && cached.gear) {
+        guide = cached;
+        isFromBackend = true;
+      }
+    } catch (e) {}
+
+    if (!guide) {
+      guide = guidesData.find(g => g.classSlug === cls.id && g.specId === spec.id);
+    }
+
+    if (!guide || !guide.gear) {
+      wx.showToast({ title: '该专精暂无 BiS 清单', icon: 'none' });
+      return;
+    }
+
+    const gear = {};
+    const allItems = [
+      ...(guide.gear.left || []),
+      ...(guide.gear.right || []),
+      ...(guide.gear.weapons || [])
+    ];
+
+    allItems.forEach(r => {
+      const key = BIS_SLOT_MAP[r.slot];
+      if (!key) return;
+      const item = equipmentDb.find(x =>
+        (r.itemId && String(x.id) === String(r.itemId)) ||
+        (r.name && x.name === r.name)
+      );
+      if (item) {
+        gear[key] = item;
+      } else if (r.name) {
+        gear[key] = {
+          id: r.itemId || ('custom_' + Date.now()),
+          name: r.name,
+          slot: r.slot,
+          icon: r.icon || 'inv_misc_questionmark',
+          item_level: r.ilvl || 639,
+          quality: r.quality || 'epic',
+          stat_combo: r.statCombo || r.desc || '12.1 S2'
+        };
+      }
+    });
+
+    this.loadBuildIntoEditor({
+      id: 'build_' + Date.now(),
+      name: cls.name + ' · ' + spec.name + (isFromBackend ? ' 后台BiS' : ' BiS 配装'),
+      classId: cls.id,
+      className: cls.name,
+      classColor: cls.color,
+      classIcon: cls.icon,
+      specId: spec.id,
+      specName: spec.name,
+      equippedGear: gear,
+      updatedAtText: isFromBackend ? '来自后台最新 BiS 录入' : '来自 12.1.5 BiS 清单'
+    }, false);
+    wx.showToast({ title: '已载入 ' + Object.keys(gear).length + ' 件 BiS', icon: 'success' });
   },
 
   // 打开新配装编辑器

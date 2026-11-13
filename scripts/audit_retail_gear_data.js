@@ -81,24 +81,35 @@ for (const g of guides) {
     const m = items[String(row.itemId)];
     if (!m || m.name !== row.name) dangling++;
   }
-  if (g.talents && g.talents.mythicPlus) talentCodes.push(g.talents.mythicPlus);
+  if (g.talents && g.talents.code) talentCodes.push(g.talents.code);
 }
 if (dangling) err('BiS 悬空物品引用 ' + dangling + ' 条');
 else ok('BiS ' + gearRows + ' 条装备引用 100% 可反查权威库');
 const dupGroups = {};
 talentCodes.forEach(c => { dupGroups[c] = (dupGroups[c] || 0) + 1; });
 const dup = Object.entries(dupGroups).filter(([, n]) => n > 1);
-if (dup.length) err('存在 ' + dup.length + ' 组重复模板天赋码（最大重复 ' + Math.max(...dup.map(d => d[1])) + ' 次）');
-else ok('天赋码无重复模板（' + talentCodes.length + ' 个专精有独立码）');
+if (dup.length) err('存在 ' + dup.length + ' 组重复天赋导入码');
+else if (talentCodes.length !== guides.length) err('导入码覆盖 ' + talentCodes.length + '/' + guides.length + '，要求 40 专精全覆盖');
+else ok('40 个专精各有 1 条独立真实导入码');
+const badCode = guides.filter(g => !g.talents || !/^[A-Za-z0-9+/]{60,}$/.test(g.talents.code || ''));
+if (badCode.length) err('导入码格式异常 ' + badCode.length + ' 个专精');
+else ok('全部导入码格式合法（可在游戏内直接导入）');
+const noSource = guides.filter(g => !g.talentSource || !g.talentSource.url || !g.talentSource.patch);
+if (noSource.length) err('缺少 12.1.5 来源标注 ' + noSource.length + ' 个专精');
+else ok('40 个专精均标注 12.1.5 来源与原文链接');
 const placeholders = guides.filter(g => {
   const s = JSON.stringify(g);
   return /\.\.\.|待补|暂无|TBD|TODO|占位|通用标准推荐/.test(s);
 });
 if (placeholders.length) err('残留占位文案 ' + placeholders.length + ' 个专精');
 else ok('无模板/占位文案');
-const noTalent = guides.filter(g => !g.talents);
-const noRot = guides.filter(g => !g.rotation || !g.rotation.length);
-ok('天赋码留空 ' + noTalent.length + ' 个、手法留空 ' + noRot.length + ' 个（按要求不填充）');
+const noTalent = guides.filter(g => !g.talents || !g.talents.code ||
+  !g.talents.buildName || !g.talents.note);
+const noRot = guides.filter(g => !g.rotation || g.rotation.length < 3 ||
+  g.rotation.some(r => !r.name || !r.desc));
+if (noTalent.length || noRot.length)
+  err('天赋/手法覆盖不足：天赋 ' + noTalent.length + ' 个、手法 ' + noRot.length + ' 个专精缺失');
+else ok('每个专精均有一套天赋 + 不少于 3 条中文手法');
 
 console.log('\n=== 5. 页面字段契约 ===');
 const eqMissing = eq.filter(i =>
@@ -116,15 +127,26 @@ if (lootMissing.length) err('掉落查询缺页面必需字段 ' + lootMissing.l
 else ok('掉落查询模板所需字段（quality/type/stats/attrs/特效/来源）齐全');
 const guideMissing = guides.filter(g =>
   !g.gear || !Array.isArray(g.gear.left) || !Array.isArray(g.gear.right) ||
-  !Array.isArray(g.gear.weapons) || !g.classSlug || !g.specId);
-if (guideMissing.length) err('BiS 攻略缺页面必需字段 ' + guideMissing.length + ' 条');
-else ok('BiS 详情所需 gear/talents/rotation 结构齐全');
+  !Array.isArray(g.gear.weapons) || !g.classSlug || !g.specId ||
+  !g.talents || !g.talents.code || !g.talents.buildName ||
+  !Array.isArray(g.rotation) || !g.talentSource || !g.talentSource.url);
+if (guideMissing.length) err('专精攻略缺页面必需字段 ' + guideMissing.length + ' 条');
+else ok('BiS 清单 / 天赋导入码 / 中文手法 / 来源字段齐全');
 
-console.log('\n=== 6. 首页入口状态 ===');
+console.log('\n=== 6. 首页两个板块入口与职责 ===');
 const indexWxml = fs.readFileSync(path.join(ROOT, 'pages/index/index.wxml'), 'utf8');
-if (/<view[^>]+bindtap="navigateTo(Build|Bis)"/.test(indexWxml))
-  err('首页仍显示配装模拟器 / BiS 速查入口（用户要求暂时隐藏）');
-else ok('两个入口保持隐藏，页面注册与方法保留');
+const hasBisGear = /bindtap="navigateToBuild"/.test(indexWxml) && indexWxml.includes('BiS与配装');
+const hasTalent = /bindtap="navigateToBis"/.test(indexWxml) && indexWxml.includes('天赋与手法');
+if (!hasBisGear || !hasTalent) err('首页两个板块入口未恢复或名称不符');
+else ok('首页已恢复「BiS与配装」「天赋与手法」两个入口');
+const detailWxml = fs.readFileSync(path.join(ROOT, 'pages/bis-detail/bis-detail.wxml'), 'utf8');
+if (/activeSection|sectionTabs|mode-tabs|gear-panel|weapons-panel|leftGear|rightGear/.test(detailWxml))
+  err('「天赋与手法」页仍残留 BiS 装备区 / 三页签结构');
+else ok('「天赋与手法」页收敛为天赋码 + 手法，BiS 装备已移出');
+const buildJs = fs.readFileSync(path.join(ROOT, 'pages/build/build.js'), 'utf8');
+if (!/loadBisIntoEditor|refreshBisGear|BIS_SLOT_MAP/.test(buildJs))
+  err('「BiS与配装」页缺少按专精一键载入 BiS 能力');
+else ok('「BiS与配装」页含 40 专精 BiS 清单与一键载入');
 
 console.log('\n=== 7. 第二赛季掉落分组结构 ===');
 const { DUNGEON_ORDER, RAID_ABYSS_ORDER, MYTHIC_DUNGEON_ORDER } =

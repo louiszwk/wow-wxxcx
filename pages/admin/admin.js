@@ -1,5 +1,6 @@
 // pages/admin/admin.js
 const equipmentDb = require('../../data/wow_equipment_db.js');
+const defaultGuides = require('../../data/wow_guides_data.js');
 
 const WOW_CLASSES = [
   {
@@ -32,7 +33,7 @@ const WOW_CLASSES = [
   },
   {
     id: 'demon-hunter', name: '恶魔猎手', icon: '🦇', color: '#A330C9', armor: '皮甲',
-    specs: [{ id: 'havoc', name: '浩劫' }, { id: 'vengeance', name: '复仇' }]
+    specs: [{ id: 'havoc', name: '浩劫' }, { id: 'vengeance', name: '复仇' }, { id: 'devourer', name: '噬灭' }]
   },
   {
     id: 'druid', name: '德鲁伊', icon: '🐻', color: '#FF7C0A', armor: '皮甲',
@@ -108,9 +109,16 @@ Page({
     configuredSlotsCount: 0,
     gearForm: initEmptyGear(),
 
+    statPriority: '',
+    talentBuildName: '',
+    talentHeroTree: '',
+    talentScene: '',
+    talentCode: '',
+    talentNote: '',
     talentsMythic: '',
     talentsRaid: '',
     talentsDesc: '',
+    rotationList: [],
 
     cFlask: '',
     cPotion: '',
@@ -213,32 +221,65 @@ Page({
     this.loadCurrentSpecBuild();
   },
 
-  // 读取目标专精现有推荐配置
+  // 读取目标专精现有推荐配置（优先云端，次选本地缓存，再默认官方权威库）
   loadCurrentSpecBuild() {
-    const db = wx.cloud.database();
     const classSlug = this.data.selectedClass.id;
     const specId = this.data.selectedSpec.id;
 
     wx.showLoading({ title: '加载中...' });
 
-    db.collection('wow_guides').where({
-      classSlug,
-      specId
-    }).get().then(res => {
+    const handleFallback = () => {
+      // 检查本地持久化存储
+      try {
+        const localSaved = wx.getStorageSync('wow_guide_' + classSlug + '_' + specId);
+        if (localSaved && (localSaved.gear || localSaved.talents)) {
+          this.applyGuideToForm(localSaved._id || null, localSaved);
+          wx.hideLoading();
+          return;
+        }
+      } catch (e) {}
+
+      // 兜底载入官方权威默认库
+      this.loadDefaultGuideData(false);
       wx.hideLoading();
-      if (res.data && res.data.length > 0) {
-        const doc = res.data[0];
-        const d = doc.data || doc;
-        this.applyGuideToForm(doc._id, d);
-      } else {
-        // 重置为干净表单
-        this.resetBuildForm();
-      }
-    }).catch(err => {
-      wx.hideLoading();
-      console.warn('云端推荐读取失败，使用干净表单:', err);
-      this.resetBuildForm();
-    });
+    };
+
+    if (wx.cloud && typeof wx.cloud.database === 'function') {
+      const db = wx.cloud.database();
+      db.collection('wow_guides').where({
+        classSlug,
+        specId
+      }).get().then(res => {
+        if (res.data && res.data.length > 0) {
+          wx.hideLoading();
+          const doc = res.data[0];
+          const d = doc.data || doc;
+          this.applyGuideToForm(doc._id, d);
+        } else {
+          handleFallback();
+        }
+      }).catch(err => {
+        console.warn('云端推荐读取失败，尝试本地缓存与默认配置:', err);
+        handleFallback();
+      });
+    } else {
+      handleFallback();
+    }
+  },
+
+  // 一键从 12.1.5 官方权威库载入预置完整配置（装备+天赋+手法+属性）
+  loadDefaultGuideData(showToast = true) {
+    const classSlug = this.data.selectedClass.id;
+    const specId = this.data.selectedSpec.id;
+    const found = defaultGuides.find(g => g.classSlug === classSlug && g.specId === specId);
+    if (!found) {
+      if (showToast) wx.showToast({ title: '未找到官方预置数据', icon: 'none' });
+      return;
+    }
+    this.applyGuideToForm(this.data.docId, found);
+    if (showToast) {
+      wx.showToast({ title: '已载入官方配置', icon: 'success' });
+    }
   },
 
   resetBuildForm() {
@@ -246,9 +287,16 @@ Page({
       docId: null,
       gearForm: initEmptyGear(),
       configuredSlotsCount: 0,
+      statPriority: '',
+      talentBuildName: '',
+      talentHeroTree: '',
+      talentScene: '',
+      talentCode: '',
+      talentNote: '',
       talentsMythic: '',
       talentsRaid: '',
       talentsDesc: '',
+      rotationList: [],
       cFlask: '',
       cPotion: '',
       cFood: '',
@@ -272,8 +320,9 @@ Page({
         if (key && item.name) {
           gear[key] = {
             name: item.name || '',
-            desc: item.desc || '',
-            quality: item.quality || 'epic'
+            desc: item.desc || (item.ilvl ? `装等 ${item.ilvl} · ${item.statCombo || ''}` : ''),
+            quality: item.quality || 'epic',
+            itemId: item.itemId || item.id || null
           };
           count++;
         }
@@ -286,13 +335,26 @@ Page({
       fillSlots(d.gear.weapons);
     }
 
+    const t = d.talents || {};
+    const rot = Array.isArray(d.rotation)
+      ? d.rotation.map(r => ({ name: r.name || '', desc: r.desc || '' }))
+      : [];
+    const statPri = d.statPriority || (t && t.statPriority) || '';
+
     this.setData({
-      docId,
+      docId: docId || this.data.docId,
       gearForm: gear,
       configuredSlotsCount: count,
-      talentsMythic: d.talents?.mythicPlus || '',
-      talentsRaid: d.talents?.raid || '',
-      talentsDesc: d.talents?.desc || '',
+      statPriority: statPri,
+      talentBuildName: t.buildName || '',
+      talentHeroTree: t.heroTree || '',
+      talentScene: t.scene || '',
+      talentCode: t.code || t.mythicPlus || '',
+      talentNote: t.note || t.desc || '',
+      talentsMythic: t.mythicPlus || t.code || '',
+      talentsRaid: t.raid || '',
+      talentsDesc: t.desc || t.note || '',
+      rotationList: rot,
       cFlask: d.consumables?.flask || '',
       cPotion: d.consumables?.potion || '',
       cFood: d.consumables?.food || '',
@@ -433,29 +495,74 @@ Page({
     this.setData({ isGearPickerOpen: false });
   },
 
-  // 保存推荐出装配置并发布至 wow_guides
+  // 手法优先级步骤增删与编辑
+  addRotationStep() {
+    const list = [...(this.data.rotationList || [])];
+    list.push({ name: '', desc: '' });
+    this.setData({ rotationList: list });
+  },
+
+  removeRotationStep(e) {
+    const idx = Number(e.currentTarget.dataset.index);
+    const list = [...(this.data.rotationList || [])];
+    list.splice(idx, 1);
+    this.setData({ rotationList: list });
+  },
+
+  onRotationStepName(e) {
+    const idx = Number(e.currentTarget.dataset.index);
+    const val = e.detail.value;
+    const path = `rotationList[${idx}].name`;
+    this.setData({ [path]: val });
+  },
+
+  onRotationStepDesc(e) {
+    const idx = Number(e.currentTarget.dataset.index);
+    const val = e.detail.value;
+    const path = `rotationList[${idx}].desc`;
+    this.setData({ [path]: val });
+  },
+
+  // 保存推荐出装配置并发布至 wow_guides（双写本地Storage与云数据库）
   saveBuildData() {
     const gear = this.data.gearForm;
+    const classSlug = this.data.selectedClass.id;
+    const specId = this.data.selectedSpec.id;
+
     const buildSlot = (slotName, itemObj) => {
       if (!itemObj || !itemObj.name) return null;
       return {
         slot: slotName,
         name: itemObj.name.trim(),
         desc: itemObj.desc ? itemObj.desc.trim() : '12.1 S2 推荐装备',
-        quality: 'epic'
+        quality: itemObj.quality || 'epic',
+        itemId: itemObj.itemId || null
       };
     };
 
+    const rotationClean = (this.data.rotationList || [])
+      .filter(r => r && (r.name.trim() || r.desc.trim()))
+      .map(r => ({ name: r.name.trim(), desc: r.desc.trim() }));
+
+    const mainCode = (this.data.talentCode || this.data.talentsMythic || '').trim();
+
     const payload = {
-      classSlug: this.data.selectedClass.id,
-      specId: this.data.selectedSpec.id,
+      classSlug: classSlug,
+      specId: specId,
       className: this.data.selectedClass.name,
       specName: this.data.selectedSpec.name,
+      statPriority: (this.data.statPriority || '').trim(),
       talents: {
-        mythicPlus: this.data.talentsMythic || '',
-        raid: this.data.talentsRaid || '',
-        desc: this.data.talentsDesc || ''
+        code: mainCode,
+        buildName: (this.data.talentBuildName || `${this.data.selectedSpec.name} 推荐天赋`).trim(),
+        heroTree: (this.data.talentHeroTree || '').trim(),
+        scene: (this.data.talentScene || '大秘境 / 综合').trim(),
+        note: (this.data.talentNote || this.data.talentsDesc || '').trim(),
+        mythicPlus: (this.data.talentsMythic || mainCode).trim(),
+        raid: (this.data.talentsRaid || '').trim(),
+        desc: (this.data.talentsDesc || this.data.talentNote || '').trim()
       },
+      rotation: rotationClean,
       consumables: {
         flask: this.data.cFlask || '',
         potion: this.data.cPotion || '',
@@ -477,43 +584,68 @@ Page({
           buildSlot('腰部', gear.waist),
           buildSlot('腿部', gear.legs),
           buildSlot('脚部', gear.feet),
-          buildSlot('戒指1', gear.ring1),
-          buildSlot('戒指2', gear.ring2),
-          buildSlot('饰品1', gear.trinket1),
-          buildSlot('饰品2', gear.trinket2)
+          buildSlot('戒指 1', gear.ring1),
+          buildSlot('戒指 2', gear.ring2),
+          buildSlot('饰品 1', gear.trinket1),
+          buildSlot('饰品 2', gear.trinket2)
         ].filter(Boolean),
         weapons: [
           buildSlot('主手/双手', gear.weaponMain),
           buildSlot('副手', gear.weaponOff)
         ].filter(Boolean)
       },
+      sourceType: 'admin_custom',
+      dataVersion: '12.1.5',
+      dataDate: '2026-11-13',
       updatedAt: new Date().toISOString()
     };
 
-    const db = wx.cloud.database();
-    wx.showLoading({ title: '正在发布中...', mask: true });
+    // 1. 本地存储优先双写缓存
+    try {
+      wx.setStorageSync('wow_guide_' + classSlug + '_' + specId, payload);
+    } catch (e) {
+      console.warn('Storage 写入失败:', e);
+    }
 
-    if (this.data.docId) {
-      db.collection('wow_guides').doc(this.data.docId).update({
-        data: payload
-      }).then(() => {
-        wx.hideLoading();
-        wx.showToast({ title: '推荐出装已更新！', icon: 'success' });
-      }).catch(err => {
-        wx.hideLoading();
-        wx.showModal({ title: '保存失败', content: err.message || '网络异常', showCancel: false });
-      });
+    // 2. 云数据库写入或更新
+    if (wx.cloud && typeof wx.cloud.database === 'function') {
+      const db = wx.cloud.database();
+      wx.showLoading({ title: '正在发布中...', mask: true });
+
+      if (this.data.docId) {
+        db.collection('wow_guides').doc(this.data.docId).update({
+          data: payload
+        }).then(() => {
+          wx.hideLoading();
+          wx.showToast({ title: '配置已更新保存！', icon: 'success' });
+        }).catch(err => {
+          wx.hideLoading();
+          wx.showModal({
+            title: '云端同步提示',
+            content: '已保存至本地配置生效！云端同步失败: ' + (err.message || '网络或权限限制'),
+            showCancel: false
+          });
+        });
+      } else {
+        db.collection('wow_guides').add({
+          data: payload
+        }).then(res => {
+          this.setData({ docId: res._id });
+          payload._id = res._id;
+          wx.setStorageSync('wow_guide_' + classSlug + '_' + specId, payload);
+          wx.hideLoading();
+          wx.showToast({ title: '配置已发布保存！', icon: 'success' });
+        }).catch(err => {
+          wx.hideLoading();
+          wx.showModal({
+            title: '云端同步提示',
+            content: '已保存至本地配置生效！云端添加失败: ' + (err.message || '网络或权限限制'),
+            showCancel: false
+          });
+        });
+      }
     } else {
-      db.collection('wow_guides').add({
-        data: payload
-      }).then(res => {
-        this.setData({ docId: res._id });
-        wx.hideLoading();
-        wx.showToast({ title: '推荐出装发布成功！', icon: 'success' });
-      }).catch(err => {
-        wx.hideLoading();
-        wx.showModal({ title: '添加失败', content: err.message || '网络异常', showCancel: false });
-      });
+      wx.showToast({ title: '已保存至本地缓存！', icon: 'success' });
     }
   },
 
