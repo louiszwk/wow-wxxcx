@@ -448,12 +448,15 @@ Page({
 
   // 分享大秘境路线列表
   onShareAppMessage(res) {
-    if (res && res.from === 'button' && res.target && res.target.dataset && res.target.dataset.route) {
-      const r = res.target.dataset.route;
-      const dName = this.data.currentDungeon.name;
+    // 卡片上已有 data-id，按 id 反查路线；不再依赖 wxml 中不存在的 data-route
+    const dataset = (res && res.from === 'button' && res.target) ? res.target.dataset : null;
+    const routeId = dataset ? (dataset.id || '') : '';
+    const route = routeId ? (this.data.routes || []).find(r => r._id === routeId) : null;
+    if (route) {
+      const dName = (this.data.currentDungeon && this.data.currentDungeon.name) || route.dungeon || '大秘境';
       return {
-        title: `🗺️ [${dName}] ${r.name || '大秘境路线'}`,
-        path: `/pages/mdt/mdt?mode=view&id=${r._id}&dungeon=${encodeURIComponent(dName)}&d=${this.data.currentDungeonIndex}`
+        title: `🗺️ [${dName}] ${route.name || '大秘境路线'}`,
+        path: `/pages/mdt/mdt?mode=view&id=${route._id}&dungeon=${encodeURIComponent(dName)}&d=${this.data.currentDungeonIndex}`
       };
     }
     const dungeon = this.data.currentDungeon || DUNGEONS[0];

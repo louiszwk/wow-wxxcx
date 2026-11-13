@@ -218,6 +218,7 @@ Page({
         placeholderText: '请输入管理员密码',
         success: (res) => {
           if (res.confirm && res.content === 'louiskkk') {
+            wx.setStorageSync('admin_session', Date.now());
             wx.navigateTo({ url: '/pages/admin/admin' });
           } else if (res.confirm) {
             wx.showToast({ title: '密码错误', icon: 'error' });

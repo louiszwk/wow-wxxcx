@@ -53,7 +53,7 @@ Page({
     // 动态计算适合手机屏幕的初始缩放比，确保整张副本地图完整显示不被裁剪
     let fitScale = 0.52;
     try {
-      const sys = wx.getSystemInfoSync();
+      const sys = (wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync());
       if (sys && sys.windowWidth) {
         // 地图基准宽度为 680px，留出 32px 两侧边距
         fitScale = Math.min(1.0, Math.max(0.46, Math.round(((sys.windowWidth - 32) / 680) * 100) / 100));

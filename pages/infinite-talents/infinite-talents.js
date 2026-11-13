@@ -71,8 +71,12 @@ Page({
     const savedTheme = wx.getStorageSync('app_theme') || 'dark';
     const likedBuilds = wx.getStorageSync('infinite_liked_talent_builds') || {};
 
-    let targetClass = (options && options.class) ? options.class : 'warrior';
-    let targetMode = (options && options.mode) ? options.mode : 'list';
+    // 分享链接可能携带非法参数，必须校验，否则天赋树为空会导致后续操作崩溃
+    const validClassIds = this.data.classList.map(c => c.id);
+    const targetClass = (options && options.class && validClassIds.includes(options.class))
+      ? options.class : 'warrior';
+    const targetMode = (options && (options.mode === 'tree' || options.mode === 'list'))
+      ? options.mode : 'list';
 
     this.setData({
       theme: savedTheme,
@@ -83,7 +87,8 @@ Page({
     this.initClassTalents(targetClass, () => {
       // 若分享链接指定了配装名称，自动定位加载该配装
       if (options && options.buildName) {
-        const decodedName = decodeURIComponent(options.buildName);
+        let decodedName = options.buildName;
+        try { decodedName = decodeURIComponent(options.buildName); } catch (err) { /* 非法转义时按原文匹配 */ }
         const found = this.data.allBuilds.find(b => b.name === decodedName);
         if (found) {
           this.loadBuild(found);
@@ -129,6 +134,7 @@ Page({
   },
 
   initClassTalents(classId, callback) {
+    if (!TALENT_DATA_60[classId]) classId = 'warrior';
     const classData = TALENT_DATA_60[classId];
     if (!classData) return;
 
@@ -153,10 +159,13 @@ Page({
     const presets = classData.presets || [];
 
     // 从本地存储加载玩家保存的该职业配装
+    const validSkillIds = new Set(trees.flatMap(t => t.skills.map(s => s.id)));
     const userBuilds = wx.getStorageSync('infinite_user_talent_builds') || [];
     const myClassBuilds = userBuilds.filter(b => b.classId === classId).map(b => {
       const { pointSummary, totalPoints } = computeBuildSummary(b.points || {});
-      return { ...b, pointSummary, totalPoints };
+      // 天赋数据已对齐 1.60.1 客户端，旧版自建配装中的失效技能 ID 会被自动忽略
+      const legacy = Object.keys(b.points || {}).some(id => !validSkillIds.has(id));
+      return { ...b, pointSummary, totalPoints, legacy };
     });
 
     // 格式化官方预设列表
@@ -165,11 +174,11 @@ Page({
       return {
         id: `official_${classId}_${idx}`,
         name: p.name,
-        desc: p.desc || '暴雪无限服权威主流加点方案。',
+        desc: p.desc || '游戏内主流 51 点加点方案。',
         points: p.points || {},
         classId: classId,
-        authorName: '暴雪官方推荐',
-        displayTime: '2026.11.05 上线权威',
+        authorName: '游戏内主流推荐',
+        displayTime: '1.60.1 客户端实装 · 2026.11.12',
         isOfficial: true,
         isOwner: false,
         pointSummary,
@@ -197,7 +206,20 @@ Page({
       this.filterBuilds();
       if (defaultBuild) {
         this.applyPreset(defaultBuild);
+        // 默认载入的配装必须同步方案元数据，否则界面显示「默认配装」却已是一套完整加点
+        this.setData({
+          currentBuildId: defaultBuild.id,
+          currentBuildName: defaultBuild.name,
+          currentBuildDesc: defaultBuild.desc || '',
+          isCustomBuild: !!defaultBuild.isOwner
+        });
       } else {
+        this.setData({
+          currentBuildId: null,
+          currentBuildName: '默认配装',
+          currentBuildDesc: '',
+          isCustomBuild: false
+        });
         this.recalculateMatrix();
       }
       if (typeof callback === 'function') callback();
@@ -236,6 +258,9 @@ Page({
   // 载入选中的配装并切换至天赋树加点视图
   loadBuild(build) {
     this.applyPreset(build);
+    if (build.legacy) {
+      wx.showToast({ title: '旧版配装已按最新版天赋重载', icon: 'none' });
+    }
     this.setData({
       viewMode: 'tree',
       currentBuildId: build.id,
@@ -377,8 +402,13 @@ Page({
       isCustomBuild: true
     });
 
-    // 刷新该职业全部配装列表
-    this.initClassTalents(selectedClass);
+    // 只刷新列表，保留当前天赋树点数与已保存的方案元数据
+    const allBuilds = this.data.allBuilds.slice();
+    const listItem = { ...newBuild, pointSummary, totalPoints, legacy: false };
+    const listIdx = allBuilds.findIndex(b => b.id === buildId);
+    if (listIdx !== -1) allBuilds[listIdx] = listItem;
+    else allBuilds.unshift(listItem);
+    this.setData({ allBuilds }, () => this.filterBuilds());
 
     wx.showToast({ title: '配装已保存成功！', icon: 'success' });
   },
@@ -399,7 +429,17 @@ Page({
           wx.setStorageSync('infinite_user_talent_builds', userBuilds);
 
           wx.showToast({ title: '已删除配装', icon: 'success' });
-          this.initClassTalents(this.data.selectedClass);
+          const allBuilds = this.data.allBuilds.filter(b => b.id !== buildId);
+          const wasCurrent = this.data.currentBuildId === buildId;
+          this.setData({
+            allBuilds,
+            ...(wasCurrent ? {
+              currentBuildId: null,
+              currentBuildName: '默认配装',
+              currentBuildDesc: '',
+              isCustomBuild: false
+            } : {})
+          }, () => this.filterBuilds());
         }
       }
     });
@@ -507,18 +547,19 @@ Page({
     if (!skillId) return;
 
     const { trees, activeTreeIndex } = this.data;
-    const skill = trees[activeTreeIndex].skills.find(s => s.id === skillId);
+    const activeTree = trees[activeTreeIndex];
+    if (!activeTree) return;
+    const skill = activeTree.skills.find(s => s.id === skillId);
     if (!skill) return;
 
-    // 显示并更新 Tooltip
+    // 仅展示详情；加/减点由弹窗内的按钮完成，避免点节点看说明时被动加点
     this.showSkillTooltip(skill);
-
-    // 尝试加 1 点
-    this.tryAddPoint(skill.id);
   },
 
   showSkillTooltip(skill) {
     const { trees, activeTreeIndex, treePoints } = this.data;
+    const activeTree = trees[activeTreeIndex];
+    if (!activeTree || !skill) return;
     const activePoints = treePoints[activeTreeIndex];
     let isLocked = activePoints < (skill.row - 1) * 5;
     let prereqName = '';
@@ -556,6 +597,7 @@ Page({
 
     const { trees, activeTreeIndex, pointsRemaining, treePoints } = this.data;
     const activeTree = trees[activeTreeIndex];
+    if (!activeTree) return;
     const skill = activeTree.skills.find(s => s.id === skillId);
     if (!skill) return;
 
@@ -597,26 +639,21 @@ Page({
 
     const { trees, activeTreeIndex } = this.data;
     const activeTree = trees[activeTreeIndex];
+    if (!activeTree) return;
     const skill = activeTree.skills.find(s => s.id === skillId);
     if (!skill || skill.rank <= 0) return;
 
-    // 校验点数层级依赖
-    let tempSkills = JSON.parse(JSON.stringify(activeTree.skills));
-    let target = tempSkills.find(s => s.id === skill.id);
-    target.rank -= 1;
-
-    for (let r = skill.row + 1; r <= 7; r++) {
-      const hasSkillsInOrAboveRow = tempSkills.some(s => s.row >= r && s.rank > 0);
-      if (hasSkillsInOrAboveRow) {
-        const pointsBeforeRow = tempSkills
-          .filter(s => s.row < r)
-          .reduce((sum, s) => sum + s.rank, 0);
-
-        if (pointsBeforeRow < (r - 1) * 5) {
-          wx.showToast({ title: '无法减少：更高层级天赋依赖此点数', icon: 'none' });
-          return;
-        }
-      }
+    // 层级门槛与 tryAddPoint 保持同一基准：减点后该系总点数仍需满足已投点最高行的解锁要求
+    // （旧实现只累计 row < r 的点数，会把合法状态误判为不可减，导致「能加上去却减不回来」）
+    const tempSkills = activeTree.skills.map(s => ({
+      row: s.row,
+      rank: s.rank - (s.id === skillId ? 1 : 0)
+    }));
+    const totalAfter = tempSkills.reduce((sum, s) => sum + s.rank, 0);
+    const maxRowWithPoints = tempSkills.reduce((max, s) => (s.rank > 0 ? Math.max(max, s.row) : max), 0);
+    if (maxRowWithPoints > 1 && totalAfter < (maxRowWithPoints - 1) * 5) {
+      wx.showToast({ title: '无法减少：更高层级天赋依赖此点数', icon: 'none' });
+      return;
     }
 
     // 检查是否有子前置技能依赖该技能
@@ -647,7 +684,9 @@ Page({
 
   resetActiveTree() {
     const { trees, activeTreeIndex } = this.data;
-    trees[activeTreeIndex].skills.forEach(s => { s.rank = 0; });
+    const activeTree = trees[activeTreeIndex];
+    if (!activeTree) return;
+    activeTree.skills.forEach(s => { s.rank = 0; });
     this.recalculateMatrix();
     wx.showToast({ title: '本系天赋已重置', icon: 'success' });
   },
@@ -676,7 +715,7 @@ Page({
     if (targetBuild && targetBuild.pointSummary) {
       code = `[魔兽世界无限服 ${className} · ${targetBuild.name}] ${targetBuild.pointSummary} (${targetBuild.totalPoints}/51点满级方案)`;
     } else {
-      const pointStr = treePoints.map((p, idx) => `${trees[idx].name}:${p}`).join(' / ');
+      const pointStr = treePoints.map((p, idx) => `${trees[idx] ? trees[idx].name : '天赋树' + (idx + 1)}:${p}`).join(' / ');
       code = `[魔兽世界无限服 ${className} · ${currentBuildName}] ${pointStr} (已分配: ${this.data.pointsSpent}/51 点)`;
     }
 

@@ -1,3 +1,11 @@
+// 魔兽世界官方职业色（utils/wowClasses.js 只有 name/specs，不含 color）
+const CLASS_COLORS = {
+  '死亡骑士': '#C41E3A', '恶魔猎手': '#A330C9', '德鲁伊': '#FF7C0A',
+  '唤魔师': '#33937F', '猎人': '#AAD372', '法师': '#3FC7EB',
+  '武僧': '#00FF98', '圣骑士': '#F48CBA', '牧师': '#E8E8E8',
+  '潜行者': '#FFF468', '萨满': '#0070DD', '术士': '#8788EE', '战士': '#C69B6D'
+};
+
 Page({
   data: {
     navBarHeight: 0,
@@ -307,8 +315,7 @@ Page({
       'Shadow', 'Elemental', 'Affliction', 'Demonology', 'Destruction', 'Devastation', 'Augmentation'
     ]);
 
-    const { classData } = require('../../utils/wowClasses.js');
-    const classColors = {};
+    const classColors = { ...CLASS_COLORS };
     const clsMap = {
       'Death Knight': '死亡骑士', 'Demon Hunter': '恶魔猎手', 'Druid': '德鲁伊', 'Evoker': '唤魔师',
       'Hunter': '猎人', 'Mage': '法师', 'Monk': '武僧', 'Paladin': '圣骑士', 'Priest': '牧师',
@@ -331,9 +338,6 @@ Page({
       'Arms': '武器', 'Fury': '狂怒'
     };
 
-    if (Array.isArray(classData)) {
-      classData.forEach(c => { classColors[c.name] = c.color; });
-    }
 
     allRuns.forEach(r => {
       if (!r || !r.run || !Array.isArray(r.run.roster)) return;
@@ -379,8 +383,7 @@ Page({
   processRuns(runs) {
     if (!runs || !Array.isArray(runs)) return;
 
-    const { classData } = require('../../utils/wowClasses.js');
-    const classColors = {};
+    const classColors = { ...CLASS_COLORS };
     const clsMap = {
       'Death Knight': '死亡骑士', 'Demon Hunter': '恶魔猎手', 'Druid': '德鲁伊', 'Evoker': '唤魔师',
       'Hunter': '猎人', 'Mage': '法师', 'Monk': '武僧', 'Paladin': '圣骑士', 'Priest': '牧师',
@@ -403,9 +406,6 @@ Page({
       'Arms': '武器', 'Fury': '狂怒'
     };
 
-    if (Array.isArray(classData)) {
-      classData.forEach(c => { classColors[c.name] = c.color; });
-    }
 
     const dungeonMap = {
       'Den of Nalorakk': '纳洛拉克的洞穴',

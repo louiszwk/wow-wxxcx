@@ -7,7 +7,7 @@
   </view>
 
   <view class="banner-area">
-    <view class="time-limit">数据版本：12.1 (精准同步)</view>
+    <view class="time-limit">12.1.5 · 官方客户端物品数据 · 2026-11-13</view>
     <!-- 顶部背景图，可以用死亡骑士的职业背景替代 -->
     <image class="banner-img" src="https://wow.zamimg.com/images/wow/icons/large/class_deathknight.jpg" mode="aspectFill"></image>
   </view>
@@ -31,12 +31,12 @@
   </view>
 
   <view wx:if="{{isLoading}}" class="loading-state">
-    <text>正在连接云数据库...</text>
+    <text>正在载入官方 BiS 数据...</text>
   </view>
 
   <view wx:elif="{{!guideData}}" class="empty-state">
     <view class="empty-icon">📂</view>
-    <text class="empty-text">当前版本暂未收录该专精的攻略数据\n数据源每周持续更新中，敬请期待</text>
+    <text class="empty-text">该专精暂无可核实的 BiS 数据\n请从 BiS 列表重新选择职业专精</text>
     <view class="retry-btn-guide" bindtap="fetchDynamicBisGear">
       <text class="retry-icon">↻</text>
       <text>点击重试</text>
@@ -44,45 +44,36 @@
   </view>
 
   <view wx:else>
-    <!-- Section 0: 天赋&物资 -->
+    <!-- Section 0: 天赋代码（只展示可核实数据，缺失一律留空） -->
     <view class="guide-panel" wx:if="{{activeSection === 0}}">
-      <view class="panel-card" wx:if="{{guideData.statPriority}}">
-        <view class="card-title">属性优先级 & 阈值说明</view>
-        <view class="stat-priority-highlight">{{guideData.statPriority}}</view>
-        <view class="talent-desc" wx:if="{{guideData.statDesc}}">{{guideData.statDesc}}</view>
-      </view>
-
-      <view class="panel-card">
+      <view class="panel-card" wx:if="{{guideData.talents && guideData.talents.mythicPlus}}">
         <view class="card-title">大秘境天赋代码</view>
         <view class="talent-box">
           <text class="talent-code" user-select="true">{{guideData.talents.mythicPlus}}</text>
           <view class="copy-btn" bindtap="copyTalent" data-code="{{guideData.talents.mythicPlus}}">一键复制</view>
         </view>
+        <view class="talent-desc" wx:if="{{guideData.talents.mythicPlusName}}">{{guideData.talents.mythicPlusName}}</view>
       </view>
-      <view class="panel-card">
+
+      <view class="panel-card" wx:if="{{guideData.talents && guideData.talents.raid}}">
         <view class="card-title">团本天赋代码</view>
         <view class="talent-box">
           <text class="talent-code" user-select="true">{{guideData.talents.raid}}</text>
           <view class="copy-btn" bindtap="copyTalent" data-code="{{guideData.talents.raid}}">一键复制</view>
         </view>
-        <view class="talent-desc">{{guideData.talents.desc}}</view>
+        <view class="talent-desc" wx:if="{{guideData.talents.raidName}}">{{guideData.talents.raidName}}</view>
+        <view class="talent-desc" wx:if="{{guideData.talents.desc}}">{{guideData.talents.desc}}</view>
       </view>
-      
-      <view class="panel-card">
-        <view class="card-title">核心消耗品与附魔</view>
-        <view class="consumable-list">
-          <view class="c-item"><text class="c-label">合剂</text><text class="c-val">{{guideData.consumables.flask}}</text></view>
-          <view class="c-item"><text class="c-label">药水</text><text class="c-val">{{guideData.consumables.potion}}</text></view>
-          <view class="c-item"><text class="c-label">食物</text><text class="c-val">{{guideData.consumables.food}}</text></view>
-          <view class="c-item"><text class="c-label">武器</text><text class="c-val">{{guideData.consumables.weapon}}</text></view>
-          <view class="c-item"><text class="c-label">宝石</text><text class="c-val">{{guideData.consumables.gems}}</text></view>
-        </view>
+
+      <view class="panel-card" wx:if="{{!guideData.talents || (!guideData.talents.mythicPlus && !guideData.talents.raid)}}">
+        <view class="card-title">天赋代码</view>
+        <view class="talent-desc">暂无可核实的天赋代码，留空待补。</view>
       </view>
     </view>
 
-    <!-- Section 1: 输出循环 -->
+    <!-- Section 1: 输出手法（无数据则留空） -->
     <view class="guide-panel" wx:if="{{activeSection === 1}}">
-      <view class="panel-card">
+      <view class="panel-card" wx:if="{{guideData.rotation.length > 0}}">
         <view class="card-title">输出优先级 (自上而下)</view>
         <view class="rotation-list">
           <view class="rot-item" wx:for="{{guideData.rotation}}" wx:key="name">
@@ -95,9 +86,13 @@
           </view>
         </view>
       </view>
+      <view class="panel-card" wx:if="{{!guideData.rotation || guideData.rotation.length === 0}}">
+        <view class="card-title">输出手法</view>
+        <view class="talent-desc">暂无可核实的输出手法，留空待补。</view>
+      </view>
     </view>
 
-    <!-- Section 2: BiS装备 -->
+    <!-- Section 2: BiS装备（物品名与属性来自官方客户端） -->
     <view class="guide-panel" wx:if="{{activeSection === 2}}">
       <view class="gear-panel">
         <view class="gear-col left-col">

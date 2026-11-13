@@ -13,7 +13,7 @@ App({
       });
     }
 
-    const systemInfo = wx.getSystemInfoSync();
+    const systemInfo = (wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync());
     const menuButtonInfo = wx.getMenuButtonBoundingClientRect();
     
     this.globalData = {

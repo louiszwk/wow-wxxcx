@@ -8,7 +8,7 @@ Page({
     classSlug: '',
     specs: [],
     activeSpec: 0,
-    sectionTabs: ['天赋&物资', '输出循环', 'BiS装备'],
+    sectionTabs: ['天赋代码', '输出手法', 'BiS 装备'],
     activeSection: 0,
     
     isLoading: true,
@@ -51,7 +51,12 @@ Page({
         this.fetchDynamicBisGear();
       } catch (e) {
         console.error(e);
+        this.setData({ isLoading: false, guideData: null });
       }
+    } else {
+      // 分享或直达链接缺少参数时，不能停在永久 loading
+      this.setData({ isLoading: false, guideData: null });
+      wx.showToast({ title: '请先从 BiS 列表选择职业专精', icon: 'none' });
     }
   },
 
@@ -72,9 +77,19 @@ Page({
           specId: currentSpec.id
         }).get({
           success: (res) => {
-            if (res.data && res.data.length > 0 && res.data[0].gear && res.data[0].gear.left && res.data[0].talents && !res.data[0].talents.mythicPlus.includes('...')) {
-              this.applyGuideData(res.data[0]);
-            } else {
+            // 云数据库回调是异步的，外层 try/catch 抓不到；此处必须自行判空并兜底
+            try {
+              const doc = res.data && res.data[0];
+              // 只接受由新版生成器发布的 12.1.5 文档；
+              // 云端历史模板数据（含占位天赋码）一律回退本地官方权威库
+              const isCurrent = doc && (doc.dataVersion === '12.1.5' ||
+                (doc.dataDate && String(doc.dataDate) >= '2026-11-13'));
+              const usable = isCurrent && doc.gear && doc.gear.left &&
+                doc.gear.left.length > 0;
+              if (usable) this.applyGuideData(doc);
+              else this.loadLocalGuide(this.data.classSlug, currentSpec.id);
+            } catch (err) {
+              console.warn('云端攻略数据异常，回退本地攻略:', err);
               this.loadLocalGuide(this.data.classSlug, currentSpec.id);
             }
           },
@@ -92,8 +107,14 @@ Page({
   },
 
   applyGuideData(data) {
+    // 统一补齐可能缺失的字段，模板里对 rotation / talents 判空才安全
+    const normalized = {
+      ...data,
+      talents: data.talents || null,
+      rotation: Array.isArray(data.rotation) ? data.rotation : []
+    };
     this.setData({
-      guideData: data,
+      guideData: normalized,
       leftGear: data.gear && data.gear.left ? data.gear.left : [],
       rightGear: data.gear && data.gear.right ? data.gear.right : [],
       weapons: data.gear && data.gear.weapons ? data.gear.weapons : [],
@@ -110,21 +131,8 @@ Page({
         return;
       }
       
-      const { getSpecGuide } = require('../../data/spec_guides_data.js');
-      const fallbackGuide = getSpecGuide(classSlug, specId);
-      if (fallbackGuide) {
-        this.applyGuideData({
-          classSlug,
-          specId,
-          statPriority: fallbackGuide.statPriority,
-          statDesc: fallbackGuide.statDesc,
-          talents: fallbackGuide.talents,
-          consumables: fallbackGuide.consumables,
-          rotation: fallbackGuide.rotation,
-          gear: { left: [], right: [], weapons: [] }
-        });
-        return;
-      }
+      // 不再回退到 spec_guides_data：那批「一图流」数据与官方实装不符，
+      // 缺失内容一律留空，符合「能查到就展示，没有就空着」的口径。
     } catch (e) {
       console.error('加载本地攻略数据失败:', e);
     }
@@ -156,8 +164,8 @@ Page({
   },
 
   copyTalent(e) {
-    const string = e.currentTarget.dataset.code;
-    if (string.includes('暂无')) {
+    const string = e.currentTarget.dataset.code || '';
+    if (!string || string.includes('暂无')) {
       wx.showToast({ title: '暂无可用代码', icon: 'none' });
       return;
     }
@@ -172,24 +180,43 @@ Page({
   openItemStats(e) {
     const itemName = e.currentTarget.dataset.name;
     if (!itemName) return;
-    // 点击装备后，通过小程序的 WebView 跳转到 Wowhead 对应的物品搜索页（自带详细属性弹窗效果）
-    const searchUrl = `https://www.wowhead.com/search?q=${encodeURIComponent(itemName)}`;
+    // 用统一权威库按名称反查 Wowhead 物品 ID，直达物品页而非模糊搜索
+    let itemId = 0;
+    try {
+      const { items } = require('../../data/retail_items_master.js');
+      const hit = Object.values(items).find(x => x.name === itemName);
+      if (hit) itemId = hit.id;
+    } catch (err) { /* 数据文件缺失时回退搜索 */ }
+    const target = itemId
+      ? `https://www.wowhead.com/item=${itemId}`
+      : `https://www.wowhead.com/search?q=${encodeURIComponent(itemName)}`;
     wx.navigateTo({
-      url: `/pages/webview/webview?url=${encodeURIComponent(searchUrl)}`
+      url: `/pages/webview/webview?url=${encodeURIComponent(target)}`
     });
-  }
-,
+  },
+  // 分享必须携带职业/专精参数，否则接收方打开后无数据且永久转圈
+  buildShareQuery() {
+    const { className, classSlug, specs, activeSpec } = this.data;
+    if (!classSlug || !specs || !specs.length) return '';
+    const specId = (specs[activeSpec] && specs[activeSpec].id) || '';
+    return 'class=' + encodeURIComponent(className) +
+      '&slug=' + encodeURIComponent(classSlug) +
+      '&specs=' + encodeURIComponent(JSON.stringify(specs)) +
+      '&spec=' + encodeURIComponent(specId);
+  },
+
   onShareAppMessage() {
+    const query = this.buildShareQuery();
     return {
-      title: '魔兽世界全职业 BiS 毕业装备详情',
-      path: '/pages/bis-detail/bis-detail'
+      title: (this.data.className || '魔兽世界') + ' BiS 毕业装备与天赋',
+      path: '/pages/bis-detail/bis-detail' + (query ? '?' + query : '')
     };
   },
 
   onShareTimeline() {
     return {
-      title: '魔兽世界全职业 BiS 毕业装备详情',
-      path: '/pages/bis-detail/bis-detail'
+      title: (this.data.className || '魔兽世界') + ' BiS 毕业装备与天赋',
+      query: this.buildShareQuery()
     };
   }
 });

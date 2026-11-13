@@ -6,8 +6,8 @@
       <text class="back-text">返回</text>
     </view>
     <view class="header">
-      <view class="title">至暗之夜第二赛季</view>
-      <view class="subtitle">魔兽世界：至暗之夜第二赛季</view>
+      <view class="title">至暗之夜第二赛季掉落</view>
+      <view class="subtitle">12.1.5 · 烈毒之渊 8 首领 / 史诗钥石 8 副本 / 地下堡掉落</view>
       <view class="theme-toggle" bindtap="toggleTheme">{{theme === 'light' ? '🌙' : '☀️'}}</view>
     </view>
 
@@ -46,45 +46,64 @@
             <text class="dungeon-name">{{item.name}}</text>
             <text class="expand-icon">{{item.expanded ? '▼' : '▶'}}</text>
           </view>
-          
+
           <view class="dungeon-content" wx:if="{{item.expanded}}">
             <block wx:for="{{item.encounters}}" wx:key="id" wx:for-item="encounter">
               <view class="boss-section">
                 <view class="boss-header" catchtap="toggleBoss" data-dungeon-id="{{item.id}}" data-boss-id="{{encounter.id}}" wx:if="{{encounter.name !== 'NONE'}}">
-                  <view class="boss-name">{{encounter.name}}</view>
+                  <view class="boss-title-row">
+                    <text class="boss-name">{{encounter.name}}</text>
+                    <text class="boss-count">{{encounter.items.length}} 件</text>
+                  </view>
                   <text class="expand-icon">{{encounter.expanded === false ? '▶' : '▼'}}</text>
                 </view>
-                
+
                 <view class="loot-list" wx:if="{{encounter.expanded !== false}}">
                   <block wx:for="{{encounter.items}}" wx:key="id" wx:for-item="loot">
                     <view class="loot-item">
+                      <image class="loot-icon" wx:if="{{loot.icon}}" src="{{loot.icon}}" mode="aspectFit" lazy-load="true" />
                       <view class="loot-info">
                         <text class="loot-name {{loot.quality.type}}">{{loot.name}}</text>
-                        <text class="loot-type">{{loot.item_class.name}} - {{loot.inventory_type.name}} <text class="loot-main-stat" wx:if="{{loot.stats.main}}">({{loot.stats.main}})</text></text>
-                        
-                        <!-- 绿字属性与详细急速暴击比例展示 -->
-                        <view class="loot-stats" wx:if="{{loot.stats.combo}}">
-                          <text class="stat-badge combo" wx:if="{{!loot.stats.ratioText}}">{{loot.stats.combo}}</text>
-                          <block wx:if="{{loot.stats.ratioList && loot.stats.ratioList.length > 0}}">
-                            <text class="stat-badge {{st.short === '暴' ? 'crit' : st.short === '急' ? 'haste' : st.short === '精' ? 'mastery' : 'versa'}}" wx:for="{{loot.stats.ratioList}}" wx:for-item="st" wx:key="name">
-                              {{st.name}}: {{st.percent}}% ({{st.displayVal}})
-                            </text>
-                          </block>
-                          <block wx:else>
-                            <text class="stat-badge crit" wx:if="{{loot.stats.crit}}">暴: {{loot.stats.crit}}</text>
-                            <text class="stat-badge haste" wx:if="{{loot.stats.haste}}">急: {{loot.stats.haste}}</text>
-                            <text class="stat-badge mastery" wx:if="{{loot.stats.mastery}}">精: {{loot.stats.mastery}}</text>
-                            <text class="stat-badge versa" wx:if="{{loot.stats.versa}}">全: {{loot.stats.versa}}</text>
-                          </block>
+
+                        <!-- 基础信息：装等 / 类型 / 部位 / 掉落首领 / 掉率 -->
+                        <view class="loot-meta">
+                          <text class="loot-ilvl">{{loot.ilvl}} 装等</text>
+                          <text class="loot-type">{{loot.item_class.name}} · {{loot.inventory_type.name}}</text>
+                          <text class="loot-source" wx:if="{{loot.sourceLabel}}">掉落于 {{loot.sourceLabel}}</text>
+                          <text class="loot-source" wx:if="{{loot.dropRate}}">掉率 {{loot.dropRate}}</text>
+                        </view>
+
+                        <!-- 真实属性：主属性 / 耐力 / 护甲 / 武器参数 -->
+                        <view class="loot-attrs">
+                          <text class="attr-chip" wx:if="{{loot.attrs.mainText}}">{{loot.attrs.mainText}}</text>
+                          <text class="attr-chip" wx:if="{{loot.attrs.staminaText}}">{{loot.attrs.staminaText}}</text>
+                          <text class="attr-chip" wx:if="{{loot.attrs.armorText}}">{{loot.attrs.armorText}}</text>
+                          <text class="attr-chip" wx:if="{{loot.attrs.weaponText}}">{{loot.attrs.weaponText}}</text>
+                          <text class="attr-chip muted" wx:if="{{!loot.attrs.hasStats}}">{{loot.attrs.emptyText}}</text>
+                        </view>
+
+                        <!-- 副属性：官方 tooltip 数值 -->
+                        <view class="loot-stats" wx:if="{{loot.attrs.secondaryList.length > 0}}">
+                          <text class="stat-badge {{st.key}}" wx:for="{{loot.attrs.secondaryList}}" wx:for-item="st" wx:key="name">{{st.name}} +{{st.value}}</text>
+                        </view>
+
+                        <!-- 装备特效 / 使用效果：无则留空，不用模板填充 -->
+                        <view class="loot-effect" wx:if="{{loot.special}}">
+                          <text class="effect-label">特效</text>
+                          <text class="effect-text">{{loot.special}}</text>
+                        </view>
+                        <view class="loot-effect use" wx:if="{{loot.useEffect}}">
+                          <text class="effect-label">使用</text>
+                          <text class="effect-text">{{loot.useEffect}}</text>
                         </view>
                       </view>
                     </view>
                   </block>
-                  <view wx:if="{{encounter.items.length === 0}}" class="no-loot">暂无掉落数据</view>
+                  <view wx:if="{{encounter.items.length === 0}}" class="no-loot">暂无可核实的掉落数据，留空待补。</view>
                 </view>
               </view>
             </block>
-            <view wx:if="{{item.encounters.length === 0}}" class="no-loot">首领数据加载中...</view>
+            <view wx:if="{{item.encounters.length === 0}}" class="no-loot">暂无可核实的掉落数据，留空待补。</view>
           </view>
         </view>
       </block>

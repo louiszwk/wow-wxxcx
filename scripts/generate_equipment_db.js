@@ -1,4 +1,10 @@
 // scripts/generate_equipment_db.js
+// 【已废弃 / DEPRECATED】请勿再运行本脚本：它会用旧的副本分类覆盖 data/wow_equipment_db.js。
+// 正式服装备数据的唯一生成链路是：
+//   python scripts/fetch_retail_gear_data.py [--from-cache <DIR>]
+//   node scripts/build_retail_gear_data.js
+// 后者从 data/retail_items_master.js 派生四份数据，掉落归类见 scripts/season2_sources.js。
+// ---------------------------------------------------------------------------
 // 从 data/loot.js 中提取 12.1 S2 真实掉落数据，并整合 12.1 S2 制造业（火花）全套装备
 // 所有字段明确细分：名称、部位、甲类/武器类、来源分类、副本、首领、品质、主属性、副属性权重与百分比、制造业标记与专业
 

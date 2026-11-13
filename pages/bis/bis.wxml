@@ -6,8 +6,8 @@
 
   <view class="header">
     <view class="title">BiS 装备推荐</view>
-    <view class="subtitle">全职业最佳装备、附魔、宝石权威指南</view>
-    <view class="desc">点击职业选择专精，系统将自动从 Wowhead 获取最新版本的 BiS 数据。</view>
+    <view class="subtitle">40 个专精的 BiS 装备、天赋码与输出手法</view>
+    <view class="desc">装备取自 12.1.5 官方客户端数据（2026-11-13），天赋码与手法查不到则留空。</view>
   </view>
 
   <view class="class-list">

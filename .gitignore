@@ -16,3 +16,6 @@ node_modules/
 # Raw MDT addon assets
 data/MythicDungeonTools/
 scripts/portraits_backup/
+
+# WorkBuddy local agent data (project memory / daily logs)
+.workbuddy/

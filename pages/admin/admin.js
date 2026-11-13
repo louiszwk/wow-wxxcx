@@ -75,6 +75,16 @@ const SLOTS_CONFIG = [
   { key: 'weaponOff', name: '副手/盾牌', icon: '🛡️', accepted: ['单手', '副手', '盾牌'] }
 ];
 
+// 历史发布数据使用的简写槽位名 -> SLOTS_CONFIG 的规范名
+const SLOT_ALIASES = {
+  '戒指1': '戒指 1',
+  '戒指2': '戒指 2',
+  '饰品1': '饰品 1',
+  '饰品2': '饰品 2',
+  '主手/双手': '主手/双手武器',
+  '副手': '副手/盾牌'
+};
+
 function initEmptyGear() {
   const gear = {};
   SLOTS_CONFIG.forEach(s => {
@@ -148,6 +158,14 @@ Page({
   },
 
   onLoad() {
+    // 管理页必须先从首页通过身份验证，避免直接输入页面路径进入后台
+    const session = wx.getStorageSync('admin_session') || 0;
+    if (!session || Date.now() - session > 30 * 60 * 1000) {
+      wx.removeStorageSync('admin_session');
+      wx.showToast({ title: '请先从首页验证管理员身份', icon: 'none' });
+      setTimeout(() => wx.reLaunch({ url: '/pages/index/index' }), 900);
+      return;
+    }
     this.initClassPicker();
     this.loadCurrentSpecBuild();
   },
@@ -247,7 +265,9 @@ Page({
       if (!list || !Array.isArray(list)) return;
       list.forEach(item => {
         if (!item || !item.slot) return;
-        const cfg = SLOTS_CONFIG.find(s => s.name === item.slot || s.accepted.includes(item.slot));
+        // 兼容后台历史写入的简写槽位名，否则戒指/饰品/主手装备回读时会被整条丢弃
+        const slot = SLOT_ALIASES[item.slot] || item.slot;
+        const cfg = SLOTS_CONFIG.find(s => s.name === slot || s.accepted.includes(slot));
         const key = cfg ? cfg.key : null;
         if (key && item.name) {
           gear[key] = {
@@ -333,7 +353,7 @@ Page({
       if (match && ['head', 'shoulder', 'chest', 'hands', 'legs'].includes(match.key)) {
         currentGear[match.key] = {
           name: item.name,
-          desc: `12.1 S2 套装 (${item.stat_combo})`,
+          desc: `12.1.5 套装 (${item.stat_combo})`,
           quality: 'epic'
         };
         filled++;
@@ -588,10 +608,10 @@ Page({
       slot: '头部',
       item_class: '板甲',
       source_dungeon: '烈毒之渊',
-      source_boss: '1号Boss',
-      source_desc: '烈毒之渊 · 1号Boss',
+      source_boss: '盘魂者内克扎莉',
+      source_desc: '烈毒之渊 · 盘魂者内克扎莉',
       stat_combo: '急速/暴击',
-      description: '12.1 S2 掉落装备',
+      description: '12.1.5 第二赛季掉落装备',
       is_crafted: false
     };
 

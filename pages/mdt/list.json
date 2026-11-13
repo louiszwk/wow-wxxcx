@@ -1,6 +1,5 @@
 {
   "navigationBarTitleText": "大秘境路线",
   "navigationStyle": "custom",
-  "enablePullDownRefresh": true,
   "backgroundTextStyle": "dark"
 }

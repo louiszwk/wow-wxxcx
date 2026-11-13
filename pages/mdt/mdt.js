@@ -266,7 +266,7 @@ Page({
         navBarHeight: app.globalData.navBarHeight || 88
       });
     }
-    const sys = wx.getSystemInfoSync();
+    const sys = (wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync());
     const winWidth = sys.windowWidth || 390;
     this.fitScale = parseFloat(Math.max(0.25, Math.min(1.0, winWidth / 1200)).toFixed(2));
     this.currentScale = this.fitScale;
@@ -276,8 +276,7 @@ Page({
       scalePercent: Math.round(this.fitScale * 100)
     });
 
-    // 获取当前用户 openid 与昵称
-    this._initUserIdentity();
+    // 身份信息在路线加载完成后统一初始化（见下方 _initUserIdentity 回调），避免竞态
 
     // 1. 严格解析目标副本名称（全面兼容 options.dungeon、options.d 索引等传参形式）
     let targetDungeon = '';
@@ -321,47 +320,67 @@ Page({
       ...(saveRouteRemark ? { saveRouteRemark } : {})
     });
 
-    if (routeId) {
-      // 从云数据库加载指定路线
-      this.loadRouteFromCloud(routeId, mode);
-    } else {
-      // 加载指定副本（若有 pendingShare 会在此处自动解码载入）
-      this.loadDungeon(targetDungeon);
-    }
+    // 先拿到 openid 再加载云端路线；否则 _applyLoadedRoute 判定 isAuthor 时身份尚未就绪，
+    // 会把创建人误降级为只读且无法恢复
+    this._initUserIdentity(() => {
+      if (routeId) {
+        this.loadRouteFromCloud(routeId, mode);
+      } else {
+        // 加载指定副本（若有 pendingShare 会在此处自动解码载入）
+        this.loadDungeon(targetDungeon);
+      }
+    });
   },
 
   _initUserIdentity(callback) {
     let openid = wx.getStorageSync('user_openid') || '';
-    let nickname = wx.getStorageSync('user_nickname') || '';
+    const nickname = wx.getStorageSync('user_nickname') || '';
+    let called = false;
+    const done = (id) => {
+      if (called) return;
+      called = true;
+      if (callback) callback(id);
+    };
+
     if (openid) {
       this.setData({ currentOpenId: openid, userNickname: nickname });
       if (this._rawLoadedRoute) {
         const isAuthor = Boolean(this._rawLoadedRoute._openid && this._rawLoadedRoute._openid === openid);
         this.setData({ isAuthor });
       }
-      if (callback) callback(openid);
+      done(openid);
       return;
     }
 
+    // 云函数不可用/超时也要放行，否则路线会永远加载不出来
+    const timer = setTimeout(() => done(''), 1500);
     try {
       wx.cloud.callFunction({
         name: 'checkWishContent',
         data: { action: 'getOpenId' },
         success: (res) => {
+          clearTimeout(timer);
           if (res.result && res.result.openid) {
             openid = res.result.openid;
             wx.setStorageSync('user_openid', openid);
             const isAuthor = Boolean(this._rawLoadedRoute && this._rawLoadedRoute._openid && this._rawLoadedRoute._openid === openid);
-            this.setData({ 
+            this.setData({
               currentOpenId: openid,
               ...(this._rawLoadedRoute ? { isAuthor } : {})
             });
-            if (callback) callback(openid);
           }
+          done(openid);
+        },
+        fail: (err) => {
+          clearTimeout(timer);
+          console.warn('获取 openid 失败:', err);
+          done('');
         }
       });
     } catch (e) {
+      clearTimeout(timer);
       console.warn('获取 openid 失败:', e);
+      done('');
     }
   },
 
@@ -666,7 +685,7 @@ Page({
         if (!res || !res[0]) return;
         const canvas = res[0].node;
         const ctx = canvas.getContext('2d');
-        const sys = wx.getSystemInfoSync();
+        const sys = (wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync());
         // 限制最大 DPR 为 2，保证视网膜级别超清同时防止占用过高显存导致低端机掉帧
         const dpr = Math.min(2, sys.pixelRatio || 2);
         canvas.width = this.data.mapWidth * dpr;
@@ -1317,7 +1336,7 @@ Page({
         const cx = sumX / count;
         const cy = sumY / count;
         const curScale = this.currentScale || this.data.scaleValue || 0.35;
-        const viewW = this._containerWidth || (wx.getSystemInfoSync().windowWidth) || 390;
+        const viewW = this._containerWidth || ((wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()).windowWidth) || 390;
         const viewH = this._containerHeight || 450;
         
         // 计算让怪群几何中心居中的偏移坐标
@@ -1808,7 +1827,7 @@ Page({
     }
     this._shareRouteData = null;
 
-    const dIdx = DUNGEONS_LIST.indexOf(this.data.currentDungeonName);
+    const dIdx = this.canonicalDungeonIndex(this.data.currentDungeonName);
     const encoded = this._encodeRouteForShare(routeData.pulls);
     const routeName = encodeURIComponent(routeData.name || `${this.data.currentDungeonName} 路线`);
     const remark = encodeURIComponent(routeData.remark || '');
@@ -1826,16 +1845,37 @@ Page({
     };
   },
 
+  // 云端路线可能使用别名（致盲谷、尖牙祭坛等），先反查规范名再取索引
+  canonicalDungeonIndex(name) {
+    let idx = DUNGEONS_LIST.indexOf(name);
+    if (idx >= 0) return idx;
+    const dataKey = DUNGEON_DATA_KEYS[name];
+    if (dataKey) {
+      const canonical = Object.keys(DUNGEON_DATA_KEYS)
+        .find(k => DUNGEONS_LIST.includes(k) && DUNGEON_DATA_KEYS[k] === dataKey);
+      if (canonical) idx = DUNGEONS_LIST.indexOf(canonical);
+    }
+    return idx;
+  },
+
   // 微信朋友圈分享
   onShareTimeline() {
-    const dIdx = DUNGEONS_LIST.indexOf(this.data.currentDungeonName);
-    const routeName = this.data.saveRouteName || `${this.data.currentDungeonName} 路线`;
-    let query = `mode=view&dungeon=${encodeURIComponent(this.data.currentDungeonName)}&d=${dIdx}`;
-    if (this.data.routeId) {
-      query += `&id=${this.data.routeId}`;
-    }
+    const routeData = this._shareRouteData || {
+      name: this.data.saveRouteName || `${this.data.currentDungeonName} 路线`,
+      remark: this.data.saveRouteRemark || '',
+      pulls: this.data.pulls || [],
+      id: this.data.routeId || this.data.editingRouteId || ''
+    };
+    const dIdx = this.canonicalDungeonIndex(this.data.currentDungeonName);
+    // 与好友分享保持一致：带上波次编码，未保存云端的路线也能完整分享出去
+    let query = 'mode=view&dungeon=' + encodeURIComponent(this.data.currentDungeonName) +
+      '&d=' + dIdx +
+      '&p=' + this._encodeRouteForShare(routeData.pulls) +
+      '&n=' + encodeURIComponent(routeData.name) +
+      '&r=' + encodeURIComponent(routeData.remark || '');
+    if (routeData.id) query += '&id=' + routeData.id;
     return {
-      title: `🗺️ [${this.data.currentDungeonName}] ${routeName}`,
+      title: `🗺️ [${this.data.currentDungeonName}] ${routeData.name}`,
       query: query
     };
   },

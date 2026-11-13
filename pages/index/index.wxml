@@ -108,6 +108,11 @@
           <view class="card-desc">全职业鼠标指向打断、一键爆发、取消保护、极限视距等常用实战宏命令速查。</view>
         </view>
       </view>
+
+      <!-- 配装模拟器 / BiS 毕业装备速查：数据与功能待完善，首页入口暂时隐藏（2026-11-13）。
+           页面仍保留在 app.json 中注册，跳转方法 navigateToBuild / navigateToBis 保留在 index.js。
+           注意：不要因为「页面已注册但首页没卡片」就自动补入口，需等数据修完并确认后再恢复。
+           恢复方式：在此处加两张 nav-card，bindtap 分别为 navigateToBuild、navigateToBis。 -->
     </view>
   </block>
 

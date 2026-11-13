@@ -49,6 +49,19 @@ page {
   
   --loot-type-color: #666666;
   --loot-main-stat-color: #888888;
+  --meta-color: #4a6885;
+  --boss-count-color: #7d93a8;
+
+  --attr-chip-bg: #eef4fa;
+  --attr-chip-color: #3b5b7a;
+  --attr-chip-border: #cde0f0;
+  --effect-bg: #fff8e8;
+  --effect-border: #e6d2a2;
+  --effect-label-bg: #f4c95d;
+  --effect-label-color: #5a3d00;
+  --effect-text-color: #4a3a12;
+  --use-effect-bg: #eef7ff;
+  --use-effect-border: #b9d9f5;
 }
 
 /* ================= 深色主题 ================= */
@@ -82,6 +95,19 @@ page {
   
   --loot-type-color: #8c7e61;
   --loot-main-stat-color: #a89f91;
+  --meta-color: #8c7e61;
+  --boss-count-color: #8c7e61;
+
+  --attr-chip-bg: #241f16;
+  --attr-chip-color: #d1b87a;
+  --attr-chip-border: #4a3b20;
+  --effect-bg: #241d10;
+  --effect-border: #5c4723;
+  --effect-label-bg: #6b521c;
+  --effect-label-color: #f8d675;
+  --effect-text-color: #e6cc80;
+  --use-effect-bg: #161d24;
+  --use-effect-border: #334a5e;
 }
 
 /* ================= 通用样式 (使用 rpx 自适应) ================= */
@@ -261,10 +287,21 @@ page {
   border-bottom: 2rpx dashed var(--boss-border);
 }
 
+.boss-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 16rpx;
+}
+
 .boss-name {
   font-size: 28rpx;
   font-weight: bold;
   color: var(--boss-name-color);
+}
+
+.boss-count {
+  font-size: 22rpx;
+  color: var(--boss-count-color);
 }
 
 .boss-name-cn {
@@ -282,7 +319,7 @@ page {
 
 .loot-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   padding: 16rpx;
   background-color: var(--item-bg);
   border-radius: 8rpx;
@@ -353,4 +390,105 @@ page {
   color: #999;
   font-style: italic;
   padding: 20rpx;
+}
+
+/* ================= 装备属性与特效 ================= */
+
+.loot-icon {
+  width: 88rpx;
+  height: 88rpx;
+  flex-shrink: 0;
+  margin-right: 16rpx;
+  border-radius: 10rpx;
+  background-color: var(--icon-bg);
+  border: 2rpx solid var(--icon-border);
+}
+
+.loot-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8rpx 14rpx;
+  margin: 2rpx 0 8rpx 0;
+}
+
+.loot-ilvl {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: var(--title-color);
+}
+
+.loot-type {
+  margin-bottom: 0;
+  font-size: 22rpx;
+  color: var(--loot-type-color);
+}
+
+.loot-source {
+  font-size: 21rpx;
+  color: var(--meta-color);
+}
+
+.loot-attrs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-bottom: 8rpx;
+}
+
+.attr-chip {
+  font-size: 21rpx;
+  line-height: 1.4;
+  padding: 4rpx 10rpx;
+  border-radius: 6rpx;
+  color: var(--attr-chip-color);
+  background-color: var(--attr-chip-bg);
+  border: 2rpx solid var(--attr-chip-border);
+}
+
+.attr-chip.muted {
+  color: var(--meta-color);
+  background-color: transparent;
+  border-style: dashed;
+}
+
+.loot-stats {
+  margin-top: 2rpx;
+  margin-bottom: 8rpx;
+}
+
+.loot-effect {
+  display: flex;
+  align-items: flex-start;
+  gap: 10rpx;
+  margin-top: 8rpx;
+  padding: 12rpx 14rpx;
+  border-radius: 8rpx;
+  background-color: var(--effect-bg);
+  border: 2rpx solid var(--effect-border);
+}
+
+.loot-effect.use {
+  background-color: var(--use-effect-bg);
+  border-color: var(--use-effect-border);
+}
+
+.effect-label {
+  flex-shrink: 0;
+  font-size: 20rpx;
+  font-weight: 600;
+  line-height: 1.5;
+  padding: 2rpx 10rpx;
+  border-radius: 6rpx;
+  color: var(--effect-label-color);
+  background-color: var(--effect-label-bg);
+}
+
+.effect-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 22rpx;
+  line-height: 1.6;
+  color: var(--effect-text-color);
+  word-break: break-all;
 }

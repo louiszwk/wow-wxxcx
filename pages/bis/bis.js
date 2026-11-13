@@ -68,7 +68,7 @@ const WOW_CLASSES = [
   {
     id: 'demon-hunter', name: '恶魔猎手', icon: '🦇', color: '#A330C9',
     specs: [
-      { id: 'havoc', name: '浩劫' }, { id: 'vengeance', name: '复仇' }
+      { id: 'havoc', name: '浩劫' }, { id: 'vengeance', name: '复仇' }, { id: 'devourer', name: '噬灭' }
     ]
   },
   {
@@ -93,7 +93,7 @@ Page({
       wx.showShareMenu({ menus: ['shareAppMessage', 'shareTimeline'] });
     }
 
-    const sysInfo = wx.getSystemInfoSync();
+    const sysInfo = (wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync());
     const menuButtonInfo = wx.getMenuButtonBoundingClientRect();
     this.setData({
       navBarHeight: (menuButtonInfo.top - sysInfo.statusBarHeight) * 2 + menuButtonInfo.height + sysInfo.statusBarHeight,

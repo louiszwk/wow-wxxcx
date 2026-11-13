@@ -135,66 +135,54 @@ const SLOTS_CONFIG = [
   { id: 'offHand', name: '副手/盾牌', icon: '🛡️', accepted: ['单手', '副手', '盾牌', '双手'], col: 'bottom' }
 ];
 
-const DUNGEON_PRIORITY = ['全部', '制造业', '烈毒之渊', '潮缚石窟', '史诗钥石', '套装', '地下堡', '狩猎'];
+// 直接由统一权威装备库派生，数据更新后筛选器自动同步，不再写死分类名
+const SOURCE_ORDER = ['烈毒之渊', '潮缚石窟', '基希克斯破封', '史诗钥石', '套装', '地下堡掉落'];
+const DUNGEON_PRIORITY = ['全部', ...SOURCE_ORDER.filter(d => equipmentDb.some(i => i.source_dungeon === d))];
 const STAT_OPTIONS = ['全部', '暴击', '急速', '精通', '全能'];
 
 // 12.1 S2 初始精选方案样本
 function getInitialStarterBuilds() {
-  const getItemByName = (name) => equipmentDb.find(i => i.name === name) || null;
-
-  // 惩戒骑样本
-  const paladinGear = {
-    head: getItemByName('永铸头盔'),
-    neck: getItemByName('土灵匠工护符'),
-    shoulder: getItemByName('永铸肩铠'),
-    back: getItemByName('阿曼尼召唤披肩'),
-    chest: getItemByName('永铸胸甲'),
-    wrist: getItemByName('永铸护腕'),
-    hands: getItemByName('永铸护手'),
-    waist: getItemByName('永铸腰带'),
-    legs: getItemByName('永铸护腿'),
-    feet: getItemByName('永铸战靴'),
-    finger1: getItemByName('土灵匠工之戒'),
-    finger2: getItemByName('阿加竞争者的玺戒'),
-    mainHand: getItemByName('永铸巨斧') // 双手斧
+  // 从统一权威装备库按部位自动挑选，避免写死旧版装备名（数据重建后会全部失效）
+  const bySlot = (slot, armor) => equipmentDb.find(i =>
+    i.slot === slot && (!armor || i.item_class === armor || i.item_class === '其他'));
+  const ARMOR_SLOTS = {
+    head: '头部', shoulder: '肩部', chest: '胸部', wrist: '腕部',
+    hands: '手部', waist: '腰部', legs: '腿部', feet: '脚部'
   };
-
-  // 防骑样本 (单手剑 + 盾牌)
-  const protGear = {
-    head: getItemByName('永铸头盔'),
-    neck: getItemByName('土灵匠工护符'),
-    chest: getItemByName('永铸胸甲'),
-    mainHand: getItemByName('永铸长剑'),
-    offHand: getItemByName('永铸之墙')
+  const makeGear = (armor, mainSlots, withOffHand) => {
+    const gear = {};
+    Object.keys(ARMOR_SLOTS).forEach(key => {
+      const it = bySlot(ARMOR_SLOTS[key], armor);
+      if (it) gear[key] = it;
+    });
+    [['neck', '颈部'], ['back', '背部'], ['finger1', '手指'], ['trinket1', '饰品']]
+      .forEach(([key, slot]) => {
+        const it = bySlot(slot);
+        if (it) gear[key] = it;
+      });
+    const main = equipmentDb.find(i => mainSlots.includes(i.slot));
+    if (main) gear.mainHand = main;
+    if (withOffHand) {
+      const off = equipmentDb.find(i => ['副手', '盾牌'].includes(i.slot));
+      if (off) gear.offHand = off;
+    }
+    return gear;
   };
-
-  const starter1 = {
-    id: 'starter_paladin_ret',
-    name: 'S2 惩戒骑大米大锤爆发流',
-    classId: 'paladin',
-    className: '圣骑士',
-    classColor: '#F48CBA',
-    classIcon: '🛡️',
-    specId: 'retribution',
-    specName: '惩戒',
-    equippedGear: paladinGear,
-    updatedAtText: '12.1 S2 精选'
-  };
-
-  const starter2 = {
-    id: 'starter_paladin_prot',
-    name: 'S2 防护圣骑士高格挡抗伤套',
-    classId: 'paladin',
-    className: '圣骑士',
-    classColor: '#F48CBA',
-    classIcon: '🛡️',
-    specId: 'protection',
-    specName: '防护',
-    equippedGear: protGear,
-    updatedAtText: '12.1 S2 精选'
-  };
-
-  return [starter1, starter2];
+  const common = { classId: 'paladin', className: '圣骑士', classColor: '#F48CBA', classIcon: '🛡️' };
+  return [
+    {
+      id: 'starter_paladin_ret', name: '12.1.5 惩戒骑 · 双手武器流', ...common,
+      specId: 'retribution', specName: '惩戒',
+      equippedGear: makeGear('板甲', ['双手'], false),
+      updatedAtText: '12.1.5 官方装备库精选'
+    },
+    {
+      id: 'starter_paladin_prot', name: '12.1.5 防护骑 · 单手加盾', ...common,
+      specId: 'protection', specName: '防护',
+      equippedGear: makeGear('板甲', ['单手'], true),
+      updatedAtText: '12.1.5 官方装备库精选'
+    }
+  ];
 }
 
 Page({
@@ -288,8 +276,13 @@ Page({
     // 检查是否通过分享口令进入
     if (options && options.shareCode) {
       try {
-        const decodedStr = decodeURIComponent(options.shareCode);
-        const importedBuild = JSON.parse(decodedStr);
+        // 小程序框架已对 query 解码一次；再无条件 decodeURIComponent 会在名字含 % 时抛 URIError
+        let importedBuild = null;
+        try {
+          importedBuild = JSON.parse(options.shareCode);
+        } catch (e) {
+          importedBuild = JSON.parse(decodeURIComponent(options.shareCode));
+        }
         if (importedBuild && importedBuild.name) {
           this.loadBuildIntoEditor(importedBuild, true);
           wx.showToast({ title: '已载入分享配装', icon: 'success' });
